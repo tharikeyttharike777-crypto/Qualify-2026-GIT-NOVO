@@ -87,6 +87,38 @@ router.post('/criar-link', async (req, res) => {
 
         console.log('✅ Assinatura criada:', subscription.id);
 
+        // NOVO: Salva cobrança no Firestore para aparecer na tabela
+        const db = req.app.get('db');
+        if (db) {
+            try {
+                const cobrancaData = {
+                    tipo: 'cartao',
+                    billingType: 'CREDIT_CARD',
+                    valor: parseFloat(value),
+                    vencimento: nextDueDate,
+                    status: 'PENDING',
+                    statusDisplay: 'Em Aberto',
+                    subscriptionId: subscription.id,
+                    asaasPaymentId: subscription.id,
+                    linkPagamento: paymentLink || invoiceUrl,
+                    invoiceUrl: invoiceUrl,
+                    customerId: customerIdFinal,
+                    nomeCliente: nomeCliente,
+                    cpfCnpj: cpfCnpj,
+                    descricao: description || 'Assinatura Qualify',
+                    contratoNumero: req.body.contratoNumero || '',
+                    criadoEm: new Date().toISOString(),
+                    atualizadoEm: new Date().toISOString()
+                };
+
+                const cobrancasRef = db.collection('empresas').doc(empresaId).collection('cobrancas');
+                const docRef = await cobrancasRef.add(cobrancaData);
+                console.log('💾 Cobrança salva no Firestore:', docRef.id);
+            } catch (firestoreError) {
+                console.error('⚠️ Erro ao salvar cobrança no Firestore (não crítico):', firestoreError.message);
+            }
+        }
+
         res.json({
             success: true,
             subscriptionId: subscription.id,
@@ -107,6 +139,7 @@ router.post('/criar-link', async (req, res) => {
         });
     }
 });
+
 
 /**
  * GET /api/subscriptions/:subscriptionId

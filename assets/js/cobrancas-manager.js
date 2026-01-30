@@ -393,7 +393,8 @@
             value: valor,
             nextDueDate: vencimento,
             description: mensagem || `Assinatura contrato ${numeroContrato}`,
-            cycle: 'MONTHLY'
+            cycle: 'MONTHLY',
+            contratoNumero: numeroContrato // Envia para o backend salvar no Firestore
         };
 
         const response = await fetch(`${API_BASE}/subscriptions/criar-link`, {
@@ -417,20 +418,26 @@
             showPaymentLinkModal(paymentLink, valor);
         }
 
-        // Salva cobrança no Firestore
-        await salvarCobrancaFirestore({
-            tipo: 'cartao',
-            valor: valor,
-            vencimento: vencimento,
-            status: 'AGUARDANDO_PAGAMENTO',
-            subscriptionId: result.subscriptionId,
-            linkPagamento: paymentLink,
-            contratoNumero: numeroContrato,
-            criadoEm: new Date().toISOString()
-        }, empresaId);
+        // Backend já salva no Firestore, então apenas recarregamos a tabela
+        console.log('✅ Cobrança criada com sucesso, recarregando tabela...');
+
+        // Recarrega a lista de cobranças para mostrar a nova cobrança
+        setTimeout(() => {
+            if (typeof carregarCobrancas === 'function') {
+                carregarCobrancas(empresaId);
+            }
+            if (typeof reloadCharges === 'function') {
+                reloadCharges();
+            }
+            // Tenta também chamar função global de reload
+            if (window.carregarCobrancasContrato) {
+                window.carregarCobrancasContrato();
+            }
+        }, 500);
 
         return result;
     }
+
 
     /**
      * Exibe modal com Link de Pagamento (Cartão) - Design Premium
