@@ -1,6 +1,10 @@
 /**
- * Sistema de Cobranças - Integração com Asaas PIX
+ * Sistema de Cobranças - Integração com Asaas (PIX, Boleto, Cartão de Crédito)
  * Gerencia a criação, visualização e pagamento de cobranças
+ * 
+ * CORREÇÕES:
+ * - salvarCobrancaFirestore: usa caminho direto sem depender de multitenantConfig
+ * - Novo: Suporte a assinatura via Link de Pagamento (Cartão de Crédito)
  */
 
 (function () {
@@ -166,7 +170,7 @@
     }
 
     /**
-     * Salva a cobrança e gera PIX/Boleto
+     * Salva a cobrança e gera PIX/Boleto/Cartão
      */
     async function saveCharge() {
         console.log('💾 Salvando cobrança...');
@@ -208,9 +212,12 @@
                 await gerarCobrancaPix(empresaId, vencimento, valor, titular, mensagem, numeroContrato);
             } else if (metodo === 'boleto') {
                 await gerarCobrancaBoleto(empresaId, vencimento, valor, titular, mensagem, numeroContrato);
+            } else if (metodo === 'cartao' || metodo === 'credit_card') {
+                // NOVO: Gera assinatura com link de pagamento
+                await gerarAssinaturaCartao(empresaId, vencimento, valor, titular, mensagem, numeroContrato);
             } else {
                 // Salva localmente para outros métodos
-                await salvarCobrancaLocal(vencimento, valor, metodo, mensagem, numeroContrato);
+                await salvarCobrancaLocal(vencimento, valor, metodo, mensagem, numeroContrato, empresaId);
             }
 
             closeAddChargeModal();
@@ -220,6 +227,9 @@
             // Recarrega a lista de cobranças
             if (typeof reloadCharges === 'function') {
                 reloadCharges();
+            }
+            if (typeof carregarCobrancas === 'function') {
+                carregarCobrancas(empresaId);
             }
 
         } catch (error) {
@@ -304,7 +314,6 @@
             expiracao: 3600 // 1 hora para cobrança imediata
         };
 
-        // CORRIGIDO: URL é /api/pix/cob (cobrança imediata, não cobv)
         const response = await fetch(`${API_BASE}/pix/cob`, {
             method: 'POST',
             headers: {
@@ -324,7 +333,7 @@
             showPixModal(result);
         }
 
-        // Salva cobrança localmente
+        // Salva cobrança no Firestore (CORRIGIDO: passa empresaId diretamente)
         await salvarCobrancaFirestore({
             tipo: 'pix',
             valor: valor,
@@ -335,27 +344,135 @@
             imagemQrcode: result.imagemQrcode,
             contratoNumero: numeroContrato,
             criadoEm: new Date().toISOString()
-        });
+        }, empresaId);
 
         return result;
     }
 
     /**
-     * Gera cobrança Boleto (placeholder)
+     * Gera cobrança Boleto via API do Asaas
      */
     async function gerarCobrancaBoleto(empresaId, vencimento, valor, devedor, mensagem, numeroContrato) {
         console.log('📄 Gerando cobrança Boleto para empresa:', empresaId);
 
         // Por enquanto, salva localmente
-        await salvarCobrancaLocal(vencimento, valor, 'boleto', mensagem, numeroContrato);
+        await salvarCobrancaLocal(vencimento, valor, 'boleto', mensagem, numeroContrato, empresaId);
 
         showToast('Boleto salvo como pendente (integração em desenvolvimento)', 'info');
     }
 
     /**
-     * Salva cobrança localmente
+     * NOVO: Gera assinatura recorrente via Cartão de Crédito (Link de Pagamento)
      */
-    async function salvarCobrancaLocal(vencimento, valor, metodo, mensagem, numeroContrato) {
+    async function gerarAssinaturaCartao(empresaId, vencimento, valor, devedor, mensagem, numeroContrato) {
+        console.log('💳 Gerando assinatura com Link de Pagamento para empresa:', empresaId);
+
+        // Busca CPF do pagador
+        let cpfDevedor = null;
+        const cpfInput = document.getElementById('mcCpfPagador');
+        if (cpfInput && cpfInput.value) {
+            cpfDevedor = cpfInput.value.replace(/\D/g, '');
+        }
+
+        // Fallback do localStorage
+        if (!cpfDevedor || cpfDevedor.length < 11) {
+            const cpfEl = document.getElementById('holderCpf');
+            if (cpfEl && cpfEl.dataset.cpf) {
+                cpfDevedor = cpfEl.dataset.cpf.replace(/\D/g, '');
+            }
+        }
+
+        if (!cpfDevedor || cpfDevedor.length < 11) {
+            throw new Error('CPF do pagador é obrigatório para assinatura.');
+        }
+
+        const payload = {
+            empresaId: empresaId,
+            cpfCnpj: cpfDevedor,
+            nomeCliente: devedor,
+            value: valor,
+            nextDueDate: vencimento,
+            description: mensagem || `Assinatura contrato ${numeroContrato}`,
+            cycle: 'MONTHLY'
+        };
+
+        const response = await fetch(`${API_BASE}/subscriptions/criar-link`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Erro ao criar assinatura');
+        }
+
+        // Exibe modal/SweetAlert com o link de pagamento
+        const paymentLink = result.paymentLink || result.invoiceUrl;
+
+        if (paymentLink) {
+            showPaymentLinkModal(paymentLink, valor);
+        }
+
+        // Salva cobrança no Firestore
+        await salvarCobrancaFirestore({
+            tipo: 'cartao',
+            valor: valor,
+            vencimento: vencimento,
+            status: 'AGUARDANDO_PAGAMENTO',
+            subscriptionId: result.subscriptionId,
+            linkPagamento: paymentLink,
+            contratoNumero: numeroContrato,
+            criadoEm: new Date().toISOString()
+        }, empresaId);
+
+        return result;
+    }
+
+    /**
+     * Exibe modal com Link de Pagamento (Cartão)
+     */
+    function showPaymentLinkModal(link, valor) {
+        // Verifica se SweetAlert2 está disponível
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '💳 Link de Pagamento Gerado!',
+                html: `
+                    <p>Valor: <strong>R$ ${valor.toFixed(2)}</strong></p>
+                    <p>Envie este link para o cliente realizar o pagamento:</p>
+                    <div style="margin: 15px 0;">
+                        <input type="text" id="swalPaymentLink" value="${link}" 
+                               style="width: 100%; padding: 10px; font-size: 12px; border: 1px solid #ddd; border-radius: 5px;" readonly>
+                    </div>
+                `,
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: '📋 Copiar Link',
+                cancelButtonText: 'Fechar',
+                confirmButtonColor: '#28a745'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    navigator.clipboard.writeText(link);
+                    Swal.fire('Copiado!', 'Link copiado para a área de transferência.', 'success');
+                }
+            });
+        } else {
+            // Fallback sem SweetAlert
+            const copied = prompt('Link de Pagamento (Ctrl+C para copiar):', link);
+            if (copied !== null) {
+                navigator.clipboard.writeText(link);
+                showToast('Link copiado!', 'success');
+            }
+        }
+    }
+
+    /**
+     * Salva cobrança localmente (passa para Firestore)
+     */
+    async function salvarCobrancaLocal(vencimento, valor, metodo, mensagem, numeroContrato, empresaId) {
         console.log('💾 Salvando cobrança local...');
 
         const cobranca = {
@@ -369,26 +486,65 @@
             criadoEm: new Date().toISOString()
         };
 
-        await salvarCobrancaFirestore(cobranca);
+        await salvarCobrancaFirestore(cobranca, empresaId);
     }
 
     /**
-     * Salva cobrança no Firestore
+     * CORRIGIDO: Salva cobrança no Firestore usando caminho direto
+     * Não depende de multitenantConfig - usa empresaUid diretamente
      */
-    async function salvarCobrancaFirestore(cobranca) {
+    async function salvarCobrancaFirestore(cobrancaData, empresaUid) {
         try {
-            if (window.multitenantConfig && window.multitenantConfig.getCompanyCollection) {
-                const colRef = window.multitenantConfig.getCompanyCollection('cobrancas');
-                await colRef.add(cobranca);
-                console.log('✅ Cobrança salva no Firestore');
-            } else {
-                // Fallback: salva no localStorage
-                const key = `COBRANCA_${cobranca.contratoNumero}_${Date.now()}`;
-                localStorage.setItem(key, JSON.stringify(cobranca));
-                console.log('✅ Cobrança salva no localStorage');
+            // Validação do empresaUid
+            if (!empresaUid) {
+                // Tenta recuperar do localStorage como último recurso
+                empresaUid = getEmpresaId();
             }
+
+            if (!empresaUid) {
+                throw new Error('Nenhuma empresa ativa - empresaUid não fornecido');
+            }
+
+            console.log('💾 Salvando cobrança no Firestore para empresa:', empresaUid);
+
+            // Verifica se Firebase está disponível
+            if (typeof firebase !== 'undefined' && firebase.firestore) {
+                const db = firebase.firestore();
+
+                // CORREÇÃO: Caminho manual e direto, sem depender de config global
+                const cobrancasRef = db.collection('empresas').doc(empresaUid).collection('cobrancas');
+
+                // Adiciona documento
+                const docRef = await cobrancasRef.add({
+                    ...cobrancaData,
+                    empresaId: empresaUid,
+                    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                console.log('✅ Cobrança salva no Firestore, ID:', docRef.id);
+
+                // Recarrega a lista de cobranças
+                if (typeof carregarCobrancas === 'function') {
+                    carregarCobrancas(empresaUid);
+                }
+
+                return docRef.id;
+
+            } else {
+                // Fallback: salva no localStorage se Firebase não estiver disponível
+                const key = `COBRANCA_${cobrancaData.contratoNumero}_${Date.now()}`;
+                localStorage.setItem(key, JSON.stringify(cobrancaData));
+                console.log('✅ Cobrança salva no localStorage (fallback):', key);
+                return key;
+            }
+
         } catch (error) {
             console.error('❌ Erro ao salvar cobrança:', error);
+
+            // Fallback: salva no localStorage em caso de erro
+            const key = `COBRANCA_${cobrancaData.contratoNumero}_${Date.now()}`;
+            localStorage.setItem(key, JSON.stringify(cobrancaData));
+            console.log('⚠️ Cobrança salva no localStorage (erro Firestore):', key);
         }
     }
 
@@ -467,5 +623,6 @@
     window.openAddChargeModal = openAddChargeModal;
     window.closeAddChargeModal = closeAddChargeModal;
     window.showPixModal = showPixModal;
+    window.salvarCobrancaFirestore = salvarCobrancaFirestore;
 
 })();
