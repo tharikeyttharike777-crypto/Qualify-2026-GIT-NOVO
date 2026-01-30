@@ -433,7 +433,7 @@
     }
 
     /**
-     * Exibe modal com Link de Pagamento (Cartão)
+     * Exibe modal com Link de Pagamento (Cartão) - Design Premium
      */
     function showPaymentLinkModal(link, valor) {
         // Verifica se SweetAlert2 está disponível
@@ -441,33 +441,212 @@
             Swal.fire({
                 title: '💳 Link de Pagamento Gerado!',
                 html: `
-                    <p>Valor: <strong>R$ ${valor.toFixed(2)}</strong></p>
-                    <p>Envie este link para o cliente realizar o pagamento:</p>
-                    <div style="margin: 15px 0;">
+                    <p style="color: #666; margin-bottom: 15px;">Valor: <strong style="color: #28a745; font-size: 18px;">R$ ${valor.toFixed(2)}</strong></p>
+                    <p style="color: #555;">Envie este link para o cliente pagar no cartão:</p>
+                    <div style="margin: 15px 0; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
                         <input type="text" id="swalPaymentLink" value="${link}" 
-                               style="width: 100%; padding: 10px; font-size: 12px; border: 1px solid #ddd; border-radius: 5px;" readonly>
+                               style="width: 100%; padding: 12px; font-size: 13px; border: 1px solid #ced4da; border-radius: 6px; background: white;" readonly>
                     </div>
                 `,
                 icon: 'success',
                 showCancelButton: true,
                 confirmButtonText: '📋 Copiar Link',
                 cancelButtonText: 'Fechar',
-                confirmButtonColor: '#28a745'
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d'
             }).then((result) => {
                 if (result.isConfirmed) {
                     navigator.clipboard.writeText(link);
-                    Swal.fire('Copiado!', 'Link copiado para a área de transferência.', 'success');
+                    Swal.fire({
+                        title: 'Copiado!',
+                        text: 'Link copiado para a área de transferência.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
                 }
             });
         } else {
-            // Fallback sem SweetAlert
-            const copied = prompt('Link de Pagamento (Ctrl+C para copiar):', link);
-            if (copied !== null) {
-                navigator.clipboard.writeText(link);
-                showToast('Link copiado!', 'success');
-            }
+            // Fallback: Modal HTML dinâmico premium (sem SweetAlert)
+            createPaymentLinkModalHTML(link, valor);
         }
     }
+
+    /**
+     * Cria modal HTML dinâmico para Link de Pagamento (fallback sem SweetAlert)
+     */
+    function createPaymentLinkModalHTML(link, valor) {
+        // Remove modal anterior se existir
+        const existing = document.getElementById('modalPaymentLink');
+        if (existing) existing.remove();
+
+        // Cria o modal
+        const modalHTML = `
+            <div id="modalPaymentLink" class="modal-backdrop" style="
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                animation: fadeIn 0.2s ease-out;
+            ">
+                <div class="modal" style="
+                    background: white;
+                    border-radius: 16px;
+                    width: 500px;
+                    max-width: 95vw;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    overflow: hidden;
+                    animation: slideUp 0.3s ease-out;
+                ">
+                    <header style="
+                        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                        color: white;
+                        padding: 20px 24px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 28px;">💳</span>
+                            <div>
+                                <strong style="font-size: 18px; display: block;">Link de Pagamento Gerado!</strong>
+                                <small style="opacity: 0.9;">Assinatura via Cartão de Crédito</small>
+                            </div>
+                        </div>
+                        <button id="closePaymentLinkModal" style="
+                            background: rgba(255,255,255,0.2);
+                            border: none;
+                            color: white;
+                            width: 36px;
+                            height: 36px;
+                            border-radius: 50%;
+                            cursor: pointer;
+                            font-size: 20px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">&times;</button>
+                    </header>
+                    <div class="content" style="padding: 24px;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <span style="
+                                display: inline-block;
+                                background: #e8f5e9;
+                                color: #28a745;
+                                padding: 8px 20px;
+                                border-radius: 50px;
+                                font-weight: 700;
+                                font-size: 20px;
+                            ">R$ ${valor.toFixed(2)}</span>
+                        </div>
+                        <p style="color: #555; text-align: center; margin-bottom: 16px;">
+                            Envie este link para o cliente realizar o pagamento:
+                        </p>
+                        <div style="
+                            background: #f8f9fa;
+                            border: 2px dashed #dee2e6;
+                            border-radius: 10px;
+                            padding: 16px;
+                            margin-bottom: 20px;
+                        ">
+                            <input type="text" id="paymentLinkInput" value="${link}" readonly style="
+                                width: 100%;
+                                padding: 14px;
+                                font-size: 13px;
+                                border: 1px solid #ced4da;
+                                border-radius: 8px;
+                                background: white;
+                                color: #333;
+                                text-align: center;
+                                box-sizing: border-box;
+                            ">
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button id="copyPaymentLink" style="
+                                flex: 1;
+                                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                                color: white;
+                                border: none;
+                                padding: 14px 24px;
+                                border-radius: 10px;
+                                font-size: 15px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                                transition: transform 0.2s, box-shadow 0.2s;
+                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(40,167,69,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'">
+                                <i class="fas fa-copy"></i> Copiar Link
+                            </button>
+                            <button id="openPaymentLink" style="
+                                background: #6c757d;
+                                color: white;
+                                border: none;
+                                padding: 14px 20px;
+                                border-radius: 10px;
+                                font-size: 15px;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                                transition: background 0.2s;
+                            " onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">
+                                <i class="fas fa-external-link-alt"></i> Abrir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+            </style>
+        `;
+
+        // Adiciona ao DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Eventos
+        const modal = document.getElementById('modalPaymentLink');
+        const closeBtn = document.getElementById('closePaymentLinkModal');
+        const copyBtn = document.getElementById('copyPaymentLink');
+        const openBtn = document.getElementById('openPaymentLink');
+        const linkInput = document.getElementById('paymentLinkInput');
+
+        // Fechar modal
+        closeBtn.addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+
+        // Copiar link
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(link).then(() => {
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                copyBtn.style.background = '#155724';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copiar Link';
+                    copyBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }, 2000);
+            });
+        });
+
+        // Abrir link
+        openBtn.addEventListener('click', () => {
+            window.open(link, '_blank');
+        });
+
+        // Selecionar texto ao clicar
+        linkInput.addEventListener('click', () => linkInput.select());
+    }
+
 
     /**
      * Salva cobrança localmente (passa para Firestore)
