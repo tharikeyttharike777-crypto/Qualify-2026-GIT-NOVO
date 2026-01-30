@@ -89,7 +89,7 @@
         const tbodyPagas = tblPagas.querySelector('tbody');
 
         // Mostra loading
-        tbodyAbertas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr>';
+        tbodyAbertas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr>';
         tbodyPagas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr>';
 
         try {
@@ -99,10 +99,12 @@
 
             const db = firebase.firestore();
             const cobrancasRef = db.collection('empresas').doc(empresaId).collection('cobrancas');
-            const snapshot = await cobrancasRef.orderBy('criadoEm', 'desc').get();
+            // Busca sem orderBy pois campos de data têm nomes diferentes (criadoEm vs criadaEm)
+            const snapshot = await cobrancasRef.get();
 
             const cobrancasAbertas = [];
             const cobrancasPagas = [];
+
 
             snapshot.forEach(doc => {
                 const data = { id: doc.id, ...doc.data() };
@@ -177,19 +179,20 @@
                     acoesHTML += `<button class="btn btn-sm btn-success" onclick="copiarPix('${cob.pixCopiaECola}')" title="Copiar PIX"><i class="fas fa-qrcode"></i></button> `;
                 }
 
+                // 5 colunas: Tipo | Vencimento | Valor | Status | Ações
                 tr.innerHTML = `
-                    <td class="text-center" style="padding:12px;">${tipoIcone}</td>
-                    <td class="text-center" style="padding:12px;">${dataFormatada}</td>
-                    <td class="text-center" style="padding:12px;"><strong>${valor}</strong></td>
-                    <td style="padding:12px;">
-                        ${statusBadge}
-                        <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
-                            ${acoesHTML || '<span style="color:#999; font-size:12px;">Sem ações disponíveis</span>'}
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${tipoIcone}</td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${dataFormatada}</td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;"><strong>${valor}</strong></td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${statusBadge}</td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">
+                        <div style="display:flex; gap:4px; justify-content:center; flex-wrap:nowrap;">
+                            ${acoesHTML || '<span style="color:#999; font-size:11px;">-</span>'}
                         </div>
                     </td>
                 `;
             } else {
-                // Para cobranças pagas
+                // Para cobranças pagas - 4 colunas: Tipo | Data Pgto | Valor | Método
                 let dataPagamento = '-';
                 if (cob.dataPagamento || cob.confirmedDate) {
                     const dp = new Date(cob.dataPagamento || cob.confirmedDate);
@@ -197,16 +200,17 @@
                 }
 
                 tr.innerHTML = `
-                    <td class="text-center" style="padding:12px;">${tipoIcone}</td>
-                    <td class="text-center" style="padding:12px;">${dataPagamento}</td>
-                    <td class="text-center" style="padding:12px;"><strong style="color:#28a745;">${valor}</strong></td>
-                    <td class="text-center" style="padding:12px;">${getTipoLabel(cob.tipo || cob.billingType)}</td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${tipoIcone}</td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${dataPagamento}</td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;"><strong style="color:#28a745;">${valor}</strong></td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${getTipoLabel(cob.tipo || cob.billingType)}</td>
                 `;
             }
 
             tbody.appendChild(tr);
         });
     }
+
 
     /**
      * Retorna ícone baseado no tipo de cobrança
