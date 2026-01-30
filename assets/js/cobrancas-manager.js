@@ -50,8 +50,228 @@
         bindChargeEvents();
         bindModalEvents();
 
+        // Carrega cobranças ao iniciar (se empresaId disponível)
+        setTimeout(() => {
+            const empresaId = getEmpresaId();
+            if (empresaId) {
+                carregarCobrancasContrato(empresaId);
+            }
+        }, 1000);
+
         console.log('✅ Sistema de cobranças inicializado');
     });
+
+    /**
+     * Carrega cobranças do Firestore e popula as tabelas
+     * @param {string} empresaId - ID da empresa
+     */
+    async function carregarCobrancasContrato(empresaId) {
+        console.log('📋 Carregando cobranças para empresa:', empresaId);
+
+        if (!empresaId) {
+            empresaId = getEmpresaId();
+        }
+
+        if (!empresaId) {
+            console.warn('⚠️ Nenhum empresaId disponível para carregar cobranças');
+            return;
+        }
+
+        const tblAbertas = document.getElementById('tblAbertas');
+        const tblPagas = document.getElementById('tblPagas');
+
+        if (!tblAbertas || !tblPagas) {
+            console.warn('⚠️ Tabelas de cobranças não encontradas no DOM');
+            return;
+        }
+
+        const tbodyAbertas = tblAbertas.querySelector('tbody');
+        const tbodyPagas = tblPagas.querySelector('tbody');
+
+        // Mostra loading
+        tbodyAbertas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr>';
+        tbodyPagas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr>';
+
+        try {
+            if (typeof firebase === 'undefined' || !firebase.firestore) {
+                throw new Error('Firebase não disponível');
+            }
+
+            const db = firebase.firestore();
+            const cobrancasRef = db.collection('empresas').doc(empresaId).collection('cobrancas');
+            const snapshot = await cobrancasRef.orderBy('criadoEm', 'desc').get();
+
+            const cobrancasAbertas = [];
+            const cobrancasPagas = [];
+
+            snapshot.forEach(doc => {
+                const data = { id: doc.id, ...doc.data() };
+                const status = (data.status || '').toUpperCase();
+
+                // Classifica por status
+                if (status === 'RECEIVED' || status === 'CONFIRMED' || status === 'PAGO' || status === 'PAID') {
+                    cobrancasPagas.push(data);
+                } else {
+                    cobrancasAbertas.push(data);
+                }
+            });
+
+            console.log(`✅ Cobranças carregadas: ${cobrancasAbertas.length} abertas, ${cobrancasPagas.length} pagas`);
+
+            // Renderiza cobranças em aberto
+            renderizarTabelaCobranças(tbodyAbertas, cobrancasAbertas, 'aberta');
+
+            // Renderiza cobranças pagas
+            renderizarTabelaCobranças(tbodyPagas, cobrancasPagas, 'paga');
+
+        } catch (error) {
+            console.error('❌ Erro ao carregar cobranças:', error);
+            tbodyAbertas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#dc3545;">Erro ao carregar cobranças</td></tr>';
+            tbodyPagas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#dc3545;">Erro ao carregar cobranças</td></tr>';
+        }
+    }
+
+    /**
+     * Renderiza tabela de cobranças
+     */
+    function renderizarTabelaCobranças(tbody, cobrancas, tipo) {
+        if (cobrancas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#999;">Nenhuma cobrança ${tipo === 'aberta' ? 'em aberto' : 'paga'}</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = '';
+
+        cobrancas.forEach((cob, index) => {
+            const tr = document.createElement('tr');
+
+            // Formata valor
+            const valor = parseFloat(cob.valor || 0).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+
+            // Formata data
+            let dataFormatada = '-';
+            if (cob.vencimento) {
+                const dataVenc = new Date(cob.vencimento + 'T00:00:00');
+                dataFormatada = dataVenc.toLocaleDateString('pt-BR');
+            }
+
+            // Ícone do tipo
+            const tipoIcone = getTipoIcone(cob.tipo || cob.billingType);
+
+            // Status badge
+            const statusBadge = getStatusBadge(cob.status);
+
+            if (tipo === 'aberta') {
+                // Botões de ação para cobranças abertas
+                let acoesHTML = '';
+
+                if (cob.linkPagamento || cob.invoiceUrl) {
+                    acoesHTML += `<button class="btn btn-sm btn-primary" onclick="copiarLink('${cob.linkPagamento || cob.invoiceUrl}')" title="Copiar Link"><i class="fas fa-copy"></i></button> `;
+                    acoesHTML += `<a href="${cob.linkPagamento || cob.invoiceUrl}" target="_blank" class="btn btn-sm btn-secondary" title="Abrir Link"><i class="fas fa-external-link-alt"></i></a> `;
+                }
+
+                if (cob.pixCopiaECola) {
+                    acoesHTML += `<button class="btn btn-sm btn-success" onclick="copiarPix('${cob.pixCopiaECola}')" title="Copiar PIX"><i class="fas fa-qrcode"></i></button> `;
+                }
+
+                tr.innerHTML = `
+                    <td class="text-center" style="padding:12px;">${tipoIcone}</td>
+                    <td class="text-center" style="padding:12px;">${dataFormatada}</td>
+                    <td class="text-center" style="padding:12px;"><strong>${valor}</strong></td>
+                    <td style="padding:12px;">
+                        ${statusBadge}
+                        <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
+                            ${acoesHTML || '<span style="color:#999; font-size:12px;">Sem ações disponíveis</span>'}
+                        </div>
+                    </td>
+                `;
+            } else {
+                // Para cobranças pagas
+                let dataPagamento = '-';
+                if (cob.dataPagamento || cob.confirmedDate) {
+                    const dp = new Date(cob.dataPagamento || cob.confirmedDate);
+                    dataPagamento = dp.toLocaleDateString('pt-BR');
+                }
+
+                tr.innerHTML = `
+                    <td class="text-center" style="padding:12px;">${tipoIcone}</td>
+                    <td class="text-center" style="padding:12px;">${dataPagamento}</td>
+                    <td class="text-center" style="padding:12px;"><strong style="color:#28a745;">${valor}</strong></td>
+                    <td class="text-center" style="padding:12px;">${getTipoLabel(cob.tipo || cob.billingType)}</td>
+                `;
+            }
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    /**
+     * Retorna ícone baseado no tipo de cobrança
+     */
+    function getTipoIcone(tipo) {
+        const t = (tipo || '').toLowerCase();
+        if (t === 'pix') return '<i class="fas fa-qrcode" style="color:#00a651; font-size:18px;" title="PIX"></i>';
+        if (t === 'boleto') return '<i class="fas fa-barcode" style="color:#333; font-size:18px;" title="Boleto"></i>';
+        if (t === 'cartao' || t === 'credit_card') return '<i class="fas fa-credit-card" style="color:#0d6efd; font-size:18px;" title="Cartão"></i>';
+        return '<i class="fas fa-money-bill" style="color:#666; font-size:18px;" title="Outro"></i>';
+    }
+
+    /**
+     * Retorna label do tipo
+     */
+    function getTipoLabel(tipo) {
+        const t = (tipo || '').toLowerCase();
+        if (t === 'pix') return '<span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:4px; font-size:12px;">PIX</span>';
+        if (t === 'boleto') return '<span style="background:#fff3e0; color:#e65100; padding:4px 8px; border-radius:4px; font-size:12px;">Boleto</span>';
+        if (t === 'cartao' || t === 'credit_card') return '<span style="background:#e3f2fd; color:#1565c0; padding:4px 8px; border-radius:4px; font-size:12px;">Cartão</span>';
+        return '<span style="background:#f5f5f5; color:#666; padding:4px 8px; border-radius:4px; font-size:12px;">Outro</span>';
+    }
+
+    /**
+     * Retorna badge de status formatado
+     */
+    function getStatusBadge(status) {
+        const s = (status || '').toUpperCase();
+
+        const statusMap = {
+            'PENDING': { label: 'Pendente', bg: '#fff3cd', color: '#856404' },
+            'AGUARDANDO_PAGAMENTO': { label: 'Aguardando', bg: '#fff3cd', color: '#856404' },
+            'OVERDUE': { label: 'Vencida', bg: '#f8d7da', color: '#721c24' },
+            'RECEIVED': { label: 'Pago', bg: '#d4edda', color: '#155724' },
+            'CONFIRMED': { label: 'Confirmado', bg: '#d4edda', color: '#155724' },
+            'PAGO': { label: 'Pago', bg: '#d4edda', color: '#155724' },
+            'CANCELLED': { label: 'Cancelado', bg: '#e2e3e5', color: '#383d41' },
+            'REFUNDED': { label: 'Estornado', bg: '#cce5ff', color: '#004085' }
+        };
+
+        const config = statusMap[s] || { label: s || 'Em Aberto', bg: '#e3f2fd', color: '#1565c0' };
+
+        return `<span style="display:inline-block; background:${config.bg}; color:${config.color}; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:600;">${config.label}</span>`;
+    }
+
+    // Expõe função globalmente para ser chamada de outros scripts
+    window.carregarCobrancasContrato = carregarCobrancasContrato;
+
+    // Funções auxiliares globais para botões de ação
+    window.copiarLink = function (link) {
+        navigator.clipboard.writeText(link).then(() => {
+            showToast('Link copiado!', 'success');
+        }).catch(() => {
+            prompt('Copie o link:', link);
+        });
+    };
+
+    window.copiarPix = function (pix) {
+        navigator.clipboard.writeText(pix).then(() => {
+            showToast('PIX Copia e Cola copiado!', 'success');
+        }).catch(() => {
+            prompt('Copie o código PIX:', pix);
+        });
+    };
+
 
     /**
      * Vincula eventos do botão de adicionar cobrança
