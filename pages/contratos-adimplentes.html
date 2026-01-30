@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Contratos Adimplentes - QUALIFY</title>
+    <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-fix.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/contratos-adimplentes.css?v=20250127003">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003" rel="stylesheet">
+    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+</head>
+<body>
+    <div class="container">        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            .layout-shift-prevention {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+        </style>
+
+                <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24" style="margin-right: 8px;">
+                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <div id="search-results" class="search-results"></div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">9</span>
+                </div>
+                <div class="user-info">
+                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                </div>
+                
+                <!-- Menu de Usuário -->
+                <div class="user-menu-container">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário" aria-expanded="false">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown" id="userDropdown" role="menu" aria-hidden="true">
+                        <div class="dropdown-content">
+                            <!-- Item 1: Perfil -->
+                            <a href="perfil.html" class="dropdown-item" role="menuitem" data-action="profile">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Meu Perfil</span>
+                                    <span class="dropdown-item-subtitle">Configurações pessoais</span>
+                                </div>
+                            </a>
+                            
+                            <!-- Item 2: Configurações -->
+                            <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Configurações</span>
+                                    <span class="dropdown-item-subtitle">Ajustes do sistema</span>
+                                </div>
+                            </a>
+                            
+                            <!-- Divider -->
+                            <div class="dropdown-divider"></div>
+                            
+                            <!-- Item 3: Ajuda -->
+                            <a href="#" class="dropdown-item" role="menuitem" data-action="help">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-question-circle"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Ajuda</span>
+                                    <span class="dropdown-item-subtitle">Suporte e documentação</span>
+                                </div>
+                            </a>
+                            
+                            <!-- Divider -->
+                            <div class="dropdown-divider"></div>
+                            
+                            <!-- Item 4: Logout -->
+                            <a href="#" class="dropdown-item logout-item" role="menuitem" data-action="logout" id="logoutBtn">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Sair</span>
+                                    <span class="dropdown-item-subtitle">Encerrar sessão</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+    <!-- Menu Lateral Fixo -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button id="sidebar-close" class="sidebar-close">&times;</button>
+        </div>
+
+        <div class="sidebar-content">
+            <ul class="sidebar-menu">
+                <!-- Mais usados -->
+                <li class="menu-item has-submenu expanded">
+                    <a href="#" class="menu-link">
+                        <i class="icon-star"></i>
+                        <span class="menu-text">Mais usados</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+ <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+ <li><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="inadimplentes.html">Inadimplentes</a></li>
+                        <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
+                        <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="controle-caixas.html">Controle de caixas</a></li>
+                        <li><a href="contas-receber.html">Contas a receber</a></li>
+
+                    </ul>
+                </li>
+
+                <!-- Contratos -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-contract"></i>
+                        <span class="menu-text">Contratos</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="contratos.html">Ativos</a></li>
+                        <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="contratos-adimplentes.html" class="active">Adimplentes</a></li>
+                        <li><a href="cancelados.html">Cancelados</a></li>
+                    </ul>
+                </li>
+
+                <!-- Financeiro -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-money"></i>
+                        <span class="menu-text">Financeiro</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="contas-pagar.html">Contas a pagar</a></li>
+                        <li><a href="resumo-dia.html">Resumo do dia</a></li>
+                        <li><a href="comissionamento.html">Comissionamento</a></li>
+                        <li><a href="metas.html">Metas</a></li>
+                    </ul>
+                </li>
+
+                <!-- Famílias -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-family"></i>
+                        <span class="menu-text">Famílias</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                        <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
+                <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
+                        <li><a href="aniversariantes.html">Aniversariantes</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Overlay para fechar o menu em dispositivos móveis -->
+
+        <!-- Action Buttons -->
+        <main class="main-content">
+        <div class="action-buttons">
+            <button type="button" class="btn btn-filter" id="filterBtn">
+                <i class="icon-filter"></i> Filtros
+            </button>
+            <button type="button" class="btn btn-export" id="exportBtn">
+                <i class="icon-export"></i> Exportar
+                <i class="icon-dropdown"></i>
+            </button>
+        </div>
+
+        <!-- Filter Status -->
+        <div class="filter-status">
+            <span id="filterStatusText">Nenhum filtro aplicado</span>
+        </div>
+
+        <!-- Search Section -->
+        <section class="search-section" aria-label="Busca de contratos">
+            <label for="contractSearchInput" class="search-label">Buscar contratos</label>
+            <input type="text" id="contractSearchInput" class="search-input-field" placeholder="Pesquisar por nº, titular, celular ou observação..." />
+        </section>
+
+        <!-- Table Container -->
+        <div class="table-container">
+            <table class="adimplentes-table">
+                <thead>
+                    <tr>
+                        <th>Ver</th>
+                        <th>Nº do contrato</th>
+                        <th>Titular</th>
+                        <th>Dia do vencimento</th>
+                        <th>Celular</th>
+                        <th>Data do contrato</th>
+                        <th>Valor Pago</th>
+                        <th>Pagos</th>
+                        <th>Mensalidade</th>
+                        <th>Último pagamento</th>
+                    <th>Última observação</th>
+                        <th>Opções</th>
+                    </tr>
+                </thead>
+                <tbody id="adimplentesTableBody">
+                    <!-- Dados serão inseridos via JavaScript -->
+                </tbody>
+            </table>
+
+            <div class="no-data hidden" id="noDataMessage">
+                <p>Nenhum contrato adimplente encontrado.</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span>Quantidade de registros: <strong id="recordsCount">0</strong></span>
+            </div>
+
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="firstPageBtn" title="Primeira página">
+                    <i class="icon-first"></i>
+                </button>
+                <button class="pagination-btn" id="prevPageBtn" title="Página anterior">
+                    <i class="icon-prev"></i>
+                </button>
+
+                <div class="page-numbers" id="pageNumbers">
+                    <!-- Números das páginas serão inseridos via JavaScript -->
+                </div>
+
+                <button class="pagination-btn" id="nextPageBtn" title="Próxima página">
+                    <i class="icon-next"></i>
+                </button>
+                <button class="pagination-btn" id="lastPageBtn" title="Última página">
+                    <i class="icon-last"></i>
+                </button>
+            </div>
+        </div>
+        </main>
+
+        <!-- Filter Modal -->
+        <div class="modal hidden" id="filterModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Filtros</h3>
+                    <button class="modal-close" id="closeFilterModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="filter-form">
+                        <div class="filter-grid">
+                            <div class="filter-group">
+                                <label for="contractNumber">Nãmero do Contrato:</label>
+                                <input type="text" id="contractNumber" class="form-input" placeholder="Digite o nãmero">
+                            </div>
+                            <div class="filter-group">
+                                <label for="holderName">Nome do Titular:</label>
+                                <input type="text" id="holderName" class="form-input" placeholder="Digite o nome">
+                            </div>
+                            <div class="filter-group">
+                                <label for="planType">Tipo de Plano:</label>
+                                <select id="planType" class="form-select">
+                                    <option value="">Todos os planos</option>
+                                    <option value="PSICOLOGIA BASIC">Psicologia Basic</option>
+                                    <option value="PSICOLOGIA MASTER">Psicologia Master</option>
+                                    <option value="ASSISTENCIA FAMILIAR">Assistãncia Familiar</option>
+                                    <option value="TELEMEDICINA MASTER">Telemedicina Master</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="dueDay">Dia do Vencimento:</label>
+                                <select id="dueDay" class="form-select">
+                                    <option value="">Todos os dias</option>
+                                    <option value="5">Dia 5</option>
+                                    <option value="10">Dia 10</option>
+                                    <option value="15">Dia 15</option>
+                                    <option value="20">Dia 20</option>
+                                    <option value="25">Dia 25</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="contractDateFrom">Data do Contrato (De):</label>
+                                <input type="date" id="contractDateFrom" class="form-input">
+                            </div>
+                            <div class="filter-group">
+                                <label for="contractDateTo">Data do Contrato (Atã):</label>
+                                <input type="date" id="contractDateTo" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="clearFiltersBtn">Limpar Filtros</button>
+                    <button type="button" class="btn btn-primary" id="applyFiltersBtn">Aplicar Filtros</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Modal -->
+        <div class="modal hidden" id="messageModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Enviar Mensagem</h3>
+                    <button class="modal-close" id="closeMessageModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="message-form">
+                        <div class="form-group">
+                            <label for="messageType">Tipo de Mensagem:</label>
+                            <select id="messageType" class="form-select">
+                                <option value="sms">SMS</option>
+                                <option value="email">E-mail</option>
+                                <option value="whatsapp">WhatsApp</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="messageSubject">Assunto:</label>
+                            <input type="text" id="messageSubject" class="form-input" placeholder="Digite o assunto">
+                        </div>
+                        <div class="form-group">
+                            <label for="messageContent">Mensagem:</label>
+                            <textarea id="messageContent" class="form-textarea" rows="5" placeholder="Digite sua mensagem..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="sendToAll"> Enviar para todos os contratos adimplentes
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelMessageBtn">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="sendMessageBtn">Enviar Mensagem</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Modal -->
+        <div class="modal hidden" id="exportModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Exportar Dados</h3>
+                    <button class="modal-close" id="closeExportModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="export-options">
+                        <div class="export-option" onclick="exportData('excel')">
+                            <i class="icon-excel"></i>
+                            <span>Exportar para Excel</span>
+                        </div>
+                        <div class="export-option" onclick="exportData('pdf')">
+                            <i class="icon-pdf"></i>
+                            <span>Exportar para PDF</span>
+                        </div>
+                        <div class="export-option" onclick="exportData('csv')">
+                            <i class="icon-csv"></i>
+                            <span>Exportar para CSV</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003"></script>
+    
+    <!-- Firebase Configuration -->
+<script src="../firebase-config.js?v=20250127003"></script>
+    
+    <!-- Authentication Guard -->
+    <script src="../assets/js/auth-guard.js?v=20250127003"></script>
+    
+    <!-- Multi-tenant Configuration -->
+    <script src="../assets/js/multitenant-config.js?v=20250127003"></script>
+    
+    <!-- User Data Manager -->
+    <script src="../assets/js/user-data-manager.js?v=20250127003"></script>
+
+    <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
+    <script src="../assets/js/contratos-adimplentes.js?v=3"></script>
+    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+
+    <!-- Script Melhorado do Accordion -->
+    <script>
+    // Função melhorada para inicializar o accordion
+    function initializeImprovedAccordion() {
+        console.log('🔄 Inicializando accordion melhorado...');
+        
+        // Aguarda um pouco para garantir que todos os elementos estejam prontos
+        setTimeout(() => {
+            // Seleciona todos os itens de submenu
+            const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+            console.log(`📊 Encontrados ${submenuItems.length} itens de submenu`);
+            
+            submenuItems.forEach((menuItem, index) => {
+                // Encontra o link clicável dentro do item
+                const menuLink = menuItem.querySelector('.menu-link, a');
+                const submenu = menuItem.querySelector('.submenu');
+                const arrowIcon = menuItem.querySelector('.arrow-icon');
+                
+                if (menuLink && submenu) {
+                    // Remove event listeners existentes clonando o elemento
+                    const newMenuLink = menuLink.cloneNode(true);
+                    menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+                    
+                    // Adiciona novo event listener melhorado
+                    newMenuLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log(`🖱️ Clique no item ${index + 1}`);
+                        
+                        // Fecha todos os outros submenus
+                        const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                        allMenuItems.forEach(item => {
+                            if (item !== menuItem) {
+                                item.classList.remove('expanded');
+                            }
+                        });
+                        
+                        // Toggle do item atual
+                        menuItem.classList.toggle('expanded');
+                        
+                        const isExpanded = menuItem.classList.contains('expanded');
+                        console.log(`${isExpanded ? '📂' : '📁'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+                        
+                        // Atualiza o ícone da seta se existir
+                        if (arrowIcon) {
+                            arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                        }
+                    });
+                    
+                    console.log(`✅ Evento vinculado ao item ${index + 1}`);
+                } else {
+                    console.warn(`⚠️ Item ${index + 1} não tem link ou submenu válido`);
+                }
+            });
+            
+            console.log('✅ Accordion melhorado inicializado com sucesso!');
+        }, 100);
+    }
+    
+    // Inicializa quando o DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+    } else {
+        initializeImprovedAccordion();
+    }
+    
+    // Também disponibiliza globalmente para re-inicialização manual
+    window.reinitializeAccordion = initializeImprovedAccordion;
+    </script>
+    <script>
+        // Configurar estado ativo do menu baseado na página atual
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = 'pages/contratos-adimplentes.html';
+            const sidebarLinks = document.querySelectorAll('#sidebar .submenu a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                    // Expandir o submenu pai se necessário
+                    const parentSubmenu = link.closest('.submenu');
+                    if (parentSubmenu) {
+                        const parentMenuItem = parentSubmenu.closest('.menu-item');
+                        if (parentMenuItem) {
+                            parentMenuItem.classList.add('expanded');
+                        }
+                    }
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    
+
+    
+
+    <!-- Correção Completa do Sidebar com Accordion -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Aguardar que todos os scripts sejam carregados
+        function initializeSidebar() {
+            console.log('🔧 Inicializando correção completa do sidebar...');
+            
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (!menuToggle) {
+                console.error('❌ Botão do menu não encontrado!');
+                return;
+            }
+            
+            if (!sidebar) {
+                console.error('❌ Sidebar não encontrado!');
+                return;
+            }
+            
+            console.log('✅ Elementos encontrados - aplicando correção...');
+            
+            // Limpar todos os event listeners existentes
+            const newMenuToggle = menuToggle.cloneNode(true);
+            menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+            
+            // Função para abrir o sidebar
+            function openSidebar() {
+                sidebar.classList.add('open', 'menu-aberto');
+                sidebar.style.transform = 'translateX(0)';
+                sidebar.style.left = '0';
+                if (overlay) {
+                    overlay.classList.add('active');
+                    overlay.style.display = 'block';
+                }
+                document.body.style.overflow = 'hidden';
+                console.log('🔓 Sidebar aberto');
+            }
+            
+            // Função para fechar o sidebar
+            function closeSidebar() {
+                sidebar.classList.remove('open', 'menu-aberto');
+                sidebar.style.transform = 'translateX(-100%)';
+                sidebar.style.left = '-280px';
+                if (overlay) {
+                    overlay.classList.remove('active');
+                    overlay.style.display = 'none';
+                }
+                document.body.style.overflow = '';
+                console.log('🔒 Sidebar fechado');
+            }
+            
+            // Event listener para o botão do menu
+            newMenuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🖱️ Clique no menu detectado');
+                
+                const isOpen = sidebar.classList.contains('open') || 
+                              sidebar.classList.contains('menu-aberto') ||
+                              sidebar.style.transform === 'translateX(0px)' ||
+                              sidebar.style.left === '0px';
+                
+                if (isOpen) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            });
+            
+            // Event listener para o overlay
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeSidebar();
+                    console.log('🔒 Sidebar fechado via overlay');
+                });
+            }
+            
+            // Event listener para a tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const isOpen = sidebar.classList.contains('open') || 
+                                  sidebar.classList.contains('menu-aberto');
+                    if (isOpen) {
+                        closeSidebar();
+                        console.log('🔒 Sidebar fechado via ESC');
+                    }
+                }
+            });
+            
+            // Event listener para botão de fechar (se existir)
+            const closeButton = document.getElementById('sidebar-close') || 
+                               document.querySelector('.sidebar-close') ||
+                               document.querySelector('#sidebar .close-btn');
+            if (closeButton) {
+                closeButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeSidebar();
+                    console.log('🔒 Sidebar fechado via botão fechar');
+                });
+            }
+            
+            // Implementar funcionalidade de accordion
+            const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+            console.log('🔍 Itens do menu encontrados:', menuItems.length);
+            
+            menuItems.forEach(function(item) {
+                const link = item.querySelector('.menu-link');
+                const submenu = item.querySelector('.submenu');
+                
+                if (link && submenu) {
+                    // Remover event listeners existentes
+                    const newLink = link.cloneNode(true);
+                    link.parentNode.replaceChild(newLink, link);
+                    
+                    newLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('🖱️ Clique no menu:', newLink.textContent.trim());
+                        
+                        // Fechar outros submenus
+                        menuItems.forEach(function(otherItem) {
+                            if (otherItem !== item) {
+                                otherItem.classList.remove('expanded');
+                                const otherSubmenu = otherItem.querySelector('.submenu');
+                                if (otherSubmenu) {
+                                    otherSubmenu.style.display = 'none';
+                                }
+                            }
+                        });
+                        
+                        // Alternar o submenu atual
+                        const isExpanded = item.classList.contains('expanded');
+                        if (isExpanded) {
+                            item.classList.remove('expanded');
+                            submenu.style.display = 'none';
+                            console.log('📁 Submenu fechado:', newLink.textContent.trim());
+                        } else {
+                            item.classList.add('expanded');
+                            submenu.style.display = 'block';
+                            console.log('📂 Submenu aberto:', newLink.textContent.trim());
+                        }
+                    });
+                    
+                    console.log('✅ Event listener adicionado para:', link.textContent.trim());
+                }
+            });
+                
+            
+            // Garantir que o sidebar inicie fechado
+            closeSidebar();
+            
+            console.log('✅ Correção completa do sidebar aplicada com sucesso!');
+        }
+        
+        // Inicializar quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(initializeSidebar, 1000);
+            });
+        } else {
+            setTimeout(initializeSidebar, 1000);
+        }
+        
+    })();
+    </script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,174 @@
+/* Correções de Contraste - Texto branco em fundo branco */
+
+/* Correção geral para textos em fundos brancos */
+[class*="btn"][style*="background: white"],
+[class*="btn"][style*="background-color: white"],
+[class*="btn"][style*="background: #fff"],
+[class*="btn"][style*="background-color: #fff"] {
+    color: #333 !important;
+}
+
+/* Correções específicas para botões em fundos brancos */
+.filter-btn, 
+.export-btn, 
+.options-btn {
+    color: #333 !important;
+}
+
+/* Correção para tabelas com fundo branco */
+.data-table {
+    color: #333 !important;
+}
+
+/* Correção para elementos com classe .white-text em fundo branco */
+.white-text {
+    color: #333 !important;
+}
+
+/* Correção para elementos com texto branco em fundo branco */
+[style*="color: white"][style*="background: white"],
+[style*="color: white"][style*="background-color: white"],
+[style*="color: #fff"][style*="background: white"],
+[style*="color: #fff"][style*="background-color: white"],
+[style*="color: white"][style*="background: #fff"],
+[style*="color: white"][style*="background-color: #fff"],
+[style*="color: #fff"][style*="background: #fff"],
+[style*="color: #fff"][style*="background-color: #fff"] {
+    color: #333 !important;
+}
+
+/* Melhorias para a página inicial */
+.welcome-section {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.welcome-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.access-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.access-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.card-icon.dashboard { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.card-icon.contracts { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+.card-icon.billing { background: linear-gradient(135deg, #ee0979, #ff6a00); }
+.card-icon.sales { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+.card-icon.defaulters { background: linear-gradient(135deg, #f5576c, #f093fb); }
+.card-icon.services { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+.card-content h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+    color: #333;
+}
+
+.card-content p {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+    position: relative;
+    padding-left: 1rem;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(to bottom, #6a11cb, #2575fc);
+    border-radius: 2px;
+}
+
+/* Estatísticas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: white;
+}
+
+.stat-info h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    color: #666;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+}

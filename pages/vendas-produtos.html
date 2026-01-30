@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Relatórios - Vendas de Produtos</title>
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
+  <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
+  <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003" rel="stylesheet">
+  <style>
+    .report-container { background:#fff; border-radius:8px; padding:1rem; box-shadow:0 2px 4px rgba(0,0,0,0.08); }
+    .filters { display:grid; grid-template-columns:1fr 1fr auto auto; gap:0.75rem; align-items:end; }
+    .filters label { font-weight:600; color:#495057; }
+    .actions .btn { padding:0.6rem 1rem; border-radius:6px; font-weight:600; }
+    .btn-primary { background:#0d6efd; color:#fff; border:none; }
+    .btn-secondary { background:#6c757d; color:#fff; border:none; }
+    .status { margin-top:0.75rem; color:#555; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu"><i class="fas fa-bars"></i></button>
+      <div class="logo"><span class="logo-text">QUALIFY - Sistema de gestão</span></div>
+    </div>
+    <div class="header-right">
+      <div class="user-menu-container"><button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"><i class="fas fa-user-circle"></i></button></div>
+    </div>
+  </header>
+
+  <nav id="sidebar" class="sidebar">
+    <div class="sidebar-header"><h3>Menu</h3><button id="sidebar-close" class="sidebar-close">&times;</button></div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li class="menu-item has-submenu expanded">
+          <a href="#" class="menu-link"><i class="icon-star"></i><span class="menu-text">Mais usados</span><i class="arrow-icon">▼</i></a>
+          <ul class="submenu">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="container-fluid">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="dashboard.html">Início</a></li>
+          <li class="breadcrumb-item">Relatórios</li>
+          <li class="breadcrumb-item active" aria-current="page">Vendas de produtos</li>
+        </ol>
+      </nav>
+
+      <div class="report-container">
+        <h2>Vendas de produtos</h2>
+        <div class="filters">
+          <div>
+            <label for="startDate">Data inicial</label>
+            <input type="date" id="startDate" class="form-input">
+          </div>
+          <div>
+            <label for="endDate">Data final</label>
+            <input type="date" id="endDate" class="form-input">
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" id="confirmDatesBtn"><i class="fas fa-check"></i> Confirmar</button>
+          </div>
+          <div class="actions">
+            <button class="btn btn-secondary" id="emitPdfBtn"><i class="fas fa-file-pdf"></i> Emitir PDF</button>
+          </div>
+        </div>
+        <div class="status" id="statusText"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+  <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
+  <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+  <script>
+    (function(){
+      function fmt(d){ try{ const p = String(d||'').split('-'); if(p.length===3) return `${p[2]}/${p[1]}/${p[0]}`; }catch(_){} return d||''; }
+      var start = document.getElementById('startDate');
+      var end = document.getElementById('endDate');
+      var status = document.getElementById('statusText');
+      var confirmBtn = document.getElementById('confirmDatesBtn');
+      var pdfBtn = document.getElementById('emitPdfBtn');
+      function validate(){
+        var s = start.value, e = end.value;
+        if(!s || !e){ status.textContent = 'Selecione as duas datas.'; return false; }
+        if(new Date(s) > new Date(e)){ status.textContent = 'A data inicial deve ser anterior à final.'; return false; }
+        status.textContent = `Período selecionado: ${fmt(s)} a ${fmt(e)}.`; return true;
+      }
+      confirmBtn.addEventListener('click', function(){ validate(); });
+      pdfBtn.addEventListener('click', function(){ if (validate()) { window.print(); } });
+    })();
+  </script>
+</body>
+</html>

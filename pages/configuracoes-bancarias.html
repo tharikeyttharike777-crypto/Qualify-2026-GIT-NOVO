@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Integrações Bancárias - Qualify</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/sidebar-menu.css">
+    <link rel="stylesheet" href="../assets/css/user-menu.css">
+    <link rel="stylesheet" href="../assets/css/configuracoes-bancarias.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24">
+                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <h1 class="page-header-title">Integrações Bancárias</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-menu-container">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown" id="userDropdown" role="menu">
+                        <div class="dropdown-content">
+                            <a href="perfil.html" class="dropdown-item" role="menuitem">
+                                <i class="fas fa-user"></i>
+                                <span>Perfil</span>
+                            </a>
+                            <a href="trocar-empresa.html" class="dropdown-item" role="menuitem">
+                                <i class="fas fa-building"></i>
+                                <span>Trocar de Empresa</span>
+                            </a>
+                            <a href="minha-conta.html" class="dropdown-item" role="menuitem">
+                                <i class="fas fa-wallet"></i>
+                                <span>Minha Conta</span>
+                            </a>
+                            <a href="configuracoes-bancarias.html" class="dropdown-item" role="menuitem">
+                                <i class="fas fa-university"></i>
+                                <span>Integrações Bancárias</span>
+                            </a>
+                            <a href="catalogo-planos.html" class="dropdown-item" role="menuitem">
+                                <i class="fas fa-book"></i>
+                                <span>Catálogo de Planos</span>
+                            </a>
+                            <div class="dropdown-separator"></div>
+                            <a href="#" class="dropdown-item logout-item" role="menuitem" data-action="logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Sair</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="minha-conta.html">Minha Conta</a>
+                <span class="separator">/</span>
+                <span>Integrações Bancárias</span>
+            </div>
+
+            <!-- Empresa Ativa -->
+            <div class="empresa-ativa-card">
+                <div class="empresa-info">
+                    <i class="fas fa-building"></i>
+                    <div>
+                        <span class="label">Configurando para:</span>
+                        <span id="empresaAtivaNome" class="empresa-nome">Carregando...</span>
+                    </div>
+                </div>
+                <a href="trocar-empresa.html" class="btn-trocar">
+                    <i class="fas fa-exchange-alt"></i> Trocar
+                </a>
+            </div>
+
+            <!-- Status da Integração -->
+            <div id="statusIntegracao" class="status-card status-ativo">
+                <div class="status-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="status-content">
+                    <h3>Asaas Configurado</h3>
+                    <p>A chave de API está configurada de forma segura no servidor.</p>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div id="formAsaas" class="banco-form">
+                <div class="form-section">
+                    <h3><i class="fas fa-shield-alt"></i> Integração Asaas</h3>
+                    <p class="section-description">
+                        A integração com o Asaas está ativa. A chave de API está configurada de forma segura como
+                        variável de ambiente no servidor.
+                    </p>
+
+                    <div class="help-box" style="background: #d4edda; border-color: #28a745;">
+                        <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                        <div>
+                            <strong>Funcionalidades Disponíveis:</strong>
+                            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                                <li>✅ Geração de cobranças PIX</li>
+                                <li>✅ Geração de boletos bancários</li>
+                                <li>✅ Gestão automática de clientes</li>
+                                <li>✅ Consulta de status de pagamentos</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="help-box" style="margin-top: 15px;">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Sobre a Segurança:</strong>
+                            <p style="margin: 5px 0 0 0;">
+                                A chave de API do Asaas está armazenada como variável de ambiente
+                                (<code>ASAAS_API_KEY</code>) no servidor,
+                                o que é mais seguro do que armazenar no banco de dados ou expor no frontend.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações -->
+                <div class="form-actions">
+                    <button type="button" id="btnTestar" class="btn btn-primary" onclick="testarConexao()">
+                        <i class="fas fa-plug"></i> Testar Conexão
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="loading-overlay" style="display:none">
+                <div class="loading-spinner"></div>
+                <p id="loadingMessage">Processando...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../firebase-config.js"></script>
+    <script src="../assets/js/auth-guard.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script src="../assets/js/user-menu.js"></script>
+    <script src="../assets/js/configuracoes-bancarias.js"></script>
+</body>
+
+</html>

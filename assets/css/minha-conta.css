@@ -1,0 +1,607 @@
+/* Minha Conta - Painel de Gestão Financeira */
+
+/* Reset e configurações base */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header */
+.main-header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.page-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.header-actions .btn {
+    border-radius: 50px;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.header-actions .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Main Content */
+.main-content {
+    padding: 2rem 0;
+    min-height: calc(100vh - 100px);
+}
+
+/* Loading State */
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    text-align: center;
+}
+
+.loading-spinner .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.loading-text {
+    color: white;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Error State */
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    text-align: center;
+}
+
+.error-content {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 100%;
+}
+
+/* Content Container */
+.content-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Welcome Section */
+.welcome-section {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.welcome-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+.last-update {
+    text-align: right;
+}
+
+/* ==== Overrides de contraste da seção de boas-vindas ==== */
+.welcome-section {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 2rem;
+    border: 1px solid #e5e7eb;
+    color: #1f2937;
+}
+
+.welcome-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #111827;
+}
+
+.welcome-subtitle {
+    font-size: 1.05rem;
+    margin-bottom: 0;
+    color: #4b5563;
+}
+
+/* Tema escuro: manter contraste adequado */
+[data-theme="dark"] .welcome-section {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .welcome-title {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .welcome-subtitle {
+    color: #cbd5e1;
+}
+
+/* Section Cards */
+.section-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.section-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.section-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border: none;
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+    opacity: 0.9;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+.section-card .card-body {
+    padding: 2rem;
+}
+
+/* Search Options */
+.search-options .btn-group {
+    width: 100%;
+}
+
+.search-options .btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.search-options .btn:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.search-options .btn:last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.search-options .btn-check:checked + .btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+}
+
+/* Search Form */
+.search-form .input-group {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-form .input-group-text {
+    background: #f8f9fa;
+    border: none;
+    padding: 0.75rem 1rem;
+}
+
+.search-form .form-control {
+    border: none;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+.search-form .form-control:focus {
+    box-shadow: none;
+    border-color: #667eea;
+}
+
+.search-form .btn {
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.search-form .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Search Results */
+.search-results {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.results-title {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.search-results .table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.search-results .table thead th {
+    background: #f8f9fa;
+    border: none;
+    font-weight: 600;
+    color: #555;
+    padding: 1rem;
+}
+
+.search-results .table tbody td {
+    padding: 1rem;
+    border-color: #f0f0f0;
+    vertical-align: middle;
+}
+
+.search-results .table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.no-results {
+    color: #666;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-card .card-header {
+    padding: 1.5rem;
+    border: none;
+}
+
+.chargeback-card .card-header {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+}
+
+.financial-card .card-header {
+    background: linear-gradient(135deg, #00d2d3 0%, #54a0ff 100%);
+    color: white;
+}
+
+.dashboard-card .card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.dashboard-card .card-body {
+    padding: 2rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: scale(1.05);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Balance Display */
+.balance-display {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    margin-bottom: 1rem;
+}
+
+.balance-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.balance-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #28a745;
+    margin-bottom: 0.5rem;
+}
+
+.balance-info {
+    opacity: 0.8;
+}
+
+/* Card Actions */
+.card-actions .btn,
+.financial-actions .btn {
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.card-actions .btn-primary,
+.financial-actions .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.card-actions .btn:hover,
+.financial-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Quick Actions */
+.quick-actions-section {
+    margin-top: 3rem;
+}
+
+.quick-actions-section .section-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.quick-action-btn {
+    padding: 2rem 1rem;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    transition: all 0.3s ease;
+    text-align: center;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.quick-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+.quick-action-btn i {
+    margin-bottom: 0.5rem;
+}
+
+.quick-action-btn div {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Toast Notifications */
+.toast {
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.toast-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem 0;
+    }
+    
+    .welcome-section {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .welcome-title {
+        font-size: 1.5rem;
+    }
+    
+    .section-card .card-header,
+    .section-card .card-body,
+    .dashboard-card .card-header,
+    .dashboard-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .balance-value {
+        font-size: 2rem;
+    }
+    
+    .search-options .btn-group {
+        flex-direction: column;
+    }
+    
+    .search-options .btn {
+        border-radius: 10px !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .search-form .row {
+        flex-direction: column;
+    }
+    
+    .search-form .col-md-4 {
+        margin-top: 1rem;
+    }
+    
+    .quick-action-btn {
+        height: 100px;
+        padding: 1rem;
+    }
+    
+    .quick-action-btn i {
+        font-size: 1.5rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 1.2rem;
+    }
+    
+    .welcome-title {
+        font-size: 1.3rem;
+    }
+    
+    .welcome-subtitle {
+        font-size: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+    }
+    
+    .balance-value {
+        font-size: 1.8rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus styles for accessibility */
+.btn:focus,
+.form-control:focus,
+.btn-check:focus + .btn {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    body {
+        background: white !important;
+    }
+    
+    .main-header,
+    .quick-actions-section {
+        display: none !important;
+    }
+    
+    .section-card,
+    .dashboard-card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}

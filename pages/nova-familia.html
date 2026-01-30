@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Nova Familia - Sistema Qualify</title>
+    <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-fix.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/nova-familia.css?v=20250127003">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003"
+        rel="stylesheet">
+    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+
+    <!-- Firebase Scripts (v8.10.1) e configuração -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="../firebase-config.js?v=20250127003" defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            .layout-shift-prevention {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+        </style>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
+                        style="margin-right: 8px;">
+                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <div id="search-results" class="search-results"></div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">9</span>
+                </div>
+                <div class="user-info">
+                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                </div>
+
+                <!-- Menu de Usuário -->
+                <div class="user-menu-container">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                        aria-expanded="false">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown" id="userDropdown" role="menu" aria-hidden="true">
+                        <div class="dropdown-content">
+                            <!-- Item 1: Perfil -->
+                            <a href="perfil.html" class="dropdown-item" role="menuitem" data-action="profile">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Meu Perfil</span>
+                                    <span class="dropdown-item-subtitle">Configurações pessoais</span>
+                                </div>
+                            </a>
+
+                            <!-- Item 2: Configurações -->
+                            <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Configurações</span>
+                                    <span class="dropdown-item-subtitle">Ajustes do sistema</span>
+                                </div>
+                            </a>
+
+                            <!-- Divider -->
+                            <div class="dropdown-divider"></div>
+
+                            <!-- Item 3: Ajuda -->
+                            <a href="#" class="dropdown-item" role="menuitem" data-action="help">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-question-circle"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Ajuda</span>
+                                    <span class="dropdown-item-subtitle">Suporte e documentação</span>
+                                </div>
+                            </a>
+
+                            <!-- Divider -->
+                            <div class="dropdown-divider"></div>
+
+                            <!-- Item 4: Logout -->
+                            <a href="#" class="dropdown-item logout-item" role="menuitem" data-action="logout"
+                                id="logoutBtn">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Sair</span>
+                                    <span class="dropdown-item-subtitle">Encerrar sessão</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Menu Lateral Fixo -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+                <button id="sidebar-close" class="sidebar-close">&times;</button>
+            </div>
+
+            <div class="sidebar-content">
+                <ul class="sidebar-menu">
+                    <!-- Mais usados -->
+                    <li class="menu-item has-submenu expanded">
+                        <a href="#" class="menu-link">
+                            <i class="icon-star"></i>
+                            <span class="menu-text">Mais usados</span>
+                            <i class="arrow-icon">?</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+                            <li><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
+                            <li><a href="dashboard.html">Dashboard</a></li>
+                            <li><a href="inadimplentes.html">Inadimplentes</a></li>
+                            <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
+                            <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="controle-caixas.html">Controle de caixas</a></li>
+                            <li><a href="contas-receber.html">Contas a receber</a></li>
+
+                        </ul>
+                    </li>
+
+                    <!-- Contratos -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-contract"></i>
+                            <span class="menu-text">Contratos</span>
+                            <i class="arrow-icon">?</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="contratos.html">Ativos</a></li>
+                            <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                            <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                            <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
+                            <li><a href="cancelados.html">Cancelados</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Financeiro -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-money"></i>
+                            <span class="menu-text">Financeiro</span>
+                            <i class="arrow-icon">?</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="contas-pagar.html">Contas a pagar</a></li>
+                            <li><a href="resumo-dia.html">Resumo do dia</a></li>
+                            <li><a href="comissionamento.html">Comissionamento</a></li>
+                            <li><a href="metas.html">Metas</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Famílias -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-family"></i>
+                            <span class="menu-text">Famílias</span>
+                            <i class="arrow-icon">?</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="nova-familia.html">Nova família</a></li>
+                            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                            <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
+                            <li><a href="pesquisar-pets.html">Pesquisar pet's</a></li>
+                            <li><a href="aniversariantes.html">Aniversariantes</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Overlay para fechar o menu em dispositivos m�veis -->
+
+        <main class="main-content">
+            <form id="novaFamiliaForm" class="familia-form">
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cancelarFormulario()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+
+                <!-- Seção 1: Informações pessoais -->
+                <div class="form-section">
+                    <h2 class="section-title">1. Informações pessoais</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nome">* Nome <span class="required-text">(obrigatório)</span></label>
+                            <input type="text" id="nome" name="nome" required class="required-field">
+                        </div>
+                        <div class="form-group">
+                            <label for="dataNascimento">* Data de nascimento <span
+                                    class="required-text">(obrigatório)</span></label>
+                            <input type="date" id="dataNascimento" name="dataNascimento" required
+                                class="required-field">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-mail</label>
+                            <input type="email" id="email" name="email">
+                        </div>
+                        <div class="form-group radio-group">
+                            <label>Sexo</label>
+                            <div class="radio-options">
+                                <label class="radio-label">
+                                    <input type="radio" name="sexo" value="masculino">
+                                    <span>Masculino</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="sexo" value="feminino">
+                                    <span>Feminino</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="rg">RG</label>
+                            <input type="text" id="rg" name="rg">
+                        </div>
+                        <div class="form-group">
+                            <label for="cpf">* CPF <span class="required-text">(obrigatório)</span></label>
+                            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required
+                                class="required-field">
+                        </div>
+                        <div class="form-group">
+                            <label for="telefone">Telefone</label>
+                            <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+                        </div>
+                        <div class="form-group">
+                            <label for="celular">Celular</label>
+                            <input type="tel" id="celular" name="celular" placeholder="(00) 00000-0000">
+                        </div>
+                    </div>
+                    <div class="form-actions inline-actions">
+                        <button type="button" class="btn btn-primary" onclick="salvarTitular()">
+                            <i class="fas fa-save"></i> Salvar titular
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Dados de endereço -->
+                <div class="form-section">
+                    <h2 class="section-title">2. Dados de endereço</h2>
+                    <div class="cep-section">
+                        <p class="cep-info">Clique no botão "Buscar" para consultar o CEP</p>
+                        <div class="cep-input-group">
+                            <div class="form-group">
+                                <label for="cep">CEP</label>
+                                <input type="text" id="cep" name="cep" placeholder="00000-000">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="buscarCepBtn">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="rua">* Rua <span class="required-text">(obrigatório)</span></label>
+                            <input type="text" id="rua" name="rua" required class="required-field">
+                        </div>
+                        <div class="form-group">
+                            <label for="numero">* Nº <span class="required-text">(obrigatório)</span></label>
+                            <input type="text" id="numero" name="numero" required class="required-field">
+                        </div>
+                        <div class="form-group">
+                            <label for="bairro">* Bairro <span class="required-text">(obrigatório)</span></label>
+                            <input type="text" id="bairro" name="bairro" required class="required-field">
+                        </div>
+                        <div class="form-group">
+                            <label for="cidade">* Cidade <span class="required-text">(obrigatório)</span></label>
+                            <input type="text" id="cidade" name="cidade" required class="required-field">
+                        </div>
+                        <div class="form-group">
+                            <label for="complemento">Complemento</label>
+                            <input type="text" id="complemento" name="complemento">
+                        </div>
+                    </div>
+                    <div class="endereco-actions">
+                        <button type="button" class="btn btn-info" onclick="adicionarEndereco()">
+                            <i class="fas fa-plus"></i> Adicionar endereço
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Dependentes da família -->
+                <div class="form-section">
+                    <h2 class="section-title">3. Dependentes da família</h2>
+                    <div class="dependentes-info">
+                        <p>Esta família possui ou terá adicionar um novo dependente?</p>
+                        <button type="button" class="btn btn-success" onclick="openDependenteModal()">
+                            <i class="fas fa-plus"></i> Adicionar dependente
+                        </button>
+                    </div>
+                    <div class="dependentes-table">
+                        <table id="tabelaDependentes">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome do dependente</th>
+                                    <th>Grau de parentesco</th>
+                                    <th>Data de nascimento</th>
+                                    <th>CPF</th>
+                                    <th>Psicologos</th>
+                                    <th>Seguradora</th>
+                                    <th>Produto</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dependentes serão adicionados dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                </div>
+
+                <!-- Se��o 4: Contratos -->
+                <div class="form-section">
+                    <h2 class="section-title">4. Contratos</h2>
+                    <div class="contratos-info">
+                        <p>Esta família possui ou irá firmar um novo contrato?</p>
+                        <button type="button" class="btn btn-success" onclick="openContratoModal()">
+                            <i class="fas fa-plus"></i> Adicionar contrato
+                        </button>
+                    </div>
+                    <div class="contratos-table">
+                        <table id="tabelaContratos">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Plano</th>
+                                    <th>Data de início</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Contratos serão adicionados dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Seção 5: Pets da família -->
+                <div class="form-section">
+                    <h2 class="section-title">5. Pets da família</h2>
+                    <div class="pets-info">
+                        <p>Esta família possui algum animal de estimação?</p>
+                        <button type="button" class="btn btn-success" onclick="openPetModal()">
+                            <i class="fas fa-paw"></i> Adicionar pet
+                        </button>
+                    </div>
+                    <div class="pets-table">
+                        <table id="tabelaPets">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Espécie</th>
+                                    <th>Raça</th>
+                                    <th>Idade</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Pets serão adicionados dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                
+
+                <div class="form-actions bottom-actions sticky-actions">
+                    <button type="button" id="btnSaveFamily" class="btn btn-success" onclick="salvarFamiliaStay(event)">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelarFormulario()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- Modal para Adicionar Dependente -->
+    <div id="dependenteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Dependente</h3>
+                <button type="button" class="modal-close" onclick="closeModal('dependenteModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="dependenteForm" onsubmit="event.preventDefault(); salvarDependente();">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="depNome">Nome completo *</label>
+                            <input type="text" id="depNome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="depParentesco">Grau de parentesco *</label>
+                            <select id="depParentesco" name="parentesco" required>
+                                <option value="">Selecione...</option>
+                                <option value="Filho(a)">Filho(a)</option>
+                                <option value="Enteado(a)">Enteado(a)</option>
+                                <option value="Neto(a)">Neto(a)</option>
+                                <option value="Irmão/Irmã">Irmão/Irmã</option>
+                                <option value="Sobrinho(a)">Sobrinho(a)</option>
+                                <option value="Tio/Tia">Tio/Tia</option>
+                                <option value="Primo(a)">Primo(a)</option>
+                                <option value="Afilhado(a)">Afilhado(a)</option>
+                                <option value="Cônjuge">Cônjuge</option>
+                                <option value="Companheiro(a)">Companheiro(a)</option>
+                                <option value="Namorado(a)">Namorado(a)</option>
+                                <option value="Padrasto">Padrasto</option>
+                                <option value="Madrasta">Madrasta</option>
+                                <option value="Tutor(a)">Tutor(a)</option>
+                                <option value="Curador(a)">Curador(a)</option>
+                                <option value="Amigo(a)">Amigo(a)</option>
+                                <option value="Vizinho(a)">Vizinho(a)</option>
+                                <option value="Pai">Pai</option>
+                                <option value="Mãe">Mãe</option>
+                                <option value="Sogro">Sogro</option>
+                                <option value="Sogra">Sogra</option>
+                                <option value="Genro">Genro</option>
+                                <option value="Nora">Nora</option>
+                                <option value="Bisneto">Bisneto</option>
+                                <option value="Dependente">Dependente</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="depCarencia">Carência</label>
+                            <select id="depCarencia" name="carencia">
+                                <option value="padrao">Padrão do plano</option>
+                                <option value="0">Sem carência (0 dias)</option>
+                                <option value="30">30 dias</option>
+                                <option value="60">60 dias</option>
+                                <option value="90">90 dias</option>
+                                <option value="180">180 dias</option>
+                            </select>
+                            <div class="help-text">Por padrão, usa a carência do plano selecionado.</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="depDataNasc">Data de nascimento *</label>
+                            <input type="date" id="depDataNasc" name="dataNascimento" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="depCpf">CPF *</label>
+                            <input type="text" id="depCpf" name="cpf" placeholder="000.000.000-00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="depGenero">Gênero</label>
+                            <select id="depGenero" name="genero">
+                                <option value="">Selecione...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Feminino">Feminino</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="depPsicologo">Psicologo</label>
+                            <input type="text" id="depPsicologo" name="psicologo" placeholder="Nome do psicologo">
+                        </div>
+                        <div class="form-group">
+                            <label for="depTelefone">Telefone *</label>
+                            <input type="text" id="depTelefone" name="telefone" placeholder="(00) 00000-0000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="depSeguradora">Seguradora</label>
+                            <input type="text" id="depSeguradora" name="seguradora" placeholder="Nome da seguradora">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="salvarDependente()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('dependenteModal')">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Pai/Mãe -->
+    <div id="paiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Pai/Mãe</h3>
+                <button type="button" class="modal-close" onclick="closeModal('paiModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="paiForm" onsubmit="event.preventDefault(); salvarPai();">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="paiNome">Nome completo *</label>
+                            <input type="text" id="paiNome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paiParentesco">Grau de parentesco *</label>
+                            <select id="paiParentesco" name="parentesco" required>
+                                <option value="">Selecione...</option>
+                                <option value="Pai">Pai</option>
+                                <option value="Mãe">Mãe</option>
+                                <option value="Padrasto">Padrasto</option>
+                                <option value="Madrasta">Madrasta</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="paiDataNasc">Data de nascimento *</label>
+                            <input type="date" id="paiDataNasc" name="dataNascimento" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paiCpf">CPF *</label>
+                            <input type="text" id="paiCpf" name="cpf" placeholder="000.000.000-00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paiTelefone">Telefone *</label>
+                            <input type="text" id="paiTelefone" name="telefone" placeholder="(00) 00000-0000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paiEmail">Email</label>
+                            <input type="email" id="paiEmail" name="email" placeholder="exemplo@email.com">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="salvarPai()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('paiModal')">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-success">Salvar Pai/Mãe</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Contrato -->
+    <div id="contratoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Contrato</h3>
+                <button type="button" class="modal-close" onclick="closeModal('contratoModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="contratoForm" onsubmit="event.preventDefault(); salvarContrato();">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="contNumero">Número do contrato *</label>
+                            <input type="text" id="contNumero" name="numero" required readonly maxlength="7"
+                                inputmode="numeric" pattern="\d{1,7}" title="Até 7 dígitos numéricos">
+                        </div>
+                        <div class="form-group">
+                            <label for="contPlano">Plano *</label>
+                            <select id="contPlano" name="plano" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contDataInicio">Data de início</label>
+                            <input type="date" id="contDataInicio" name="dataInicio">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contValor">Valor da Cobrança *</label>
+                            <input type="text" id="contValor" name="valor" placeholder="R$ 0,00" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contFormaPagamento">Forma de Pagamento *</label>
+                            <select id="contFormaPagamento" name="formaPagamento" required>
+                                <option value="">Selecione...</option>
+                                <option value="Pix">Pix</option>
+                                <option value="Boleto">Boleto</option>
+                                <option value="Cartão de crédito">Cartão de crédito</option>
+                                <option value="Cartão de débito">Cartão de débito</option>
+                                <option value="Transferência">Transferência</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contPlanoContas">Plano de Contas *</label>
+                            <select id="contPlanoContas" name="planoContas" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column:1 / -1;">
+                            <label>Quem vai fazer parte do contrato</label>
+                            <div id="contParticipants" class="tags" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+                            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                                <select id="contAddParticipantSelect">
+                                    <option value="">Adicionar participante...</option>
+                                </select>
+                                <button type="button" class="btn btn-primary btn-sm" id="contAddParticipantBtn">
+                                    <i class="fas fa-user-plus"></i> Adicionar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="contParcelas">Número de Parcelas *</label>
+                            <input type="number" id="contParcelas" name="parcelas" min="1" value="12" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="salvarContrato()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('contratoModal')">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Contrato -->
+    <div id="confirmContratoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Contrato</h3>
+                <button type="button" class="modal-close" onclick="cancelarConfirmacaoContrato()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmContratoSummary">Confirma a criação do contrato?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="confirmarSalvarContrato()">
+                    <i class="fas fa-check"></i> Confirmar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="cancelarConfirmacaoContrato()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Resumo do Contrato -->
+    <div id="resumoContratoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Resumo do Contrato</h3>
+                <button type="button" class="modal-close" onclick="closeModal('resumoContratoModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Número do Contrato</label>
+                        <div id="resumoContratoNumero">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Situação</label>
+                        <div id="resumoContratoSituacao">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Plano Contratado</label>
+                        <div id="resumoContratoPlano">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor da Mensalidade</label>
+                        <div id="resumoContratoValor">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Dia do Vencimento</label>
+                        <div id="resumoContratoVencimento">-</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="acessarContratoCompleto()">
+                    <i class="fas fa-edit"></i> Editar Contrato
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('resumoContratoModal')">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Produto do Dependente -->
+    <div id="dependenteProdutoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Produto para Dependente</h3>
+                <button type="button" class="modal-close" onclick="closeModal('dependenteProdutoModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="depProdutoForm" onsubmit="event.preventDefault(); salvarDependenteProduto();">
+                    <input type="hidden" id="depProdutoDependenteId" name="dependenteId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="depProdutoNome">Produto</label>
+                            <select id="depProdutoNome" name="produto">
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="depProdutoQuantidade">Quantidade</label>
+                            <input type="number" id="depProdutoQuantidade" name="quantidade" min="1" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="depProdutoValor">Valor</label>
+                            <input type="text" id="depProdutoValor" name="valor" placeholder="R$ 0,00">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="salvarDependenteProduto()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('dependenteProdutoModal')">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Pet -->
+    <div id="petModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Pet</h3>
+                <button type="button" class="modal-close" onclick="closeModal('petModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="petForm" onsubmit="event.preventDefault(); salvarPet();">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="petNome">Nome do pet *</label>
+                            <input type="text" id="petNome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="petEspecie">Espécie *</label>
+                            <select id="petEspecie" name="especie" required>
+                                <option value="">Selecione...</option>
+                                <option value="Cão">Cão</option>
+                                <option value="Gato">Gato</option>
+                                <option value="Pássaro">Pássaro</option>
+                                <option value="Peixe">Peixe</option>
+                                <option value="Hamster">Hamster</option>
+                                <option value="Coelho">Coelho</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="petRaca">Raça</label>
+                            <input type="text" id="petRaca" name="raca" placeholder="Ex: Labrador, Persa, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label for="petIdade">Idade *</label>
+                            <input type="number" id="petIdade" name="idade" min="0" max="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="petGenero">Gênero</label>
+                            <select id="petGenero" name="genero">
+                                <option value="">Selecione...</option>
+                                <option value="Macho">Macho</option>
+                                <option value="Fêmea">Fêmea</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="petObservacoes">Observações</label>
+                            <textarea id="petObservacoes" name="observacoes" rows="3"
+                                placeholder="Informações adicionais sobre o pet..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="salvarPet()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('petModal')">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
+    <script src="../assets/js/storage-safe.js?v=20251216001"></script>
+    <script src="../assets/js/cache-buster.js?v=20251216001"></script>
+    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+
+    <!-- Script Melhorado do Accordion -->
+    <script>
+        // Fun��o melhorada para inicializar o accordion
+        function initializeImprovedAccordion() {
+            console.log('?? Inicializando accordion melhorado...');
+
+            // Aguarda um pouco para garantir que todos os elementos estejam prontos
+            setTimeout(() => {
+                // Seleciona todos os itens de submenu
+                const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
+
+                submenuItems.forEach((menuItem, index) => {
+                    // Encontra o link clic�vel dentro do item
+                    const menuLink = menuItem.querySelector('.menu-link, a');
+                    const submenu = menuItem.querySelector('.submenu');
+                    const arrowIcon = menuItem.querySelector('.arrow-icon');
+
+                    if (menuLink && submenu) {
+                        // Remove event listeners existentes clonando o elemento
+                        const newMenuLink = menuLink.cloneNode(true);
+                        menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+
+                        // Adiciona novo event listener melhorado
+                        newMenuLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log(`??? Clique no item ${index + 1}`);
+
+                            // Fecha todos os outros submenus
+                            const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                            allMenuItems.forEach(item => {
+                                if (item !== menuItem) {
+                                    item.classList.remove('expanded');
+                                }
+                            });
+
+                            // Toggle do item atual
+                            menuItem.classList.toggle('expanded');
+
+                            const isExpanded = menuItem.classList.contains('expanded');
+                            console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra�do'}`);
+
+                            // Atualiza o �cone da seta se existir
+                            if (arrowIcon) {
+                                arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                            }
+                        });
+
+                        console.log(`? Evento vinculado ao item ${index + 1}`);
+                    } else {
+                        console.warn(`?? Item ${index + 1} n�o tem link ou submenu v�lido`);
+                    }
+                });
+
+                console.log('? Accordion melhorado inicializado com sucesso!');
+            }, 100);
+        }
+
+        // Inicializa quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+        } else {
+            initializeImprovedAccordion();
+        }
+
+        // Tamb�m disponibiliza globalmente para re-inicializa��o manual
+        window.reinitializeAccordion = initializeImprovedAccordion;
+    </script>
+    <script src="../assets/js/sequence-manager.js" defer></script>
+    <script src="../assets/js/nova-familia.js?v=20250127003" defer></script>
+    <script>
+        // Configurar estado ativo do menu baseado na p�gina atual
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentPage = 'pages/nova-familia.html';
+            const sidebarLinks = document.querySelectorAll('#sidebar .submenu a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                    // Expandir o submenu pai se necess�rio
+                    const parentSubmenu = link.closest('.submenu');
+                    if (parentSubmenu) {
+                        const parentMenuItem = parentSubmenu.closest('.menu-item');
+                        if (parentMenuItem) {
+                            parentMenuItem.classList.add('expanded');
+                        }
+                    }
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+
+
+
+
+    <!-- Corre��o Completa do Sidebar com Accordion -->
+    <script>
+        (function () {
+            'use strict';
+
+            // Aguardar que todos os scripts sejam carregados
+            function initializeSidebar() {
+                console.log('?? Inicializando corre��o completa do sidebar...');
+
+                const menuToggle = document.getElementById('menu-toggle');
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+
+                if (!menuToggle) {
+                    console.error('? Bot�o do menu n�o encontrado!');
+                    return;
+                }
+
+                if (!sidebar) {
+                    console.error('? Sidebar n�o encontrado!');
+                    return;
+                }
+
+                console.log('? Elementos encontrados - aplicando corre��o...');
+
+                // Limpar todos os event listeners existentes
+                const newMenuToggle = menuToggle.cloneNode(true);
+                menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+
+                // Fun��o para abrir o sidebar
+                function openSidebar() {
+                    sidebar.classList.add('open', 'menu-aberto');
+                    sidebar.style.transform = 'translateX(0)';
+                    sidebar.style.left = '0';
+                    if (overlay) {
+                        overlay.classList.add('active');
+                        overlay.style.display = 'block';
+                    }
+                    document.body.style.overflow = 'hidden';
+                    console.log('?? Sidebar aberto');
+                }
+
+                // Fun��o para fechar o sidebar
+                function closeSidebar() {
+                    sidebar.classList.remove('open', 'menu-aberto');
+                    sidebar.style.transform = 'translateX(-100%)';
+                    sidebar.style.left = '-280px';
+                    if (overlay) {
+                        overlay.classList.remove('active');
+                        overlay.style.display = 'none';
+                    }
+                    document.body.style.overflow = '';
+                    console.log('?? Sidebar fechado');
+                }
+
+                // Event listener para o bot�o do menu
+                newMenuToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    console.log('??? Clique no menu detectado');
+
+                    const isOpen = sidebar.classList.contains('open') ||
+                        sidebar.classList.contains('menu-aberto') ||
+                        sidebar.style.transform === 'translateX(0px)' ||
+                        sidebar.style.left === '0px';
+
+                    if (isOpen) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+
+                // Event listener para o overlay
+                if (overlay) {
+                    overlay.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        closeSidebar();
+                        console.log('?? Sidebar fechado via overlay');
+                    });
+                }
+
+                // Event listener para a tecla ESC
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        const isOpen = sidebar.classList.contains('open') ||
+                            sidebar.classList.contains('menu-aberto');
+                        if (isOpen) {
+                            closeSidebar();
+                            console.log('?? Sidebar fechado via ESC');
+                        }
+                    }
+                });
+
+                // Event listener para bot�o de fechar (se existir)
+                const closeButton = document.getElementById('sidebar-close') ||
+                    document.querySelector('.sidebar-close') ||
+                    document.querySelector('#sidebar .close-btn');
+                if (closeButton) {
+                    closeButton.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        closeSidebar();
+                        console.log('?? Sidebar fechado via bot�o fechar');
+                    });
+                }
+
+                // Implementar funcionalidade de accordion
+                const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+                console.log('?? Itens do menu encontrados:', menuItems.length);
+
+                menuItems.forEach(function (item) {
+                    const link = item.querySelector('.menu-link');
+                    const submenu = item.querySelector('.submenu');
+
+                    if (link && submenu) {
+                        // Remover event listeners existentes
+                        const newLink = link.cloneNode(true);
+                        link.parentNode.replaceChild(newLink, link);
+
+                        newLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log('??? Clique no menu:', newLink.textContent.trim());
+
+                            // Fechar outros submenus
+                            menuItems.forEach(function (otherItem) {
+                                if (otherItem !== item) {
+                                    otherItem.classList.remove('expanded');
+                                    const otherSubmenu = otherItem.querySelector('.submenu');
+                                    if (otherSubmenu) {
+                                        otherSubmenu.style.display = 'none';
+                                    }
+                                }
+                            });
+
+                            // Alternar o submenu atual
+                            const isExpanded = item.classList.contains('expanded');
+                            if (isExpanded) {
+                                item.classList.remove('expanded');
+                                submenu.style.display = 'none';
+                                console.log('?? Submenu fechado:', newLink.textContent.trim());
+                            } else {
+                                item.classList.add('expanded');
+                                submenu.style.display = 'block';
+                                console.log('?? Submenu aberto:', newLink.textContent.trim());
+                            }
+                        });
+
+                        console.log('? Event listener adicionado para:', link.textContent.trim());
+                    }
+                });
+
+
+                // Garantir que o sidebar inicie fechado
+                closeSidebar();
+
+                console.log('? Corre��o completa do sidebar aplicada com sucesso!');
+            }
+
+            // Inicializar quando o DOM estiver pronto
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(initializeSidebar, 1000);
+                });
+            } else {
+                setTimeout(initializeSidebar, 1000);
+            }
+
+        })();
+    </script>
+
+    <!-- CSS para valida��o em tempo real -->
+    <style>
+        .required-text {
+            color: #dc3545;
+            font-size: 0.875em;
+            font-weight: normal;
+        }
+
+        .required-field {
+            border-left: 3px solid #007bff;
+        }
+
+        .required-field.invalid {
+            border-color: #dc3545;
+            background-color: #fff5f5;
+        }
+
+        .required-field.valid {
+            border-color: #28a745;
+            background-color: #f8fff8;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875em;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .submit-btn:disabled {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* Estilos para campos obrigat�rios vs opcionais */
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-group input:not(.required-field) {
+            border-left: 3px solid #e9ecef;
+        }
+
+        .form-group input:not(.required-field):focus {
+            border-left-color: #80bdff;
+        }
+    </style>
+
+    <!-- JavaScript para valida��o em tempo real -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const requiredFields = document.querySelectorAll('.required-field');
+            const submitBtn = document.querySelector('.submit-btn');
+
+            // Adicionar mensagens de erro ap�s cada campo obrigat�rio
+            requiredFields.forEach(field => {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Este campo � obrigat�rio';
+                field.parentNode.appendChild(errorDiv);
+
+                // Valida��o em tempo real
+                field.addEventListener('input', function () {
+                    validateField(this);
+                    updateSubmitButton();
+                });
+
+                field.addEventListener('blur', function () {
+                    validateField(this);
+                    updateSubmitButton();
+                });
+            });
+
+            // Fun��o para validar um campo individual
+            function validateField(field) {
+                const errorMessage = field.parentNode.querySelector('.error-message');
+                const value = field.value.trim();
+
+                if (value === '') {
+                    field.classList.add('invalid');
+                    field.classList.remove('valid');
+                    errorMessage.classList.add('show');
+                    return false;
+                } else {
+                    field.classList.remove('invalid');
+                    field.classList.add('valid');
+                    errorMessage.classList.remove('show');
+                    return true;
+                }
+            }
+
+            // Fun��o para atualizar o estado do bot�o de envio
+            function updateSubmitButton() {
+                let allValid = true;
+
+                requiredFields.forEach(field => {
+                    if (field.value.trim() === '') {
+                        allValid = false;
+                    }
+                });
+
+                if (submitBtn) {
+                    submitBtn.disabled = !allValid;
+                    if (allValid) {
+                        submitBtn.textContent = 'Cadastrar Fam�lia';
+                        submitBtn.style.backgroundColor = '#28a745';
+                    } else {
+                        submitBtn.textContent = 'Preencha todos os campos obrigat�rios';
+                        submitBtn.style.backgroundColor = '#6c757d';
+                    }
+                }
+            }
+
+            // Valida��o inicial
+            updateSubmitButton();
+
+            // Interceptar envio do formul�rio
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    let allValid = true;
+
+                    requiredFields.forEach(field => {
+                        if (!validateField(field)) {
+                            allValid = false;
+                        }
+                    });
+
+                    if (!allValid) {
+                        e.preventDefault();
+                        alert('Por favor, preencha todos os campos obrigat�rios antes de continuar.');
+
+                        // Focar no primeiro campo inv�lido
+                        const firstInvalid = document.querySelector('.required-field.invalid');
+                        if (firstInvalid) {
+                            firstInvalid.focus();
+                            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

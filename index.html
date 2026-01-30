@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="QUALIFY - Sistema completo de gestão empresarial">
+    <meta name="keywords" content="gestão, sistema, empresarial, controle, financeiro">
+    <meta name="author" content="QUALIFY">
+    <meta name="robots" content="index, follow">
+
+    <!-- Firebase e Auth Guard serão injetados automaticamente pelo webpack -->
+
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="QUALIFY">
+    <meta name="msapplication-TileColor" content="#007bff">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="assets/css/styles.css" as="style">
+    <link rel="preload" href="assets/css/sidebar-menu.css" as="style">
+
+    <!-- Firebase CDN Scripts serão injetados automaticamente pelo webpack -->
+
+    <title>QUALIFY - Sistema de Gestão</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/sidebar-menu.css">
+    <link rel="stylesheet" href="assets/css/sidebar-fix.css">
+    <link rel="stylesheet" href="assets/css/user-menu.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Prevenção de FOUC (Flash of Unstyled Content) */
+        html {
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        html.loaded {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Prevenção de piscamento durante carregamento */
+        body {
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        body.page-loaded {
+            opacity: 1;
+        }
+
+        /* Correção de scroll suave */
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        body {
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Prevenção de layout shift */
+        .header {
+            will-change: auto;
+        }
+
+        .sidebar {
+            will-change: transform;
+        }
+
+        /* Otimização de renderização */
+        .card {
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <img src="assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
+                    style="margin-right: 8px;">
+                <span class="logo-text">QUALIFY - Sistema de gestão</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                <i class="fas fa-search search-icon"></i>
+                <div id="search-results" class="search-results"></div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="company-info">
+                <i class="fas fa-building"></i>
+                <span id="headerEmpresaDisplay">Nenhuma empresa selec...</span>
+            </div>
+            <div class="user-info">
+                <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+            </div>
+
+            <!-- Menu de Usuário -->
+            <div class="user-menu-container">
+                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                    aria-expanded="false">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="user-dropdown" id="userDropdown" role="menu">
+                    <div class="dropdown-content">
+                        <!-- Item 1: Perfil -->
+                        <a href="pages/perfil.html" class="dropdown-item" role="menuitem" data-action="profile">
+                            <i class="fas fa-user"></i>
+                            <span>Perfil</span>
+                        </a>
+
+                        <!-- Item 2: Trocar de Empresa -->
+                        <a href="pages/trocar-empresa.html" class="dropdown-item" role="menuitem"
+                            data-action="switch-company">
+                            <i class="fas fa-building"></i>
+                            <span>Trocar de Empresa</span>
+                        </a>
+
+
+
+                        <!-- Item 4: Minha Conta -->
+                        <a href="pages/minha-conta.html" class="dropdown-item" role="menuitem" data-action="account">
+                            <i class="fas fa-wallet"></i>
+                            <span>Minha Conta</span>
+                        </a>
+
+                        <!-- Item 4.5: Integrações Bancárias -->
+                        <a href="pages/configuracoes-bancarias.html" class="dropdown-item" role="menuitem"
+                            data-action="banking">
+                            <i class="fas fa-university"></i>
+                            <span>Integrações Bancárias</span>
+                        </a>
+
+                        <!-- Item 5: Área do Associado -->
+                        <a href="pages/area-associado-login.html" class="dropdown-item" role="menuitem"
+                            data-action="associate-area" target="_blank">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Área do Associado</span>
+                        </a>
+
+                        <!-- Item 6: Catálogo de Planos -->
+                        <a href="pages/catalogo-planos.html" class="dropdown-item" role="menuitem"
+                            data-action="catalog">
+                            <i class="fas fa-book"></i>
+                            <span>Catálogo de Planos</span>
+                        </a>
+
+                        <!-- Separador -->
+                        <div class="dropdown-separator"></div>
+
+                        <!-- Item 7: Sair -->
+                        <button class="dropdown-item logout-item" id="logoutBtn" role="menuitem">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Sair</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logout-container">
+                <!-- Botão de logout será inserido aqui pelo auth-manager -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu Lateral Fixo -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button id="sidebar-close" class="sidebar-close">&times;</button>
+        </div>
+
+        <div class="sidebar-content">
+            <div class="sidebar-user-info">
+                <p class="user-email-display">Usuário: <span id="userDisplaySidebar">Nenhum usuário</span></p>
+                <p class="company-display">Empresa: <span id="empresaDisplaySidebar">Nenhuma empresa ativa</span></p>
+            </div>
+            <ul class="sidebar-menu">
+                <!-- Mais usados -->
+                <li class="menu-item has-submenu expanded">
+                    <a href="#" class="menu-link">
+                        <i class="icon-star"></i>
+                        <span class="menu-text">Mais usados</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="pages/pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+                        <li><a href="pages/pesquisa-planos.html">Pesquisa de Planos</a></li>
+                        <li><a href="pages/dashboard.html">Dashboard</a></li>
+                        <li><a href="pages/inadimplentes.html">Inadimplentes</a></li>
+                        <li><a href="pages/dre-gerencial.html">DRE Gerencial</a></li>
+                        <li><a href="pages/metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="pages/controle-caixas.html">Controle de caixas</a></li>
+                        <li><a href="pages/contas-receber.html">Contas a receber</a></li>
+                        <li><a href="pages/vendas.html">Vendas</a></li>
+                    </ul>
+                </li>
+
+                <!-- Contratos -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-contract"></i>
+                        <span class="menu-text">Contratos</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="pages/contratos.html">Ativos</a></li>
+                        <li><a href="pages/contratos-mensalidades.html">Mensalidades</a></li>
+                        <li><a href="pages/renovacoes-pendentes.html">Renovações pendentes</a></li>
+                        <li><a href="pages/renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="pages/contratos-adimplentes.html">Adimplentes</a></li>
+                        <li><a href="pages/cancelados.html">Cancelados</a></li>
+
+                    </ul>
+                </li>
+
+                <!-- Financeiro -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-money"></i>
+                        <span class="menu-text">Financeiro</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="pages/contas-pagar.html">Contas a pagar</a></li>
+                        <li><a href="pages/lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="pages/comissionamento.html">Comissionamento</a></li>
+                        <li><a href="pages/resumo-dia.html">Resumo do dia</a></li>
+                        <li><a href="pages/minhas-movimentacoes.html">Minhas movimentações</a></li>
+                        <li><a href="pages/metas.html">Metas</a></li>
+                        <li><a href="pages/ordens-servico.html">Ordens de serviço</a></li>
+                    </ul>
+                </li>
+
+                <!-- Famílias -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-family"></i>
+                        <span class="menu-text">Famílias</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="pages/nova-familia.html">Nova família</a></li>
+                        <li><a href="pages/pesquisar-familias.html">Pesquisar famílias</a></li>
+                        <li><a href="pages/pesquisar-associados.html">Pesquisar associados</a></li>
+                        <li><a href="pages/pesquisar-pets.html">Pesquisar pet's</a></li>
+                        <li><a href="pages/aniversariantes.html">Aniversariantes</a></li>
+                        <li><a href="pages/perfil.html">Perfil</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Overlay para fechar o menu em dispositivos móveis -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Mais usados Section -->
+        <section class="dashboard-section">
+            <h2>Mais usados</h2>
+            <div class="card-grid">
+                <div class="card blue" onclick="window.location.href='pages/pesquisa-simplificada.html'">
+                    <i class="fas fa-search"></i>
+                    <span>Pesquisa simplificada</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/dashboard.html'">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/inadimplentes.html'">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Inadimplentes</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/dre-gerencial.html'">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>DRE Gerencial</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/metricas-estrategicas.html'">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Métricas Estratégicas</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/controle-caixas.html'">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Controle de caixas</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/contas-receber.html'">
+                    <i class="fas fa-download"></i>
+                    <span>Contas a receber</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/nova-familia.html'">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Nova família</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contratos Section -->
+        <section class="dashboard-section">
+            <h2>Contratos</h2>
+            <div class="card-grid">
+                <div class="card blue" onclick="window.location.href='pages/contratos.html'">
+                    <i class="fas fa-file-contract"></i>
+                    <span>Ativos</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/contratos-mensalidades.html'">
+                    <i class="fas fa-search-dollar"></i>
+                    <span>Mensalidades</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/renovacoes-pendentes.html'">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Renovações pendentes</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/contratos-adimplentes.html'">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Adimplentes</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/cancelados.html'">
+                    <i class="fas fa-ban"></i>
+                    <span>Cancelados</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/renegociacao-cobrancas.html'">
+                    <i class="fas fa-handshake"></i>
+                    <span>Renegociação</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Financeiro Section -->
+        <section class="dashboard-section">
+            <h2>Financeiro</h2>
+            <div class="card-grid">
+                <div class="card blue" onclick="window.location.href='pages/minhas-movimentacoes.html'">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Minhas movimentações</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/metas.html'">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Metas</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/contas-pagar.html'">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Contas a pagar</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/resumo-dia.html'">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Resumo do dia</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Famílias Section -->
+        <section class="dashboard-section">
+            <h2>Famílias</h2>
+            <div class="card-grid">
+                <div class="card blue" onclick="window.location.href='pages/pesquisar-familias.html'">
+                    <i class="fas fa-users"></i>
+                    <span>Pesquisar famílias</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/pesquisar-associados.html'">
+                    <i class="fas fa-user"></i>
+                    <span>Pesquisar associados</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/pesquisar-pets.html'">
+                    <i class="fas fa-paw"></i>
+                    <span>Pesquisar pet's</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/aniversariantes.html'">
+                    <i class="fas fa-birthday-cake"></i>
+                    <span>Aniversariantes</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts principais serão injetados automaticamente pelo webpack -->
+
+    <!-- Script Melhorado do Accordion -->
+    <script>
+        // Função melhorada para inicializar o accordion
+        function initializeImprovedAccordion() {
+            console.log('🔄 Inicializando accordion melhorado...');
+
+            // Aguarda um pouco para garantir que todos os elementos estejam prontos
+            setTimeout(() => {
+                // Seleciona todos os itens de submenu
+                const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                console.log(`📊 Encontrados ${submenuItems.length} itens de submenu`);
+
+                submenuItems.forEach((menuItem, index) => {
+                    // Encontra o link clicável dentro do item
+                    const menuLink = menuItem.querySelector('.menu-link, a');
+                    const submenu = menuItem.querySelector('.submenu');
+                    const arrowIcon = menuItem.querySelector('.arrow-icon');
+
+                    if (menuLink && submenu) {
+                        // Remove event listeners existentes clonando o elemento
+                        const newMenuLink = menuLink.cloneNode(true);
+                        menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+
+                        // Adiciona novo event listener melhorado
+                        newMenuLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log(`🖱️ Clique no item ${index + 1}`);
+
+                            // Fecha todos os outros submenus
+                            const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                            allMenuItems.forEach(item => {
+                                if (item !== menuItem) {
+                                    item.classList.remove('expanded');
+                                }
+                            });
+
+                            // Toggle do item atual
+                            menuItem.classList.toggle('expanded');
+
+                            const isExpanded = menuItem.classList.contains('expanded');
+                            console.log(`${isExpanded ? '📂' : '📁'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+
+                            // Atualiza o ícone da seta se existir
+                            if (arrowIcon) {
+                                arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                            }
+                        });
+
+                        console.log(`✅ Evento vinculado ao item ${index + 1}`);
+                    } else {
+                        console.warn(`⚠️ Item ${index + 1} não tem link ou submenu válido`);
+                    }
+                });
+
+                console.log('✅ Accordion melhorado inicializado com sucesso!');
+            }, 100);
+        }
+
+        // Inicializa quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+        } else {
+            initializeImprovedAccordion();
+        }
+
+        // Também disponibiliza globalmente para re-inicialização manual
+        window.reinitializeAccordion = initializeImprovedAccordion;
+    </script>
+    <!-- Scripts adicionais serão injetados automaticamente pelo webpack -->
+
+    <!-- Scripts Essenciais -->
+    <!-- Script para prevenir piscamento e inicializar página -->
+    <script>
+        // Prevenção de piscamento e inicialização suave
+        document.addEventListener('DOMContentLoaded', function () {
+            // Remove estado de carregamento do HTML
+            document.documentElement.classList.add('loaded');
+
+            // Aguarda um pouco para garantir que todos os recursos foram carregados
+            setTimeout(function () {
+                document.body.classList.add('page-loaded');
+            }, 100);
+
+            // Correção adicional para scroll
+            document.body.style.overflowX = 'hidden';
+            document.documentElement.style.overflowX = 'hidden';
+        });
+
+        // Prevenção de layout shift durante carregamento
+        window.addEventListener('load', function () {
+            // Garante que a página está totalmente carregada
+            document.body.classList.add('page-loaded');
+
+            // Remove will-change após carregamento para otimizar performance
+            setTimeout(function () {
+                const cards = document.querySelectorAll('.card');
+                cards.forEach(card => {
+                    card.style.willChange = 'auto';
+                });
+            }, 1000);
+        });
+    </script>
+
+    <!-- Firestore Error Suppressor - antes dos scripts do Firebase -->
+    <script src="assets/js/firestore-error-suppressor.js?v=20250127003"></script>
+
+    <!-- Scripts Firebase (compat libs substituídas por v8.10.1 conforme solicitado) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <!-- Utilitário de retry de rede -->
+    <script src="assets/js/network-retry.js"></script>
+
+    <!-- Scripts que dependem do Firebase -->
+    <script src="assets/js/auth-guard.js"></script>
+    <script src="assets/js/sidebar-menu.js"></script>
+    <script src="assets/js/user-menu.js?v=20251031001"></script>
+    <script src="assets/js/empresa-display-fix.js?v=20251031001"></script>
+    <script src="assets/js/active-company-display.js?v=20251031001"></script>
+
+    <!-- Bloqueador de requisições será injetado automaticamente pelo webpack -->
+    <script>
+        (function () {
+            try {
+                var p = (window.location.pathname || '');
+                if (p && !/\.html$/i.test(p) && !/\/$/.test(p)) {
+                    var last = p.split('/').pop();
+                    var target = '/' + last + '.html';
+                    fetch(target, { method: 'HEAD' }).then(function (r) { if (r.ok) { location.replace(target); } });
+                }
+            } catch (_) { }
+        })();
+    </script>
+</body>
+
+</html>

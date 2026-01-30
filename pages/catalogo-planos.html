@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Catálogo de Planos - Qualify</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250127003" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=20250127003" rel="stylesheet">
+    <!-- CSS espec?fico -->
+    <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
+    <link href="../assets/css/catalogo-planos.css?v=20250127003" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+            <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24" style="margin-right: 8px;">
+            <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="search-container">
+            <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <div id="search-results" class="search-results"></div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">9</span>
+                </div>
+                <div class="user-info">
+                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                </div>
+                
+                <!-- Menu de Usu?rio -->
+                <div class="user-menu-container">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário" aria-expanded="false">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown" id="userDropdown" role="menu" aria-hidden="true">
+                        <div class="dropdown-content">
+                            <!-- Item 1: Perfil -->
+                            <!-- Item 1: Perfil -->
+                            <a href="perfil.html" class="dropdown-item" role="menuitem" data-action="profile">
+                                <i class="fas fa-user"></i>
+                                <span>Perfil</span>
+                            </a>
+
+                            <!-- Item 2: Trocar de Empresa -->
+                            <a href="trocar-empresa.html" class="dropdown-item" role="menuitem" data-action="switch-company">
+                                <i class="fas fa-building"></i>
+                                <span>Trocar de Empresa</span>
+                            </a>
+
+                            <!-- Item 3: Configurações -->
+                            <a href="configuracoes.html" class="dropdown-item" role="menuitem" data-action="settings">
+                                <i class="fas fa-cog"></i>
+                                <span>Configurações</span>
+                            </a>
+
+                            <!-- Item 4: Minha Conta -->
+                            <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="account">
+                                <i class="fas fa-wallet"></i>
+                                <span>Minha Conta</span>
+                            </a>
+
+                            <!-- Item 5: Área do Associado -->
+                            <a href="area-associado-login.html" class="dropdown-item" role="menuitem" data-action="associate-area" target="_blank">
+                                <i class="fas fa-external-link-alt"></i>
+                                <span>Área do Associado</span>
+                            </a>
+
+                            <!-- Item 6: Catálogo de Planos -->
+                            <a href="catalogo-planos.html" class="dropdown-item" role="menuitem" data-action="catalog">
+                                <i class="fas fa-book"></i>
+                                <span>Catálogo de Planos</span>
+                            </a>
+
+                            <!-- Separador -->
+                            <div class="dropdown-separator"></div>
+
+                            <!-- Item 7: Sair -->
+                            <button class="dropdown-item logout-item" id="logoutBtn" role="menuitem">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Sair</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    <!-- SIDEBAR MODERNO -->
+    <!-- Menu Lateral Fixo -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button id="sidebar-close" class="sidebar-close">&times;</button>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="sidebar-menu">
+                <!-- Administração -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-cogs"></i>
+                        <span class="menu-text">Administração</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                <li><a href="admin-planos.html">Gestão de Planos</a></li>
+                        <li><a href="catalogo-planos.html" class="active">Catálogo Público</a></li>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                    </ul>
+                </li>
+
+                <!-- Mais usados -->
+                <li class="menu-item has-submenu expanded">
+                    <a href="#" class="menu-link">
+                        <i class="icon-star"></i>
+                        <span class="menu-text">Mais usados</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+                        <li><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="inadimplentes.html">Inadimplentes</a></li>
+                        <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
+                <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="controle-caixas.html">Controle de caixas</a></li>
+                        <li><a href="contas-receber.html">Contas a receber</a></li>
+                        <li><a href="vendas.html">Vendas</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Contratos -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-contract"></i>
+                        <span class="menu-text">Contratos</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="contratos.html">Ativos</a></li>
+                        <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+                <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
+                        <li><a href="cancelados.html">Cancelados</a></li>
+                        
+                    </ul>
+                </li>
+                
+                <!-- Financeiro -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-money"></i>
+                        <span class="menu-text">Financeiro</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="contas-pagar.html">Contas a pagar</a></li>
+                <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="comissionamento.html">Comissionamento</a></li>
+                        <li><a href="resumo-dia.html">Resumo do dia</a></li>
+                <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                        <li><a href="metas.html">Metas</a></li>
+                        <li><a href="ordens-servico.html">Ordens de serviço</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Famílias -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-family"></i>
+            <span class="menu-text">Famílias</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="nova-familia.html">Nova família</a></li>
+                <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                        <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
+                <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
+                        <li><a href="aniversariantes.html">Aniversariantes</a></li>
+                        <li><a href="perfil.html">Perfil</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-3">Carregando catálogo...</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="catalog-main">
+        <div class="container">
+            <!-- Filtros e Busca -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="filters-section">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="search-box">
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="searchPlans" placeholder="Buscar planos...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="filter-buttons">
+                                    <button class="btn btn-filter active" data-category="all">
+                                        <i class="fas fa-th me-2"></i>Todos
+                                    </button>
+                                    <button class="btn btn-filter" data-category="saude">
+                                        <i class="fas fa-heartbeat me-2"></i>Saúde
+                                    </button>
+                                    <button class="btn btn-filter" data-category="psicologia">
+                                        <i class="fas fa-brain me-2"></i>Psicologia
+                                    </button>
+                                    <button class="btn btn-filter" data-category="odonto">
+                                        <i class="fas fa-tooth me-2"></i>Odonto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planos Grid -->
+            <div class="row" id="plansGrid">
+                <!-- Os cards de planos ser?o inseridos aqui dinamicamente -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state d-none">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <i class="fas fa-search empty-icon"></i>
+                        <h3>Nenhum plano encontrado</h3>
+                        <p class="text-muted">Tente ajustar os filtros ou termos de busca.</p>
+                        <button class="btn btn-primary" onclick="clearFilters()">
+                            <i class="fas fa-refresh me-2"></i>Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="plansLoading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando planos...</span>
+                </div>
+                <p class="mt-3 text-muted">Carregando planos disponíveis...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer removido por solicitação -->
+
+    <!-- Modal de Detalhes do Plano -->
+    <div class="modal fade" id="planDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>Detalhes do Plano
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="planDetailsContent">
+                    <!-- Conte?do ser? carregado dinamicamente -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="contractPlanBtn">
+                        <i class="fas fa-shopping-cart me-2"></i>Contratar Plano
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                <strong class="me-auto">Notificação</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                <!-- Conteúdo dinâmico -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    
+    <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003" defer></script>
+    
+    <!-- Scripts de compatibilidade para hospedagem -->
+    <script src="../assets/js/resource-preloader.js?v=20250127003" defer></script>
+    <script src="../assets/js/hosting-compatibility.js?v=20250127003" defer></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003"></script>
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003"></script>
+    <!-- Firebase Configuration e Auth Guard -->
+    <script src="../firebase-config.js?v=20250127003" defer></script>
+    <script src="../assets/js/auth-guard.js?v=20250127003" defer></script>
+    <!-- JavaScript espec?fico -->
+    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+
+    <!-- Script Melhorado do Accordion -->
+    <script>
+    // Função melhorada para inicializar o accordion
+    function initializeImprovedAccordion() {
+        console.log('Inicializando accordion melhorado...');
+        
+        // Aguarda um pouco para garantir que todos os elementos estejam prontos
+        setTimeout(() => {
+            // Seleciona todos os itens de submenu
+            const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+            console.log(`Encontrados ${submenuItems.length} itens de submenu`);
+            
+            submenuItems.forEach((menuItem, index) => {
+                // Encontra o link clic?vel dentro do item
+                const menuLink = menuItem.querySelector('.menu-link, a');
+                const submenu = menuItem.querySelector('.submenu');
+                const arrowIcon = menuItem.querySelector('.arrow-icon');
+                
+                if (menuLink && submenu) {
+                    // Remove event listeners existentes clonando o elemento
+                    const newMenuLink = menuLink.cloneNode(true);
+                    menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+                    
+                    // Adiciona novo event listener melhorado
+                    newMenuLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log(`Clique no item ${index + 1}`);
+                        
+                        // Fecha todos os outros submenus
+                        const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                        allMenuItems.forEach(item => {
+                            if (item !== menuItem) {
+                                item.classList.remove('expanded');
+                            }
+                        });
+                        
+                        // Toggle do item atual
+                        menuItem.classList.toggle('expanded');
+                        
+                        const isExpanded = menuItem.classList.contains('expanded');
+                        console.log(`Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+                        
+                        // Atualiza o ?cone da seta se existir
+                        if (arrowIcon) {
+                            arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                        }
+                    });
+                    
+                    console.log(`Evento vinculado ao item ${index + 1}`);
+                } else {
+                    console.warn(`Item ${index + 1} não tem link ou submenu válido`);
+                }
+            });
+            
+            console.log('Accordion melhorado inicializado com sucesso!');
+        }, 100);
+    }
+    
+    // Inicializa quando o DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+    } else {
+        initializeImprovedAccordion();
+    }
+    
+    // Também disponibiliza globalmente para re-inicialização manual
+    window.reinitializeAccordion = initializeImprovedAccordion;
+    </script>
+    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+    <script src="../assets/js/catalogo-planos.js?v=20250127003"></script>
+
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    
+
+    
+
+    <!-- Correção Completa do Sidebar com Accordion -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Aguardar que todos os scripts sejam carregados
+        function initializeSidebar() {
+            console.log('?? Inicializando corre??o completa do sidebar...');
+            
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (!menuToggle) {
+                console.error('? Bot?o do menu n?o encontrado!');
+                return;
+            }
+            
+            if (!sidebar) {
+                console.error('? Sidebar n?o encontrado!');
+                return;
+            }
+            
+            console.log('? Elementos encontrados - aplicando corre??o...');
+            
+            // Limpar todos os event listeners existentes
+            const newMenuToggle = menuToggle.cloneNode(true);
+            menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+            
+            // Fun??o para abrir o sidebar
+            function openSidebar() {
+                sidebar.classList.add('open', 'menu-aberto');
+                sidebar.style.transform = 'translateX(0)';
+                sidebar.style.left = '0';
+                if (overlay) {
+                    overlay.classList.add('active');
+                    overlay.style.display = 'block';
+                }
+                document.body.style.overflow = 'hidden';
+                console.log('?? Sidebar aberto');
+            }
+            
+            // Fun??o para fechar o sidebar
+            function closeSidebar() {
+                sidebar.classList.remove('open', 'menu-aberto');
+                sidebar.style.transform = 'translateX(-100%)';
+                sidebar.style.left = '-280px';
+                if (overlay) {
+                    overlay.classList.remove('active');
+                    overlay.style.display = 'none';
+                }
+                document.body.style.overflow = '';
+                console.log('?? Sidebar fechado');
+            }
+            
+            // Event listener para o bot?o do menu
+            newMenuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('??? Clique no menu detectado');
+                
+                const isOpen = sidebar.classList.contains('open') || 
+                              sidebar.classList.contains('menu-aberto') ||
+                              sidebar.style.transform === 'translateX(0px)' ||
+                              sidebar.style.left === '0px';
+                
+                if (isOpen) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            });
+            
+            // Event listener para o overlay
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeSidebar();
+                    console.log('?? Sidebar fechado via overlay');
+                });
+            }
+            
+            // Event listener para a tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const isOpen = sidebar.classList.contains('open') || 
+                                  sidebar.classList.contains('menu-aberto');
+                    if (isOpen) {
+                        closeSidebar();
+                        console.log('?? Sidebar fechado via ESC');
+                    }
+                }
+            });
+            
+            // Event listener para bot?o de fechar (se existir)
+            const closeButton = document.getElementById('sidebar-close') || 
+                               document.querySelector('.sidebar-close') ||
+                               document.querySelector('#sidebar .close-btn');
+            if (closeButton) {
+                closeButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeSidebar();
+                    console.log('?? Sidebar fechado via bot?o fechar');
+                });
+            }
+            
+            // Implementar funcionalidade de accordion
+            const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+            console.log('?? Itens do menu encontrados:', menuItems.length);
+            
+            menuItems.forEach(function(item) {
+                const link = item.querySelector('.menu-link');
+                const submenu = item.querySelector('.submenu');
+                
+                if (link && submenu) {
+                    // Remover event listeners existentes
+                    const newLink = link.cloneNode(true);
+                    link.parentNode.replaceChild(newLink, link);
+                    
+                    newLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('??? Clique no menu:', newLink.textContent.trim());
+                        
+                        // Fechar outros submenus
+                        menuItems.forEach(function(otherItem) {
+                            if (otherItem !== item) {
+                                otherItem.classList.remove('expanded');
+                                const otherSubmenu = otherItem.querySelector('.submenu');
+                                if (otherSubmenu) {
+                                    otherSubmenu.style.display = 'none';
+                                }
+                            }
+                        });
+                        
+                        // Alternar o submenu atual
+                        const isExpanded = item.classList.contains('expanded');
+                        if (isExpanded) {
+                            item.classList.remove('expanded');
+                            submenu.style.display = 'none';
+                            console.log('?? Submenu fechado:', newLink.textContent.trim());
+                        } else {
+                            item.classList.add('expanded');
+                            submenu.style.display = 'block';
+                            console.log('?? Submenu aberto:', newLink.textContent.trim());
+                        }
+                    });
+                    
+                    console.log('? Event listener adicionado para:', link.textContent.trim());
+                }
+            });
+                
+            
+            // Garantir que o sidebar inicie fechado
+            closeSidebar();
+            
+            console.log('? Corre??o completa do sidebar aplicada com sucesso!');
+        }
+        
+        // Inicializar quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(initializeSidebar, 1000);
+            });
+        } else {
+            setTimeout(initializeSidebar, 1000);
+        }
+        
+    })();
+    </script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Pesquisar Famílias - Sistema de Gestão</title>
+    <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-fix.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/pesquisar-familias.css?v=20250127003">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003"
+        rel="stylesheet">
+    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+
+    <!-- Firebase Scripts (v8.10.1) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="../firebase-config.js?v=20250127003" defer></script>
+    <script src="../assets/js/multitenant-config.js?v=1.0.2"></script>
+    <script src="../assets/js/firestore-utils.js?v=1.0.2"></script>
+    <script src="../assets/js/navigation-fix.js?v=1.0.2"></script>
+</head>
+
+<body class="page-pesquisar-familias">
+    <div class="container">
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            .layout-shift-prevention {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+        </style>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
+                        style="margin-right: 8px;">
+                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <div id="search-results" class="search-results"></div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">9</span>
+                </div>
+                <div class="user-info">
+                    <!-- Informa??es do usu?rio ser?o inseridas aqui pelo auth-manager -->
+                </div>
+
+                <!-- Menu de Usu?rio -->
+                <div class="user-menu-container">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usu?rio"
+                        aria-expanded="false">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown" id="userDropdown" role="menu" aria-hidden="true">
+                        <div class="dropdown-content">
+                            <!-- Item 1: Perfil -->
+                            <a href="perfil.html" class="dropdown-item" role="menuitem" data-action="profile">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Meu Perfil</span>
+                                    <span class="dropdown-item-subtitle">Configurações pessoais</span>
+                                </div>
+                            </a>
+
+                            <!-- Item 2: Configura??es -->
+                            <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Configurações</span>
+                                    <span class="dropdown-item-subtitle">Ajustes do sistema</span>
+                                </div>
+                            </a>
+
+                            <!-- Divider -->
+                            <div class="dropdown-divider"></div>
+
+                            <!-- Item 3: Ajuda -->
+                            <a href="#" class="dropdown-item" role="menuitem" data-action="help">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-question-circle"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Ajuda</span>
+                                    <span class="dropdown-item-subtitle">Suporte e documentação</span>
+                                </div>
+                            </a>
+
+                            <!-- Divider -->
+                            <div class="dropdown-divider"></div>
+
+                            <!-- Item 4: Logout -->
+                            <a href="#" class="dropdown-item logout-item" role="menuitem" data-action="logout"
+                                id="logoutBtn">
+                                <div class="dropdown-item-icon">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </div>
+                                <div class="dropdown-item-content">
+                                    <span class="dropdown-item-title">Sair</span>
+                                    <span class="dropdown-item-subtitle">Encerrar sessão</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Menu Lateral Fixo -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+                <button id="sidebar-close" class="sidebar-close">&times;</button>
+            </div>
+
+            <div class="sidebar-content">
+                <ul class="sidebar-menu">
+                    <!-- Mais usados -->
+                    <li class="menu-item has-submenu expanded">
+                        <a href="#" class="menu-link">
+                            <i class="icon-star"></i>
+                            <span class="menu-text">Mais usados</span>
+                            <i class="arrow-icon fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+                            <li><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
+                            <li><a href="dashboard.html">Dashboard</a></li>
+                            <li><a href="inadimplentes.html">Inadimplentes</a></li>
+                            <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
+                            <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="controle-caixas.html">Controle de caixas</a></li>
+                            <li><a href="contas-receber.html">Contas a receber</a></li>
+
+                        </ul>
+                    </li>
+
+                    <!-- Contratos -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-contract"></i>
+                            <span class="menu-text">Contratos</span>
+                            <i class="arrow-icon fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="contratos.html">Ativos</a></li>
+                            <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                            <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                            <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
+                            <li><a href="cancelados.html">Cancelados</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Financeiro -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-money"></i>
+                            <span class="menu-text">Financeiro</span>
+                            <i class="arrow-icon fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="contas-pagar.html">Contas a pagar</a></li>
+                            <li><a href="resumo-dia.html">Resumo do dia</a></li>
+                            <li><a href="comissionamento.html">Comissionamento</a></li>
+                            <li><a href="metas.html">Metas</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Famílias -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-family"></i>
+                            <span class="menu-text">Famílias</span>
+                            <i class="arrow-icon fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="nova-familia.html">Nova família</a></li>
+                            <li><a href="pesquisar-familias.html" class="active">Pesquisar famílias</a></li>
+                            <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
+                            <li><a href="pesquisar-pets.html">Pesquisar pets</a></li>
+                            <li><a href="aniversariantes.html">Aniversariantes</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Overlay para fechar o menu em dispositivos m?veis -->
+
+        <!-- Busca e Ações -->
+        <div class="search-bar">
+            <input type="text" id="familySearch" class="search-input" placeholder="Buscar por nome ou CPF"
+                aria-label="Buscar por nome ou CPF">
+            <div class="search-actions">
+                <button class="btn btn-new" id="newBtn">
+                    <span class="btn-icon"><i class="fas fa-plus"></i></span>
+                    Novo
+                </button>
+                <button class="btn btn-export" id="exportBtn">
+                    <span class="btn-icon"><i class="fas fa-file-export"></i></span>
+                    Exportar
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Status -->
+        <div class="filter-status">
+            <span class="filter-text">Nenhum filtro aplicado</span>
+        </div>
+
+        <!-- Data Tabs -->
+        <div class="data-tabs">
+            <button class="tab-btn active" data-tab="dados">Dados</button>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+            <table class="data-table" id="familiesTable">
+                <thead>
+                    <tr>
+                        <th class="col-select">
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th class="col-actions">Ações</th>
+                        <th class="col-name">Nome</th>
+                        <th class="col-responsible">Corresponsável</th>
+                        <th class="col-contacts">Contatos</th>
+                        <th class="col-document">Documento</th>
+                        <th class="col-address">Endereço da família</th>
+                        <th class="col-dependents">Nº de dependentes</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Sample data rows -->
+                    <tr>
+                        <td><input type="checkbox" class="row-select"></td>
+                        <td class="actions-cell">
+                            <button class="action-btn edit-btn" title="Editar" onclick="editFamily(1)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn view-btn" title="Visualizar" onclick="viewFamily(1)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="Excluir" onclick="deleteFamily(1)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                        <td class="name-cell">Rosangela Moreira Dos Santos</td>
+                        <td class="responsible-cell">-</td>
+                        <td class="contacts-cell">Celular: [Telefone]</td>
+                        <td class="document-cell">[CPF]</td>
+                        <td class="address-cell">23265-210, Rua Batista de Oliveira, 9, Inhoaíba, 00210 Duque de Caxias
+                            - RJ</td>
+                        <td class="dependents-cell">1</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="row-select"></td>
+                        <td class="actions-cell">
+                            <button class="action-btn edit-btn" title="Editar" onclick="editFamily(2)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn view-btn" title="Visualizar" onclick="viewFamily(2)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="Excluir" onclick="deleteFamily(2)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                        <td class="name-cell">[Nome do Cliente]</td>
+                        <td class="responsible-cell">-</td>
+                        <td class="contacts-cell">Celular: [Telefone]</td>
+                        <td class="document-cell">[CPF]</td>
+                        <td class="address-cell">2500-336, Rua Antônio Nº 10, Coelho, Mesquita - RJ</td>
+                        <td class="dependents-cell">1</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="row-select"></td>
+                        <td class="actions-cell">
+                            <button class="action-btn edit-btn" title="Editar" onclick="editFamily(3)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn view-btn" title="Visualizar" onclick="viewFamily(3)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="Excluir" onclick="deleteFamily(3)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                        <td class="name-cell">[Nome do Cliente]</td>
+                        <td class="responsible-cell">-</td>
+                        <td class="contacts-cell">Celular: [Telefone] E-mail: [Email]</td>
+                        <td class="document-cell">[CPF]</td>
+                        <td class="address-cell">28300-000, Rua Professora Preciosa Serrano, 623, Cidade Nova, Itaperuna
+                            - RJ</td>
+                        <td class="dependents-cell">1</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="row-select"></td>
+                        <td class="actions-cell">
+                            <button class="action-btn edit-btn" title="Editar" onclick="editFamily(4)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn view-btn" title="Visualizar" onclick="viewFamily(4)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="Excluir" onclick="deleteFamily(4)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                        <td class="name-cell">[Nome do Cliente]</td>
+                        <td class="responsible-cell">[Nome do Responsável]</td>
+                        <td class="contacts-cell">Celular: [Telefone] E-mail: [Email]</td>
+                        <td class="document-cell">[CPF]</td>
+                        <td class="address-cell">68906-783, Rua Professor Preciado Serrano, 623, Cidade Nova, Manaus -
+                            AM</td>
+                        <td class="dependents-cell">4</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="row-select"></td>
+                        <td class="actions-cell">
+                            <button class="action-btn edit-btn" title="Editar" onclick="editFamily(5)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn view-btn" title="Visualizar" onclick="viewFamily(5)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="Excluir" onclick="deleteFamily(5)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                        <td class="name-cell">[Nome do Cliente]</td>
+                        <td class="responsible-cell">-</td>
+                        <td class="contacts-cell">Celular: [Telefone] E-mail: [Email]</td>
+                        <td class="document-cell">[CPF]</td>
+                        <td class="address-cell">48509-263, Rua Maria Luiza Mendonça, 36, Município Marcionílio, Itabuna
+                            - BA</td>
+                        <td class="dependents-cell">1</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal de Visualização -->
+        <div id="viewFamilyModal" class="modal" aria-hidden="true" style="display:none;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Visualizar Família</h5>
+                        <button type="button" class="btn-close" aria-label="Fechar"
+                            data-bs-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body" id="familyDetails"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span class="records-count">Quantidade registros: <strong>0</strong></span>
+            </div>
+            <div class="pagination-controls">
+                <button class="page-btn" id="firstPage" title="Primeira página"><i
+                        class="fas fa-angle-double-left"></i></button>
+                <button class="page-btn" id="prevPage" title="Página anterior"><i
+                        class="fas fa-angle-left"></i></button>
+                <span class="page-numbers">
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">4</button>
+                    <button class="page-btn">5</button>
+                    <button class="page-btn">6</button>
+                    <button class="page-btn">7</button>
+                    <button class="page-btn">8</button>
+                    <button class="page-btn">9</button>
+                    <button class="page-btn">10</button>
+                </span>
+                <button class="page-btn" id="nextPage" title="Próxima página"><i
+                        class="fas fa-angle-right"></i></button>
+                <button class="page-btn" id="lastPage" title="Última página"><i
+                        class="fas fa-angle-double-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+
+        <p>Carregando dados...</p>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
+    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+
+    <!-- Script Melhorado do Accordion -->
+    <script>
+        // Função melhorada para inicializar o accordion
+        function initializeImprovedAccordion() {
+            console.log('🔧 Inicializando accordion melhorado...');
+
+            // Aguarda um pouco para garantir que todos os elementos estejam prontos
+            setTimeout(() => {
+                // Seleciona todos os itens de submenu
+                const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                console.log(`📂 Encontrados ${submenuItems.length} itens de submenu`);
+
+                submenuItems.forEach((menuItem, index) => {
+                    // Encontra o link clic?vel dentro do item
+                    const menuLink = menuItem.querySelector('.menu-link, a');
+                    const submenu = menuItem.querySelector('.submenu');
+                    const arrowIcon = menuItem.querySelector('.arrow-icon');
+
+                    if (menuLink && submenu) {
+                        // Remove event listeners existentes clonando o elemento
+                        const newMenuLink = menuLink.cloneNode(true);
+                        menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+
+                        // Adiciona novo event listener melhorado
+                        newMenuLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log(`👉 Clique no item ${index + 1}`);
+
+                            // Fecha todos os outros submenus
+                            const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                            allMenuItems.forEach(item => {
+                                if (item !== menuItem) {
+                                    item.classList.remove('expanded');
+                                }
+                            });
+
+                            // Toggle do item atual
+                            menuItem.classList.toggle('expanded');
+
+                            const isExpanded = menuItem.classList.contains('expanded');
+                            console.log(`${isExpanded ? '⬇️' : '⬆️'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+
+                            // Atualiza o ?cone da seta se existir
+                            if (arrowIcon) {
+                                arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                            }
+                        });
+
+                        console.log(`✅ Evento vinculado ao item ${index + 1}`);
+                    } else {
+                        console.warn(`⚠️ Item ${index + 1} não tem link ou submenu válido`);
+                    }
+                });
+
+                console.log('✅ Accordion melhorado inicializado com sucesso!');
+            }, 100);
+        }
+
+        // Inicializa quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+        } else {
+            initializeImprovedAccordion();
+        }
+
+        // Tamb?m disponibiliza globalmente para re-inicializa??o manual
+        window.reinitializeAccordion = initializeImprovedAccordion;
+    </script>
+    <script src="../assets/js/storage-safe.js?v=20251216001"></script>
+    <script src="../assets/js/cache-buster.js?v=20251216001"></script>
+    <script src="../assets/js/pesquisar-familias.js?v=20250127003" defer></script>
+    <script>
+        // Configurar estado ativo do menu baseado na página atual
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentPage = 'pages/pesquisar-familias.html';
+            const sidebarLinks = document.querySelectorAll('#sidebar .submenu a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                    // Expandir o submenu pai se necessário
+                    const parentSubmenu = link.closest('.submenu');
+                    if (parentSubmenu) {
+                        const parentMenuItem = parentSubmenu.closest('.menu-item');
+                        if (parentMenuItem) {
+                            parentMenuItem.classList.add('expanded');
+                        }
+                    }
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+
+
+
+
+    <!-- Correção Completa do Sidebar com Accordion -->
+    <script>
+        (function () {
+            'use strict';
+
+            // Aguardar que todos os scripts sejam carregados
+            function initializeSidebar() {
+                console.log('🔧 Inicializando correção completa do sidebar...');
+
+                const menuToggle = document.getElementById('menu-toggle');
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+
+                if (!menuToggle) {
+                    console.error('❌ Botão do menu não encontrado!');
+                    return;
+                }
+
+                if (!sidebar) {
+                    console.error('❌ Sidebar não encontrado!');
+                    return;
+                }
+
+                console.log('✅ Elementos encontrados - aplicando correção...');
+
+                // Limpar todos os event listeners existentes
+                const newMenuToggle = menuToggle.cloneNode(true);
+                menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+
+                // Função para abrir o sidebar
+                function openSidebar() {
+                    sidebar.classList.add('open', 'menu-aberto');
+                    sidebar.style.transform = 'translateX(0)';
+                    sidebar.style.left = '0';
+                    if (overlay) {
+                        overlay.classList.add('active');
+                        overlay.style.display = 'block';
+                    }
+                    document.body.style.overflow = 'hidden';
+                    console.log('📂 Sidebar aberto');
+                }
+
+                // Função para fechar o sidebar
+                function closeSidebar() {
+                    sidebar.classList.remove('open', 'menu-aberto');
+                    sidebar.style.transform = 'translateX(-100%)';
+                    sidebar.style.left = '-280px';
+                    if (overlay) {
+                        overlay.classList.remove('active');
+                        overlay.style.display = 'none';
+                    }
+                    document.body.style.overflow = '';
+                    console.log('📂 Sidebar fechado');
+                }
+
+                // Event listener para o botão do menu
+                newMenuToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    console.log('👉 Clique no menu detectado');
+
+                    const isOpen = sidebar.classList.contains('open') ||
+                        sidebar.classList.contains('menu-aberto') ||
+                        sidebar.style.transform === 'translateX(0px)' ||
+                        sidebar.style.left === '0px';
+
+                    if (isOpen) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+
+                // Event listener para o overlay
+                if (overlay) {
+                    overlay.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        closeSidebar();
+                        console.log('?? Sidebar fechado via overlay');
+                    });
+                }
+
+                // Event listener para a tecla ESC
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        const isOpen = sidebar.classList.contains('open') ||
+                            sidebar.classList.contains('menu-aberto');
+                        if (isOpen) {
+                            closeSidebar();
+                            console.log('?? Sidebar fechado via ESC');
+                        }
+                    }
+                });
+
+                // Event listener para bot?o de fechar (se existir)
+                const closeButton = document.getElementById('sidebar-close') ||
+                    document.querySelector('.sidebar-close') ||
+                    document.querySelector('#sidebar .close-btn');
+                if (closeButton) {
+                    closeButton.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        closeSidebar();
+                        console.log('?? Sidebar fechado via bot?o fechar');
+                    });
+                }
+
+                // Implementar funcionalidade de accordion
+                const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+                console.log('?? Itens do menu encontrados:', menuItems.length);
+
+                menuItems.forEach(function (item) {
+                    const link = item.querySelector('.menu-link');
+                    const submenu = item.querySelector('.submenu');
+
+                    if (link && submenu) {
+                        // Remover event listeners existentes
+                        const newLink = link.cloneNode(true);
+                        link.parentNode.replaceChild(newLink, link);
+
+                        newLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log('??? Clique no menu:', newLink.textContent.trim());
+
+                            // Fechar outros submenus
+                            menuItems.forEach(function (otherItem) {
+                                if (otherItem !== item) {
+                                    otherItem.classList.remove('expanded');
+                                    const otherSubmenu = otherItem.querySelector('.submenu');
+                                    if (otherSubmenu) {
+                                        otherSubmenu.style.display = 'none';
+                                    }
+                                }
+                            });
+
+                            // Alternar o submenu atual
+                            const isExpanded = item.classList.contains('expanded');
+                            if (isExpanded) {
+                                item.classList.remove('expanded');
+                                submenu.style.display = 'none';
+                                console.log('?? Submenu fechado:', newLink.textContent.trim());
+                            } else {
+                                item.classList.add('expanded');
+                                submenu.style.display = 'block';
+                                console.log('?? Submenu aberto:', newLink.textContent.trim());
+                            }
+                        });
+
+                        console.log('? Event listener adicionado para:', link.textContent.trim());
+                    }
+                });
+
+
+                // Garantir que o sidebar inicie fechado
+                closeSidebar();
+
+                console.log('? Corre??o completa do sidebar aplicada com sucesso!');
+            }
+
+            // Inicializar quando o DOM estiver pronto
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(initializeSidebar, 1000);
+                });
+            } else {
+                setTimeout(initializeSidebar, 1000);
+            }
+
+        })();
+    </script>
+
+    <!-- Modal de Visualiza??o -->
+    <div class="modal fade" id="viewFamilyModal" tabindex="-1" aria-labelledby="viewFamilyModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewFamilyModalLabel">Detalhes da Fam?lia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="familyDetails">
+                        <!-- Conte?do ser? carregado dinamicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003"></script>
+    <script>
+        // Dados simulados das fam?lias
+        const familiesData = {
+            1: {
+                nome: "Rosangela Moreira Dos Santos",
+                cpf: "123.456.789-00",
+                telefone: "(21) 98765-4321",
+                email: "rosangela@email.com",
+                endereco: "23265-210, Rua Batista de Oliveira, 9, Inhoa?ba, 00210 Duque de Caxias - RJ",
+                dependentes: 1,
+                responsavel: "-",
+                detalhes: {
+                    rg: "12.345.678-9",
+                    dataNascimento: "15/05/1980",
+                    estadoCivil: "Casada",
+                    profissao: "Professora",
+                    dependentesList: [
+                        { nome: "Jo?o Santos", idade: "13 anos", parentesco: "Filho" }
+                    ]
+                }
+            },
+            2: {
+                nome: "Maria Silva Santos",
+                cpf: "987.654.321-00",
+                telefone: "(21) 99876-5432",
+                email: "maria@email.com",
+                endereco: "2500-336, Rua Ant?nio N? 10, Coelho, Mesquita - RJ",
+                dependentes: 1,
+                responsavel: "-",
+                detalhes: {
+                    rg: "98.765.432-1",
+                    dataNascimento: "22/08/1975",
+                    estadoCivil: "Solteira",
+                    profissao: "Enfermeira",
+                    dependentesList: []
+                }
+            },
+            3: {
+                nome: "Carlos Eduardo Silva",
+                cpf: "456.789.123-00",
+                telefone: "(21) 97654-3210",
+                email: "carlos@email.com",
+                endereco: "28300-000, Rua Professora Preciosa Serrano, 623, Cidade Nova, Itaperuna - RJ",
+                dependentes: 1,
+                responsavel: "-",
+                detalhes: {
+                    rg: "45.678.912-3",
+                    dataNascimento: "10/12/1985",
+                    estadoCivil: "Casado",
+                    profissao: "Engenheiro",
+                    dependentesList: [
+                        { nome: "Ana Silva", idade: "8 anos", parentesco: "Filha" }
+                    ]
+                }
+            },
+            4: {
+                nome: "Patricia Oliveira Costa",
+                cpf: "789.123.456-00",
+                telefone: "(85) 98765-4321",
+                email: "patricia@email.com",
+                endereco: "68906-783, Rua Professor Preciado Serrano, 623, Cidade Nova, Manaus - AM",
+                dependentes: 4,
+                responsavel: "Roberto Costa",
+                detalhes: {
+                    rg: "78.912.345-6",
+                    dataNascimento: "05/07/1990",
+                    estadoCivil: "Casada",
+                    profissao: "M?dica",
+                    dependentesList: [
+                        { nome: "Lucas Costa", idade: "12 anos", parentesco: "Filho" },
+                        { nome: "Sofia Costa", idade: "9 anos", parentesco: "Filha" },
+                        { nome: "Pedro Costa", idade: "6 anos", parentesco: "Filho" },
+                        { nome: "Roberto Costa", idade: "45 anos", parentesco: "C?njuge" }
+                    ]
+                }
+            },
+            5: {
+                nome: "Fernando Santos Lima",
+                cpf: "321.654.987-00",
+                telefone: "(73) 99876-5432",
+                email: "fernando@email.com",
+                endereco: "48509-263, Rua Maria Luiza Mendon?a, 36, Munic?pio Marcion?lio, Itabuna - BA",
+                dependentes: 1,
+                responsavel: "-",
+                detalhes: {
+                    rg: "32.165.498-7",
+                    dataNascimento: "18/11/1982",
+                    estadoCivil: "Divorciado",
+                    profissao: "Advogado",
+                    dependentesList: [
+                        { nome: "Gabriel Lima", idade: "15 anos", parentesco: "Filho" }
+                    ]
+                }
+            }
+        };
+
+        // Fun??o para editar fam?lia
+        function editFamily(familyId) {
+            window.location.href = `editar-familia.html?id=${familyId}`;
+        }
+
+        // Fun??o para visualizar fam?lia
+        function viewFamily(familyId) {
+            const family = familiesData[familyId];
+            if (!family) {
+                alert('Fam?lia n?o encontrada!');
+                return;
+            }
+
+            const modalBody = document.getElementById('familyDetails');
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6 class="text-primary mb-3">Dados Pessoais</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Nome:</strong><br>
+                                ${family.nome}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>CPF:</strong><br>
+                                ${family.cpf}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>RG:</strong><br>
+                                ${family.detalhes.rg}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Data de Nascimento:</strong><br>
+                                ${family.detalhes.dataNascimento}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Estado Civil:</strong><br>
+                                ${family.detalhes.estadoCivil}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Profiss?o:</strong><br>
+                                ${family.detalhes.profissao}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6 class="text-primary mb-3">Contatos</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Telefone:</strong><br>
+                                ${family.telefone}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>E-mail:</strong><br>
+                                ${family.email}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6 class="text-primary mb-3">Endere?o</h6>
+                        <p>${family.endereco}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6 class="text-primary mb-3">Dependentes (${family.dependentes})</h6>
+                        ${family.detalhes.dependentesList.length > 0 ?
+                    family.detalhes.dependentesList.map(dep => `
+                                <div class="border rounded p-2 mb-2">
+                                    <strong>${dep.nome}</strong> - ${dep.idade} - ${dep.parentesco}
+                                </div>
+                            `).join('') :
+                    '<p class="text-muted">Nenhum dependente cadastrado</p>'
+                }
+                    </div>
+                </div>
+            `;
+
+            // Abrir modal
+            const modal = new bootstrap.Modal(document.getElementById('viewFamilyModal'));
+            modal.show();
+        }
+
+        // Função para excluir (apenas stub para linhas de exemplo)
+        function deleteFamily(familyId) {
+            alert('Este é um exemplo estático. Use as linhas carregadas da tabela para excluir um cadastro real.');
+        }
+    </script>
+</body>
+
+</html>

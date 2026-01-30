@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUALIFY - Login</title>
+
+    <!-- Auth Guard será movido para o final do body na ordem correta -->
+
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Previne FOUC (Flash of Unstyled Content) */
+        html {
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        html.loaded {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 1.953125rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 800px;
+            margin: 4vh 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
+            zoom: 0.75;
+        }
+
+        .login-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* CSS À PROVA DE FALHAS - FORÇA VISIBILIDADE DO FORMULÁRIO DE CADASTRO */
+        #registerContainer[style*="display: block"] {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            height: auto !important;
+            overflow: visible !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .login-header p {
+            color: #666;
+            margin: 0.5rem 0 0 0;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Estilos para o ícone de ver/ocultar senha */
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            font-size: 1.1rem;
+            z-index: 10;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #667eea;
+        }
+
+        .form-group.has-toggle input {
+            padding-right: 45px;
+        }
+
+        /* Wrapper para garantir centralização do ícone em relação ao input */
+        .input-with-toggle {
+            position: relative;
+        }
+
+        .input-with-toggle .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.9rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-hint {
+            display: block;
+            color: #888;
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .login-options {
+            margin: 1.5rem 0;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: #fff;
+            color: #333;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .google-btn:hover {
+            border-color: #db4437;
+            background: #f8f9fa;
+        }
+
+
+
+        .google-btn i {
+            color: #db4437;
+        }
+
+        .forgot-password {
+            display: block;
+            text-align: center;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        .switch-form {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .switch-form p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .switch-form a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .switch-form a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: #fdf2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            color: #27ae60;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: #f0f9f4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .login-header h1 {
+                font-size: 1.7rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Formulário de Login -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-header">
+            <h1>Entrar no Sistema</h1>
+            <p>Acesse sua conta para continuar</p>
+        </div>
+
+        <form id="loginForm" class="login-form" method="post" onsubmit="event.preventDefault();">
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group has-toggle">
+                <label for="password">Senha</label>
+                <div class="input-with-toggle">
+                    <input type="password" id="password" name="password" required>
+                    <i class="fas fa-eye password-toggle" id="toggleLoginPassword" title="Ver senha"
+                        aria-label="Alternar visibilidade da senha" role="button" tabindex="0"></i>
+                </div>
+            </div>
+
+            <button type="submit" id="loginBtn" class="login-btn">Entrar</button>
+
+            <div class="login-options">
+                <button type="button" id="googleLoginBtn" class="google-btn">
+                    <i class="fab fa-google"></i>
+                    Entrar com Google
+                </button>
+
+
+
+                <a href="#" id="forgotPasswordLink" class="forgot-password">Esqueci minha senha</a>
+            </div>
+
+            <div class="switch-form">
+                <p>Não tem uma conta? <a href="#" id="showRegister">Criar conta</a></p>
+            </div>
+        </form>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+    </div>
+
+    <!-- Formulário de Registro -->
+    <div class="login-container" id="registerContainer" style="display: none;">
+        <div class="login-header">
+            <h1>Criar Nova Conta</h1>
+            <p>Preencha os dados para criar sua conta</p>
+        </div>
+
+        <form id="registerForm" class="login-form" method="post" onsubmit="event.preventDefault();">
+            <div class="form-group">
+                <label for="registerName">Nome Completo</label>
+                <input type="text" id="registerName" name="registerName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="registerEmail">E-mail</label>
+                <input type="email" id="registerEmail" name="registerEmail" required>
+            </div>
+
+            <div class="form-group has-toggle">
+                <label for="registerPassword">Senha</label>
+                <div class="input-with-toggle">
+                    <input type="password" id="registerPassword" name="registerPassword" required minlength="6">
+                    <i class="fas fa-eye password-toggle" id="toggleRegisterPassword" title="Ver senha"
+                        aria-label="Alternar visibilidade da senha" role="button" tabindex="0"></i>
+                </div>
+                <small class="form-hint">Mínimo de 6 caracteres</small>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar Senha</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+            </div>
+
+            <button type="submit" id="registerBtn" class="login-btn">Criar Conta</button>
+
+            <div class="login-options">
+                <button type="button" id="googleRegisterBtn" class="google-btn">
+                    <i class="fab fa-google"></i>
+                    Registrar com Google
+                </button>
+            </div>
+
+            <div class="switch-form">
+                <p>Já tem uma conta? <a href="#" id="showLogin">Fazer login</a></p>
+            </div>
+        </form>
+    </div>
+
+    <!-- Cache Cleaner - DEVE ser carregado PRIMEIRO -->
+    <script src="assets/js/cache-cleaner.js?v=20250127003"></script>
+
+    <!-- ORDEM CORRETA DOS SCRIPTS PARA FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="firebase-config.js?v=20250127003"></script>
+
+    <!-- Firestore Error Suppressor - DEVE ser carregado ANTES dos scripts do Firebase -->
+    <script src="assets/js/firestore-error-suppressor.js?v=20250127003"></script>
+
+    <!-- Utilitário de retry de rede -->
+    <script src="assets/js/network-retry.js?v=20250127003"></script>
+
+    <!-- Monitor de conexão -->
+    <script src="assets/js/connection-monitor.js?v=20250127003"></script>
+
+    <!-- Auth Guard REVERSO para login - AGUARDA FIREBASE ESTAR PRONTO -->
+    <script>
+        // Auth Guard REVERSO - redireciona usuários logados
+        function checkReverseAuth() {
+            console.log('Verificando Auth Guard Reverso...');
+
+            if (typeof firebase === 'undefined' || !firebase.auth || !firebase.apps.length) {
+                console.log('Login Auth Guard: Firebase não está pronto, aguardando...');
+                return;
+            }
+
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    console.log("Login Auth Guard REVERSO: Usuário já logado, redirecionando...");
+
+                    // Verificar se já está na página de trocar empresa para evitar redirecionamento desnecessário
+                    const currentPath = window.location.pathname.toLowerCase();
+                    const isTrocarEmpresaPage = currentPath.includes('trocar-empresa.html') ||
+                        currentPath.endsWith('/trocar-empresa.html') ||
+                        currentPath === '/pages/trocar-empresa.html';
+
+                    // Redirecionar para a página de seleção de empresa
+                    // Limpar empresa selecionada para forçar nova seleção
+                    localStorage.removeItem('empresaSelecionadaId');
+                    console.log("Redirecionando para seleção de empresa...");
+
+                    // Usar setTimeout para evitar ERR_ABORTED
+                    setTimeout(() => {
+                        window.location.href = './pages/trocar-empresa.html';
+                    }, 100);
+                }
+            });
+        }
+
+        // Aguardar Firebase estar pronto via evento
+        window.addEventListener('firebaseReady', () => {
+            console.log('Firebase Ready event recebido, executando Auth Guard Reverso...');
+            checkReverseAuth();
+        });
+
+        // Fallback: tentar executar após um delay
+        setTimeout(() => {
+            if (typeof firebase !== 'undefined' && firebase.auth && firebase.apps.length) {
+                checkReverseAuth();
+            }
+        }, 1000);
+    </script>
+
+    <!-- PAGE INITIALIZATION - Password Toggle, Animations, Logout -->
+    <script>
+        console.log('🔥 Inicializando página de login...');
+
+        // Previne piscamento e inicializa animações suaves
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🔥 DOMContentLoaded disparado!');
+            // Remove o loading state do HTML
+            document.documentElement.classList.add('loaded');
+
+            // Mostra os containers de login com animação suave
+            setTimeout(() => {
+                const loginContainer = document.getElementById('loginContainer');
+                const registerContainer = document.getElementById('registerContainer');
+
+                if (loginContainer) {
+                    loginContainer.classList.add('show');
+                }
+                if (registerContainer && registerContainer.style.display !== 'none') {
+                    registerContainer.classList.add('show');
+                }
+            }, 100);
+        });
+
+        // LOGOUT HANDLER - Disponível globalmente
+        async function handleLogout() {
+            console.log('*** INICIANDO LOGOUT COMPLETO E SEGURO ***');
+            try {
+                await firebase.auth().signOut();
+                console.log('Firebase signOut() SUCESSO.');
+                // LIMPEZA TOTAL E ABSOLUTA DO ESTADO LOCAL:
+                localStorage.clear();
+                sessionStorage.clear();
+                console.log('*** LocalStorage/SessionStorage COMPLETAMENTE LIMPOS. ***');
+                // REDIRECIONA APÓS LIMPAR TUDO:
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('*** ERRO CRÍTICO DURANTE LOGOUT:', error);
+                alert('Erro crítico ao tentar sair.');
+            }
+        }
+        // Garanta que o botão 'Sair' CHAMA handleLogout()
+        window.handleLogout = handleLogout;
+    </script>
+
+    <!-- LOGIN SYSTEM - Carrega o sistema de login estruturado -->
+    <script src="assets/js/login.js?v=20250127003"></script>
+    <script>
+        (function () {
+            try {
+                var p = (window.location.pathname || '');
+                if (p && !/\.html$/i.test(p) && !/\/$/.test(p)) {
+                    var last = p.split('/').pop();
+                    var target = '/' + last + '.html';
+                    fetch(target, { method: 'HEAD' }).then(function (r) { if (r.ok) { location.replace(target); } });
+                }
+            } catch (_) { }
+        })();
+    </script>
+</body>
+
+</html>

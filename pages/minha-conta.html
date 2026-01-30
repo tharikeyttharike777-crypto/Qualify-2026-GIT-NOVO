@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Minha Conta - Painel de Gestão</title>
+
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250127003" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=20250127003"
+        rel="stylesheet">
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="../assets/css/styles.css?v=20250930205502">
+    <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250930205502">
+    <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250930205502">
+    <link rel="stylesheet" href="../assets/css/minha-conta.css?v=20250930205502">
+</head>
+
+<body>
+    <!-- Header -->
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
+                    style="margin-right: 8px;">
+                <span class="logo-text">QUALIFY - Sistema de gestão</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                <i class="fas fa-search search-icon"></i>
+                <div id="search-results" class="search-results"></div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="notification">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">0</span>
+            </div>
+            <div class="user-info">
+                <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+            </div>
+
+            <!-- Menu de Usu?rio -->
+            <div class="user-menu-container">
+                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                    aria-expanded="false">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="user-dropdown" id="userDropdown" role="menu" aria-hidden="true">
+                    <div class="dropdown-content">
+                        <!-- Item 1: Perfil -->
+                        <!-- Item 1: Perfil -->
+                        <a href="perfil.html" class="dropdown-item" role="menuitem" data-action="profile">
+                            <i class="fas fa-user"></i>
+                            <span>Perfil</span>
+                        </a>
+
+                        <!-- Item 2: Trocar de Empresa -->
+                        <a href="trocar-empresa.html" class="dropdown-item" role="menuitem"
+                            data-action="switch-company">
+                            <i class="fas fa-building"></i>
+                            <span>Trocar de Empresa</span>
+                        </a>
+
+                        <!-- Item 3: Configurações -->
+                        <a href="configuracoes.html" class="dropdown-item" role="menuitem" data-action="settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Configurações</span>
+                        </a>
+
+                        <!-- Item 4: Minha Conta -->
+                        <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="account">
+                            <i class="fas fa-wallet"></i>
+                            <span>Minha Conta</span>
+                        </a>
+
+                        <!-- Item 5: Área do Associado -->
+                        <a href="area-associado-login.html" class="dropdown-item" role="menuitem"
+                            data-action="associate-area" target="_blank">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Área do Associado</span>
+                        </a>
+
+                        <!-- Item 6: Catálogo de Planos -->
+                        <a href="catalogo-planos.html" class="dropdown-item" role="menuitem" data-action="catalog">
+                            <i class="fas fa-book"></i>
+                            <span>Catálogo de Planos</span>
+                        </a>
+
+                        <!-- Separador -->
+                        <div class="dropdown-separator"></div>
+
+                        <!-- Item 7: Sair -->
+                        <button class="dropdown-item logout-item" id="logoutBtn" role="menuitem">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Sair</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu Lateral -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button id="sidebarClose" class="sidebar-close">&times;</button>
+        </div>
+
+        <div class="sidebar-content">
+            <ul class="sidebar-menu">
+                <!-- Mais usados -->
+                <li class="menu-item has-submenu expanded">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-star"></i>
+                        <span>Mais usados</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="../index.html" class="submenu-link"><span>Dashboard</span></a></li>
+
+                        <li><a href="pesquisar-associados.html" class="submenu-link"><span>Pesquisar
+                                    Associados</span></a></li>
+                    </ul>
+                </li>
+
+                <!-- Contratos -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Contratos</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+
+                        <li><a href="contratos.html" class="submenu-link"><span>Contratos Ativos</span></a></li>
+                        <li><a href="contratos-adimplentes.html" class="submenu-link"><span>Contratos
+                                    Adimplentes</span></a></li>
+                        <li><a href="inadimplentes.html" class="submenu-link"><span>Inadimplentes</span></a></li>
+                        <li><a href="cancelados.html" class="submenu-link"><span>Cancelados</span></a></li>
+                        <li><a href="renovacoes-pendentes.html" class="submenu-link"><span>Renovações
+                                    Pendentes</span></a></li>
+                        <li><a href="contratos-mensalidades.html" class="submenu-link"><span>Mensalidades</span></a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Financeiro -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>Financeiro</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+
+                        <li><a href="extrato.html" class="submenu-link"><span>Extrato</span></a></li>
+                        <li><a href="chargebacks.html" class="submenu-link"><span>Chargebacks</span></a></li>
+                        <li><a href="transferencia.html" class="submenu-link"><span>Transferência</span></a></li>
+                        <li><a href="contas-receber.html" class="submenu-link"><span>Contas a Receber</span></a></li>
+                        <li><a href="contas-pagar.html" class="submenu-link"><span>Contas a Pagar</span></a></li>
+                        <li><a href="controle-caixas.html" class="submenu-link"><span>Controle de Caixas</span></a></li>
+                        <li><a href="renegociacao-cobrancas.html" class="submenu-link"><span>Renegociação de
+                                    Cobranças</span></a></li>
+                        <li><a href="lista-cobranca.html" class="submenu-link"><span>Lista de Cobrança</span></a></li>
+                        <li><a href="configuracoes-bancarias.html" class="submenu-link"><span>🏦 Integrações
+                                    Bancárias</span></a></li>
+                    </ul>
+                </li>
+
+                <!-- Famílias -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-users"></i>
+                        <span>Famílias</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="nova-familia.html" class="submenu-link"><span>Nova Família</span></a></li>
+                        <li><a href="pesquisar-familias.html" class="submenu-link"><span>Pesquisar Famílias</span></a>
+                        </li>
+                        <li><a href="pesquisar-associados.html" class="submenu-link"><span>Pesquisar
+                                    Associados</span></a></li>
+                        <li><a href="pesquisar-pets.html" class="submenu-link"><span>Pesquisar Pets</span></a></li>
+                        <li><a href="aniversariantes.html" class="submenu-link"><span>Aniversariantes</span></a></li>
+                    </ul>
+                </li>
+
+                <!-- Relatórios -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Relatórios</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="dre-gerencial.html" class="submenu-link"><span>DRE Gerencial</span></a></li>
+                        <li><a href="resumo-dia.html" class="submenu-link"><span>Resumo do Dia</span></a></li>
+                        <li><a href="vendas.html" class="submenu-link"><span>Vendas</span></a></li>
+                        <li><a href="comissionamento.html" class="submenu-link"><span>Comissionamento</span></a></li>
+                        <li><a href="metas.html" class="submenu-link"><span>Metas</span></a></li>
+                        <li><a href="metricas-estrategicas.html" class="submenu-link"><span>Métricas
+                                    Estratégicas</span></a></li>
+                        <li><a href="minhas-movimentacoes.html" class="submenu-link"><span>Minhas
+                                    Movimentações</span></a></li>
+                    </ul>
+                </li>
+
+                <!-- Ordens de Servi?o -->
+                <li class="menu-item">
+                    <a href="ordens-servico.html" class="menu-link">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Ordens de Serviço</span>
+                    </a>
+                </li>
+
+                <!-- Pesquisa Simplificada -->
+                <li class="menu-item">
+                    <a href="pesquisa-simplificada.html" class="menu-link">
+                        <i class="fas fa-search"></i>
+                        <span>Pesquisa Simplificada</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container-fluid">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-container">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="loading-text mt-3">Carregando painel de gestão...</p>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="error-container d-none">
+                <div class="error-content">
+                    <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                    <h3>Erro ao carregar dados</h3>
+                    <p class="text-muted">Não foi possível carregar as informações do painel.</p>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-sync-alt me-2"></i>Tentar Novamente
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div id="mainContent" class="content-container d-none">
+                <!-- Welcome Section -->
+                <div class="welcome-section mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="welcome-title">Painel de Gestão Financeira</h2>
+                            <p class="welcome-subtitle">Gerencie suas transações, chargebacks e extratos em um só lugar
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="last-update">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Última atualização: <span id="lastUpdate">--</span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Search Section -->
+                <div class="section-card mb-4">
+                    <div class="card-header">
+                        <h3 class="section-title">
+                            <i class="fas fa-search me-2"></i>
+                            Busca Rápida
+                        </h3>
+                        <p class="section-subtitle">Encontre contratos e transações rapidamente</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="search-options mb-3">
+                            <div class="btn-group" role="group" aria-label="Opções de busca">
+                                <input type="radio" class="btn-check" name="searchType" id="searchCpfCnpj"
+                                    value="cpf-cnpj" checked>
+                                <label class="btn btn-outline-primary" for="searchCpfCnpj">
+                                    <i class="fas fa-id-card me-2"></i>Buscar por CPF/CNPJ
+                                </label>
+
+                                <input type="radio" class="btn-check" name="searchType" id="searchTransaction"
+                                    value="transaction">
+                                <label class="btn btn-outline-primary" for="searchTransaction">
+                                    <i class="fas fa-receipt me-2"></i>Buscar por ID da Transação
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="search-form">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="searchIcon">
+                                            <i class="fas fa-id-card"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="searchInput"
+                                            placeholder="Digite o CPF ou CNPJ" aria-label="Campo de busca">
+                                    </div>
+                                    <div class="form-text" id="searchHelp">
+                                        Digite apenas números, sem pontos ou traços
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary w-100" id="searchBtn">
+                                        <i class="fas fa-search me-2"></i>Buscar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search Results -->
+                        <div id="searchResults" class="search-results d-none">
+                            <hr class="my-4">
+                            <h4 class="results-title">Resultados da Busca</h4>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead id="searchTableHead">
+                                        <!-- Cabeçalho será preenchido dinamicamente -->
+                                    </thead>
+                                    <tbody id="searchTableBody">
+                                        <!-- Resultados serão preenchidos dinamicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="noResults" class="no-results d-none">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+                                    <h5>Nenhum resultado encontrado</h5>
+                                    <p class="text-muted">Tente com outros termos de busca</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Cards Row -->
+                <div class="row">
+                    <!-- Chargebacks Panel -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="dashboard-card chargeback-card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Painel de Chargebacks
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <div class="stat-value" id="totalChargebacks">0</div>
+                                        <div class="stat-label">Total</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value text-danger" id="lostDisputes">0</div>
+                                        <div class="stat-label">Disputas Perdidas</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value text-warning" id="pendingDisputes">0</div>
+                                        <div class="stat-label">Pendentes</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value text-success" id="wonDisputes">0</div>
+                                        <div class="stat-label">Ganhas</div>
+                                    </div>
+                                </div>
+                                <div class="card-actions mt-4">
+                                    <button class="btn btn-primary w-100" id="viewChargebacksBtn">
+                                        <i class="fas fa-list me-2"></i>Ver todos os Chargebacks
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Panel -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="dashboard-card financial-card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-wallet me-2"></i>
+                                    Financeiro
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="balance-display">
+                                    <div class="balance-label">Saldo Disponível</div>
+                                    <div class="balance-value" id="availableBalance">
+                                        R$ <span id="balanceAmount">0,00</span>
+                                    </div>
+                                    <div class="balance-info">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Atualizado em tempo real
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="financial-actions mt-4">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <button class="btn btn-outline-primary w-100" id="viewStatementBtn">
+                                                <i class="fas fa-file-invoice me-2"></i>Ver Extrato
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button class="btn btn-primary w-100" id="makeTransferBtn">
+                                                <i class="fas fa-exchange-alt me-2"></i>Transferir
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions-section">
+                    <h3 class="section-title mb-3">
+                        <i class="fas fa-bolt me-2"></i>
+                        Ações Rápidas
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <button class="btn btn-outline-secondary w-100 quick-action-btn" id="reportsBtn">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                                <div>Relatórios</div>
+                            </button>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <button class="btn btn-outline-secondary w-100 quick-action-btn" id="settingsBtn">
+                                <i class="fas fa-cog fa-2x mb-2"></i>
+                                <div>Configurações</div>
+                            </button>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <button class="btn btn-outline-secondary w-100 quick-action-btn" id="supportBtn">
+                                <i class="fas fa-headset fa-2x mb-2"></i>
+                                <div>Suporte</div>
+                            </button>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <button class="btn btn-outline-secondary w-100 quick-action-btn" id="notificationsBtn">
+                                <i class="fas fa-bell fa-2x mb-2"></i>
+                                <div>Notificações</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                <strong class="me-auto">Notificação</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                <!-- Mensagem será inserida aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+
+    <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003" defer></script>
+
+    <script src="../firebase-config.js?v=20250930205502" defer></script>
+    <script src="../assets/js/auth-guard.js?v=20250127003" defer></script>
+
+    <!-- Scripts de compatibilidade para hospedagem -->
+    <script src="../assets/js/resource-preloader.js?v=20250930205502" defer></script>
+    <script src="../assets/js/hosting-compatibility.js?v=20250930205502" defer></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003"></script>
+    <!-- JavaScript personalizado -->
+    <script src="../assets/js/sidebar-menu.js?v=20250930205502" defer></script>
+
+    <!-- Script Melhorado do Accordion -->
+    <script>
+        // Função melhorada para inicializar o accordion
+        function initializeImprovedAccordion() {
+            console.log('Inicializando accordion melhorado...');
+
+            // Aguarda um pouco para garantir que todos os elementos estejam prontos
+            setTimeout(() => {
+                // Seleciona todos os itens de submenu
+                const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                console.log(`Encontrados ${submenuItems.length} itens de submenu`);
+
+                submenuItems.forEach((menuItem, index) => {
+                    // Encontra o link clic?vel dentro do item
+                    const menuLink = menuItem.querySelector('.menu-link, a');
+                    const submenu = menuItem.querySelector('.submenu');
+                    const arrowIcon = menuItem.querySelector('.arrow-icon');
+
+                    if (menuLink && submenu) {
+                        // Remove event listeners existentes clonando o elemento
+                        const newMenuLink = menuLink.cloneNode(true);
+                        menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+
+                        // Adiciona novo event listener melhorado
+                        newMenuLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log(`Clique no item ${index + 1}`);
+
+                            // Fecha todos os outros submenus
+                            const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                            allMenuItems.forEach(item => {
+                                if (item !== menuItem) {
+                                    item.classList.remove('expanded');
+                                }
+                            });
+
+                            // Toggle do item atual
+                            menuItem.classList.toggle('expanded');
+
+                            const isExpanded = menuItem.classList.contains('expanded');
+                            console.log(`Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+
+                            // Atualiza o ?cone da seta se existir
+                            if (arrowIcon) {
+                                arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                            }
+                        });
+
+                        console.log(`Evento vinculado ao item ${index + 1}`);
+                    } else {
+                        console.warn(`Item ${index + 1} não tem link ou submenu válido`);
+                    }
+                });
+
+                console.log('Accordion melhorado inicializado com sucesso!');
+            }, 100);
+        }
+
+        // Inicializa quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+        } else {
+            initializeImprovedAccordion();
+        }
+
+        // Tamb?m disponibiliza globalmente para re-inicializa??o manual
+        window.reinitializeAccordion = initializeImprovedAccordion;
+    </script>
+    <script src="../assets/js/user-menu.js?v=20250930205502" defer></script>
+    <script src="../assets/js/header-search.js?v=20250930205502" defer></script>
+    <script src="../assets/js/minha-conta.js?v=20250930205502"></script>
+
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+
+
+
+
+    <!-- Correção Completa do Sidebar com Accordion -->
+    <script>
+        (function () {
+            'use strict';
+
+            // Aguardar que todos os scripts sejam carregados
+            function initializeSidebar() {
+                console.log('Inicializando correção completa do sidebar...');
+
+                const menuToggle = document.getElementById('menu-toggle');
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+
+                if (!menuToggle) {
+                    console.error('Botão do menu não encontrado!');
+                    return;
+                }
+
+                if (!sidebar) {
+                    console.error('Sidebar não encontrado!');
+                    return;
+                }
+
+                console.log('Elementos encontrados - aplicando correção...');
+
+                // Limpar todos os event listeners existentes
+                const newMenuToggle = menuToggle.cloneNode(true);
+                menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+
+                // Fun??o para abrir o sidebar
+                function openSidebar() {
+                    sidebar.classList.add('open', 'menu-aberto');
+                    sidebar.style.transform = 'translateX(0)';
+                    sidebar.style.left = '0';
+                    if (overlay) {
+                        overlay.classList.add('active');
+                        overlay.style.display = 'block';
+                    }
+                    document.body.style.overflow = 'hidden';
+                    console.log('Sidebar aberto');
+                }
+
+                // Fun??o para fechar o sidebar
+                function closeSidebar() {
+                    sidebar.classList.remove('open', 'menu-aberto');
+                    sidebar.style.transform = 'translateX(-100%)';
+                    sidebar.style.left = '-280px';
+                    if (overlay) {
+                        overlay.classList.remove('active');
+                        overlay.style.display = 'none';
+                    }
+                    document.body.style.overflow = '';
+                    console.log('Sidebar fechado');
+                }
+
+                // Event listener para o bot?o do menu
+                newMenuToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    console.log('Clique no menu detectado');
+
+                    const isOpen = sidebar.classList.contains('open') ||
+                        sidebar.classList.contains('menu-aberto') ||
+                        sidebar.style.transform === 'translateX(0px)' ||
+                        sidebar.style.left === '0px';
+
+                    if (isOpen) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+
+                // Event listener para o overlay
+                if (overlay) {
+                    overlay.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        closeSidebar();
+                        console.log('Sidebar fechado via overlay');
+                    });
+                }
+
+                // Event listener para a tecla ESC
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        const isOpen = sidebar.classList.contains('open') ||
+                            sidebar.classList.contains('menu-aberto');
+                        if (isOpen) {
+                            closeSidebar();
+                            console.log('Sidebar fechado via ESC');
+                        }
+                    }
+                });
+
+                // Event listener para bot?o de fechar (se existir)
+                const closeButton = document.getElementById('sidebar-close') ||
+                    document.querySelector('.sidebar-close') ||
+                    document.querySelector('#sidebar .close-btn');
+                if (closeButton) {
+                    closeButton.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        closeSidebar();
+                        console.log('Sidebar fechado via botão fechar');
+                    });
+                }
+
+                // Implementar funcionalidade de accordion
+                const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+                console.log('Itens do menu encontrados:', menuItems.length);
+
+                menuItems.forEach(function (item) {
+                    const link = item.querySelector('.menu-link');
+                    const submenu = item.querySelector('.submenu');
+
+                    if (link && submenu) {
+                        // Remover event listeners existentes
+                        const newLink = link.cloneNode(true);
+                        link.parentNode.replaceChild(newLink, link);
+
+                        newLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log('Clique no menu:', newLink.textContent.trim());
+
+                            // Fechar outros submenus
+                            menuItems.forEach(function (otherItem) {
+                                if (otherItem !== item) {
+                                    otherItem.classList.remove('expanded');
+                                    const otherSubmenu = otherItem.querySelector('.submenu');
+                                    if (otherSubmenu) {
+                                        otherSubmenu.style.display = 'none';
+                                    }
+                                }
+                            });
+
+                            // Alternar o submenu atual
+                            const isExpanded = item.classList.contains('expanded');
+                            if (isExpanded) {
+                                item.classList.remove('expanded');
+                                submenu.style.display = 'none';
+                                console.log('Submenu fechado:', newLink.textContent.trim());
+                            } else {
+                                item.classList.add('expanded');
+                                submenu.style.display = 'block';
+                                console.log('Submenu aberto:', newLink.textContent.trim());
+                            }
+                        });
+
+                        console.log('Event listener adicionado para:', link.textContent.trim());
+                    }
+                });
+
+
+                // Garantir que o sidebar inicie fechado
+                closeSidebar();
+
+                console.log('Correção completa do sidebar aplicada com sucesso!');
+            }
+
+            // Inicializar quando o DOM estiver pronto
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(initializeSidebar, 1000);
+                });
+            } else {
+                setTimeout(initializeSidebar, 1000);
+            }
+
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,834 @@
+/* Renovações Pendentes Styles */
+
+.container {
+    /* Usar largura total e compensar o header fixo */
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding-top: 80px !important; /* evita corte sob o header fixo */
+    background-color: #f5f5f5;
+}
+
+/* Header */
+.page-header {
+    margin-bottom: 30px;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.page-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-filter {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-filter:hover {
+    background-color: #138496;
+}
+
+.btn-options {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-options:hover {
+    background-color: #138496;
+}
+
+.btn-clear {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-clear:hover {
+    background-color: #545b62;
+}
+
+.btn-apply {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-apply:hover {
+    background-color: #218838;
+}
+
+/* Filter Status */
+.filter-status {
+    background: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 14px;
+    color: #666;
+}
+
+/* Table Container */
+.table-container {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    min-height: 400px;
+    position: relative;
+}
+
+.contracts-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.contracts-table th {
+    background-color: #f8f9fa;
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 1px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.contracts-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f1f1f1;
+    vertical-align: middle;
+}
+
+.contracts-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Action Buttons in Table */
+.action-cell {
+    display: flex;
+    gap: 5px;
+}
+
+.action-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.btn-edit {
+    background-color: #28a745;
+}
+
+.btn-edit:hover {
+    background-color: #218838;
+}
+
+.btn-view {
+    background-color: #17a2b8;
+}
+
+.btn-view:hover {
+    background-color: #138496;
+}
+
+.btn-renew {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.btn-renew:hover {
+    background-color: #e0a800;
+}
+
+/* No Data Message */
+.no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 16px;
+}
+
+.no-data.hidden {
+    display: none;
+}
+
+/* Pagination */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: #666;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #f8f9fa;
+    border-color: #17a2b8;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 5px;
+}
+
+.page-number {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.page-number:hover {
+    background-color: #f8f9fa;
+    border-color: #17a2b8;
+}
+
+.page-number.active {
+    background-color: #17a2b8;
+    color: white;
+    border-color: #17a2b8;
+}
+
+/* Alert Banner Styles */
+.alert-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    padding: 12px 20px;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.alert-banner.error-alert {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-bottom: 2px solid #dc2626;
+}
+
+.alert-banner.warning-alert {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-bottom: 2px solid #f59e0b;
+}
+
+.alert-banner.info-alert {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border-bottom: 2px solid #3b82f6;
+}
+
+.alert-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 20px;
+    opacity: 0.7;
+}
+
+.alert-close:hover {
+    opacity: 1;
+}
+
+/* Stats Cards */
+.renewal-stats {
+    display: flex;
+    gap: 16px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #e5e7eb;
+    flex: 1;
+    min-width: 120px;
+}
+
+.stat-card.urgent {
+    border-left-color: #dc2626;
+    background: #fef2f2;
+}
+
+.stat-card.warning {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.stat-card.info {
+    border-left-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.stat-card.success {
+    border-left-color: #10b981;
+    background: #f0fdf4;
+}
+
+.stat-card.progress {
+    border-left-color: #8b5cf6;
+    background: #faf5ff;
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.stat-card.urgent .stat-number {
+    color: #dc2626;
+}
+
+.stat-card.warning .stat-number {
+    color: #f59e0b;
+}
+
+.stat-card.info .stat-number {
+    color: #3b82f6;
+}
+
+.stat-card.success .stat-number {
+    color: #10b981;
+}
+
+.stat-card.progress .stat-number {
+    color: #8b5cf6;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+/* Status and Priority Badges */
+.status-badge, .priority-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 2px;
+}
+
+.status-badge.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.in-progress {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.renewed {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.priority-badge.high {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.priority-badge.medium {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.priority-badge.low {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+/* Days Until Expiry */
+.days-until-expiry {
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.days-expired {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.days-today {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.days-soon {
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+.days-normal {
+    color: #6b7280;
+}
+
+/* Table Row Status Styling */
+.contracts-table tbody tr.row-expired {
+    background-color: #fef2f2;
+    border-left: 4px solid #dc2626;
+}
+
+.contracts-table tbody tr.row-expires-today {
+    background-color: #fffbeb;
+    border-left: 4px solid #f59e0b;
+}
+
+.contracts-table tbody tr.row-expires-soon {
+    background-color: #eff6ff;
+    border-left: 4px solid #3b82f6;
+}
+
+.contracts-table tbody tr.row-normal {
+    background-color: white;
+}
+
+.contracts-table tbody tr.row-expired:hover {
+    background-color: #fee2e2;
+}
+
+.contracts-table tbody tr.row-expires-today:hover {
+    background-color: #fef3c7;
+}
+
+.contracts-table tbody tr.row-expires-soon:hover {
+    background-color: #dbeafe;
+}
+
+.status-cell {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.action-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f3f4f6;
+}
+
+.action-btn.disabled:hover {
+    background-color: #f3f4f6;
+    transform: none;
+}
+
+/* Message Styles */
+.message {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.message.success-message {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.message.error-message {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.message.warning-message {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.message.info-message {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    padding: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Filter Grid */
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.form-input,
+.form-select {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 2px rgba(23, 162, 184, 0.1);
+}
+
+.form-select {
+    cursor: pointer;
+}
+
+/* Options List */
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    text-align: left;
+}
+
+.option-item:hover {
+    background-color: #f8f9fa;
+    border-color: #17a2b8;
+}
+
+/* Icons */
+/* Icons (Font Awesome standardization) */
+.icon-filter::before { content: "\f002"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-options::before { content: "\f013"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-first::before { content: "\f048"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-prev::before { content: "\f104"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-next::before { content: "\f105"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-last::before { content: "\f051"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-excel::before { content: "\f1c3"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-pdf::before { content: "\f1c1"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-print::before { content: "\f02f"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-email::before { content: "\f0e0"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.icon-renew::before { content: "\f01e"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+
+/* Loading State */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #666;
+}
+
+.loading::after {
+    content: "";
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #17a2b8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .contracts-table {
+        font-size: 12px;
+    }
+    
+    .contracts-table th,
+    .contracts-table td {
+        padding: 10px 8px;
+    }
+    
+    .pagination-container {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .contracts-table {
+        min-width: 900px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-header h1 {
+        font-size: 20px;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .pagination-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+/* Success Message */
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 1px solid #c3e6cb;
+}
+
+/* Error Message */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+}
+
+/* Contract Status Indicators */
+.contract-expired {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.contract-critical {
+    background-color: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+
+/* Date Formatting */
+.date-cell {
+    white-space: nowrap;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+/* Plan Type Badges */
+.plan-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    background-color: #e9ecef;
+    color: #495057;
+    white-space: nowrap;
+}

@@ -1,0 +1,451 @@
+.dre-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+
+.page-header h2 {
+    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.year-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.year-selector label {
+    font-weight: 500;
+    color: #555;
+}
+
+.year-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+    min-width: 80px;
+}
+
+.dre-table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.dre-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.dre-table thead {
+    background: #f8f9fa;
+}
+
+.dre-table th {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 12px;
+}
+
+.dre-table th.category-col {
+    text-align: left;
+    width: 200px;
+}
+
+.dre-table th.month-col {
+    width: 90px;
+}
+
+.dre-table th.total-col {
+    width: 100px;
+    font-weight: 700;
+}
+
+.dre-table th.percent-col {
+    width: 60px;
+}
+
+.dre-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.dre-table td.category {
+    text-align: left;
+    font-weight: 500;
+    color: #333;
+}
+
+.category-number {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.revenue-row .category-number {
+    background: #28a745;
+}
+
+.expense-row .category-number {
+    background: #dc3545;
+}
+
+.value {
+    font-weight: 500;
+    font-family: 'Courier New', monospace;
+}
+
+.value.positive {
+    color: #28a745;
+}
+
+.value.negative {
+    color: #dc3545;
+}
+
+.value.result {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.value.total {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.result-row {
+    background: #f8f9fa;
+    border-top: 2px solid #007bff;
+}
+
+.result-row .category {
+    font-weight: 700;
+    color: #007bff;
+}
+
+.result-label {
+    font-weight: 700 !important;
+    color: #007bff !important;
+}
+
+.percent {
+    font-weight: 600;
+    color: #666;
+}
+
+.result-percent {
+    color: #007bff !important;
+    font-weight: 700 !important;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.chart-header h3 {
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+#dreChart {
+    max-height: 300px;
+}
+
+/* Estilos para linhas expansíveis */
+.expand-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    color: #4ECDC4;
+    font-weight: bold;
+}
+
+.subcategory-row {
+    background-color: #f8f9fa !important;
+    border-left: 3px solid #4ECDC4;
+}
+
+.subcategory-row td {
+    font-size: 13px !important;
+    color: #666 !important;
+}
+
+.subcategory-row .category {
+    padding-left: 30px !important;
+    font-style: italic;
+}
+
+.subcategory-row:hover {
+    background-color: #e9ecef !important;
+}
+
+/* Estilos para controles de filtro */
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.filter-controls label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #666;
+    cursor: pointer;
+}
+
+.filter-controls input[type="checkbox"] {
+    margin: 0;
+}
+
+.filter-controls input[type="number"] {
+    width: 100px;
+    padding: 5px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.filter-controls button {
+    padding: 5px 12px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.2s ease;
+}
+
+.filter-controls button:hover {
+    background-color: #e9ecef;
+}
+
+/* Estilos para controles de exportação */
+.export-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.export-controls button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.export-controls button:first-child {
+    background: #4ECDC4;
+    color: white;
+}
+
+.export-controls button:first-child:hover {
+    background: #45B7B8;
+    transform: translateY(-1px);
+}
+
+.export-controls button:last-child {
+    background: #45B7B8;
+    color: white;
+}
+
+.export-controls button:last-child:hover {
+    background: #3A9B9C;
+    transform: translateY(-1px);
+}
+
+/* Melhorias na tabela para suportar expansão */
+.dre-table tbody tr[data-category] {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.dre-table tbody tr[data-category]:hover {
+    background-color: #f1f3f4;
+}
+
+.dre-table tbody tr[data-category] td:first-child {
+    position: relative;
+}
+
+/* Animações suaves */
+.subcategory-row {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .dre-table {
+        font-size: 12px;
+    }
+    
+    .dre-table th,
+    .dre-table td {
+        padding: 8px 6px;
+    }
+    
+    .dre-table th.month-col {
+        width: 80px;
+    }
+    
+    .filter-controls {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 992px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .dre-content {
+        gap: 20px;
+    }
+    
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dre-table-container {
+        overflow-x: auto;
+    }
+    
+    .dre-table {
+        min-width: 800px;
+    }
+    
+    .chart-wrapper {
+        height: 250px;
+    }
+    
+    .filter-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-controls input[type="number"] {
+        width: 100%;
+    }
+    
+    .export-controls {
+        flex-direction: column;
+    }
+    
+    .subcategory-row .category {
+        padding-left: 20px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-header h2 {
+        font-size: 20px;
+    }
+    
+    .chart-container {
+        padding: 15px;
+    }
+    
+    .chart-wrapper {
+        height: 200px;
+    }
+}

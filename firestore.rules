@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- FUNÇÃO DE SEGURANÇA BÁSICA ---
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+
+    // ========================================================
+    // 1. ÁREA DOS PLANOS (O que está travando agora)
+    // ========================================================
+    // Libera tanto "plans" quanto "planos"
+    match /plans/{planId} {
+      allow read, write, list: if isLoggedIn();
+    }
+    match /planos/{planId} {
+      allow read, write, list: if isLoggedIn();
+    }
+
+    // ========================================================
+    // 2. ÁREA DOS CONTRATOS (Fix que já fizemos)
+    // ========================================================
+    match /contracts/{contractId} {
+      allow read, write, list: if isLoggedIn();
+    }
+    match /contratos/{contractId} {
+      allow read, write, list: if isLoggedIn();
+    }
+
+    // ========================================================
+    // 3. ÁREA DAS FAMÍLIAS
+    // ========================================================
+    match /families/{familyId} {
+      allow read, write, list: if isLoggedIn();
+    }
+    match /familias/{familyId} {
+      allow read, write, list: if isLoggedIn();
+    }
+
+    // ========================================================
+    // 4. OUTRAS COLEÇÕES COMUNS (Prevenção)
+    // ========================================================
+    match /events/{eventId} { allow read, write, list: if isLoggedIn(); }
+    match /eventos/{eventId} { allow read, write, list: if isLoggedIn(); }
+    
+    match /reminders/{docId} { allow read, write, list: if isLoggedIn(); }
+    match /lembretes/{docId} { allow read, write, list: if isLoggedIn(); }
+
+    // ========================================================
+    // 5. ESTRUTURA EMPRESARIAL (Mantida)
+    // ========================================================
+    match /empresas/{empresaId} {
+      allow read, list: if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow update, delete: if isLoggedIn();
+      
+      // Permite ler qualquer coisa dentro da empresa (Subcoleções)
+      match /{document=**} {
+        allow read, write: if isLoggedIn();
+      }
+    }
+    
+    match /companies/{companyId} {
+      allow read, write: if isLoggedIn();
+      match /{document=**} {
+        allow read, write: if isLoggedIn();
+      }
+    }
+
+    // --- USUÁRIOS ---
+    match /users/{userId} {
+      allow read, write: if isLoggedIn();
+    }
+  }
+}

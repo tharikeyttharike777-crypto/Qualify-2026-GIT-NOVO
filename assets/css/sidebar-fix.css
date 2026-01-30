@@ -1,0 +1,342 @@
+/* ===== CORREÇÕES DEFINITIVAS PARA MENU LATERAL ===== */
+/* Este arquivo corrige todos os problemas de layout do sidebar */
+
+/* Reset completo para evitar conflitos */
+* {
+    box-sizing: border-box;
+}
+
+/* ===== VARIÁVEIS ===== */
+:root {
+    --sidebar-width: 250px;
+    --header-height: 70px; /* Alinhado com header.css (altura real do header) */
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #333333;
+    --sidebar-hover: #f5f5f5;
+    --sidebar-active: #2196F3;
+    --sidebar-border: #e0e0e0;
+    --transition-speed: 0.3s;
+}
+
+/* ===== HEADER FIXO ===== */
+.header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: var(--header-height) !important;
+    background: white !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+    z-index: 999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 20px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    width: 100% !important;
+}
+
+/* ===== SIDEBAR OVERLAY SYSTEM ===== */
+.sidebar {
+    position: fixed !important;
+    top: var(--header-height) !important;
+    left: -var(--sidebar-width) !important;
+    width: var(--sidebar-width) !important;
+    height: calc(100vh - var(--header-height)) !important;
+    background: var(--sidebar-bg) !important;
+    color: var(--sidebar-text) !important;
+    transition: left var(--transition-speed) ease !important;
+    z-index: 1000 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+    border-right: 1px solid var(--sidebar-border) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Estado aberto do sidebar */
+.sidebar.open {
+    left: 0 !important;
+}
+
+/* ===== CONTEÚDO PRINCIPAL SEM PUSH ===== */
+.main-content {
+    margin-left: 0 !important;
+    margin-top: var(--header-height) !important;
+    padding: 20px !important;
+    padding-top: 80px !important; /* Espaço para o header fixo */
+    min-height: calc(100vh - var(--header-height)) !important;
+    transition: none !important;
+    width: 100% !important;
+    background-color: #f8f9fa !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Container principal */
+.container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    transition: none !important;
+}
+
+/* ===== OVERLAY PARA MOBILE ===== */
+.sidebar-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 998 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all var(--transition-speed) ease !important;
+}
+
+.sidebar-overlay.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* ===== BOTÃO HAMBURGER ===== */
+.hamburger-menu {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-around !important;
+    width: 24px !important;
+    height: 18px !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    z-index: 1002 !important;
+}
+
+.hamburger-menu span {
+    display: block !important;
+    height: 2px !important;
+    width: 100% !important;
+    background: var(--sidebar-text) !important;
+    border-radius: 1px !important;
+    transition: all 0.3s ease !important;
+}
+
+/* ===== SIDEBAR HEADER ===== */
+.sidebar-header {
+    padding: 20px !important;
+    background: var(--sidebar-bg) !important;
+    border-bottom: 1px solid var(--sidebar-border) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.sidebar-header h3 {
+    margin: 0 !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    color: var(--sidebar-text) !important;
+}
+
+.sidebar-close {
+    background: none !important;
+    border: none !important;
+    color: var(--sidebar-text) !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+    padding: 5px !important;
+    border-radius: 3px !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.sidebar-close:hover {
+    background: var(--sidebar-hover) !important;
+}
+
+/* ===== MENU ITEMS ===== */
+.sidebar-menu {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.menu-item {
+    border-bottom: 1px solid var(--sidebar-border) !important;
+}
+
+.menu-link {
+    display: flex !important;
+    align-items: center !important;
+    padding: 15px 20px !important;
+    color: var(--sidebar-text) !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+}
+
+.menu-link:hover {
+    background: var(--sidebar-hover) !important;
+    color: var(--sidebar-active) !important;
+}
+
+.menu-link.active {
+    background: rgba(33, 150, 243, 0.1) !important;
+    color: var(--sidebar-active) !important;
+    font-weight: 600 !important;
+    border-left: 3px solid var(--sidebar-active) !important;
+}
+
+/* ===== SUBMENU ===== */
+.submenu {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #f8f9fa !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    transition: max-height 0.3s ease-out !important;
+}
+
+.menu-item.expanded .submenu {
+    max-height: 500px !important;
+}
+
+.submenu a {
+    display: block !important;
+    padding: 12px 20px 12px 52px !important;
+    color: #666 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    font-size: 0.9rem !important;
+}
+
+.submenu a:hover {
+    background: var(--sidebar-hover) !important;
+    color: var(--sidebar-active) !important;
+}
+
+.submenu a.active {
+    background: rgba(33, 150, 243, 0.15) !important;
+    color: var(--sidebar-active) !important;
+    font-weight: 600 !important;
+    border-left: 3px solid var(--sidebar-active) !important;
+}
+
+/* ===== Overrides de Tema Escuro via data-theme ===== */
+[data-theme="dark"] {
+    --sidebar-bg: #1c1c1c;
+    --sidebar-text: #e0e0e0;
+    --sidebar-hover: #2a2a2a;
+    --sidebar-active: #90caf9;
+    --sidebar-border: #333333;
+}
+
+[data-theme="dark"] .header {
+    background: #1c1c1c !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 280px !important;
+        left: -280px !important;
+    }
+    
+    .main-content {
+        padding: 15px !important;
+    }
+}
+
+/* ===== CORREÇÕES ESPECÍFICAS PARA PÁGINAS ===== */
+/* Dashboard */
+.dashboard-container {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Cards do dashboard */
+.metrics-cards {
+    margin-bottom: 30px !important;
+}
+
+/* Gráficos */
+.charts-container {
+    margin-top: 20px !important;
+}
+
+/* ===== LAYOUT RESPONSIVO DO MENU ===== */
+/* Implementação da margem dinâmica conforme especificação */
+
+/* Estado padrão - menu fechado */
+.main-content, .container {
+    margin-left: 0 !important;
+    transition: margin-left var(--transition-speed) ease !important;
+}
+
+/* Estado aberto - conteúdo empurrado pela largura do menu */
+body.sidebar-open .main-content {
+    margin-left: var(--sidebar-width) !important;
+}
+
+body.sidebar-open .container {
+    margin-left: var(--sidebar-width) !important;
+}
+
+/* Garantir transição suave sincronizada com o menu */
+.push-content {
+    margin-left: 0 !important;
+    transition: margin-left var(--transition-speed) ease !important;
+}
+
+body.sidebar-open .push-content {
+    margin-left: var(--sidebar-width) !important;
+}
+
+/* ===== ÍCONES DO MENU ===== */
+.menu-link i[class^="icon-"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Padroniza ícones com Font Awesome (substitui emojis antigos) */
+.menu-link i { font-style: normal !important; }
+.icon-star::before {
+    content: "\f005"; /* fa-star */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900; /* Solid */
+}
+.icon-contract::before {
+    content: "\f56c"; /* fa-file-contract */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+.icon-money::before {
+    content: "\f0d6"; /* fa-money-bill */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+.icon-family::before {
+    content: "\f0c0"; /* fa-users */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.arrow-icon {
+    font-size: 12px !important;
+    transition: transform 0.2s ease !important;
+    margin-left: auto !important;
+}
+
+.menu-item.expanded .arrow-icon {
+    transform: rotate(180deg) !important;
+}

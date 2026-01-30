@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Meus Dados - Qualify</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/sidebar-fix.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
+    <link rel="stylesheet" href="../assets/css/perfil.css?v=20250127003">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250127003" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 1200px;
+            padding: 30px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        
+        .btn-save {
+            background: #28a745;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-save:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .btn-change-password {
+            background: #007bff;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-change-password:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .profile-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 40px 12px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .clear-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 5px;
+        }
+        
+        .clear-btn:hover {
+            color: #dc3545;
+        }
+        
+        .profile-image-section {
+            text-align: center;
+        }
+        
+        .profile-image-container {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid #e9ecef;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-placeholder {
+            font-size: 3rem;
+            color: #6c757d;
+        }
+        
+        .image-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-select-image {
+            background: #007bff;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-upload-image {
+            background: white;
+            border: 2px solid #6c757d;
+            color: #6c757d;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-remove-image {
+            background: #dc3545;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .cep-group {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+        
+        .cep-input {
+            flex: 1;
+        }
+        
+        .btn-search-cep {
+            background: #17a2b8;
+            border: none;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-search-cep:hover {
+            background: #138496;
+        }
+        
+        .row-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .row-fields-three {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .row-fields,
+            .row-fields-three {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .image-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        .notification {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .notification.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .notification.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+        }
+        
+        .modal-header {
+            background: #007bff;
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .modal-title {
+            font-weight: 600;
+        }
+        
+        .btn-close {
+            filter: invert(1);
+        }
+    </style>
+    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+</head>
+<body>
+    <!-- Header -->
+            <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24" style="margin-right: 8px;">
+            <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="search-container">
+            <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <div id="search-results" class="search-results"></div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="company-info">
+                    <i class="fas fa-building"></i>
+                    <span id="headerEmpresaDisplay">Nenhuma empresa selec...</span>
+                </div>
+                <div class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">9</span>
+                </div>
+                <div class="user-info">
+                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                </div>
+
+                <!-- Menu de Usuário -->
+                <div class="user-menu-container">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário" aria-expanded="false">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown" id="userDropdown" role="menu">
+                        <div class="dropdown-content"><!-- Conteúdo será padronizado por user-menu.js --></div>
+                    </div>
+                </div>
+
+                <div class="logout-container"></div>
+            </div>
+        </header>
+
+        <!-- Menu Lateral Fixo -->
+        <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button id="sidebar-close" class="sidebar-close">&times;</button>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="sidebar-menu">
+                <!-- Mais usados -->
+                <li class="menu-item has-submenu expanded">
+                    <a href="#" class="menu-link">
+                        <i class="icon-star"></i>
+                        <span class="menu-text">Mais usados</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+                        <li><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="inadimplentes.html">Inadimplentes</a></li>
+                        <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
+                <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="controle-caixas.html">Controle de caixas</a></li>
+                        <li><a href="contas-receber.html">Contas a receber</a></li>
+                        
+                    </ul>
+                </li>
+
+                <!-- Contratos -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-contract"></i>
+                        <span class="menu-text">Contratos</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="contratos.html">Ativos</a></li>
+                        <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+                <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
+                        <li><a href="cancelados.html">Cancelados</a></li>
+                    </ul>
+                </li>
+
+                <!-- Financeiro -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-money"></i>
+                        <span class="menu-text">Financeiro</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="contas-pagar.html">Contas a pagar</a></li>
+                        <li><a href="resumo-dia.html">Resumo do dia</a></li>
+                        <li><a href="comissionamento.html">Comissionamento</a></li>
+                        <li><a href="metas.html">Metas</a></li>
+                    </ul>
+                </li>
+
+                <!-- Famílias -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-family"></i>
+            <span class="menu-text">Famílias</span>
+                        <i class="arrow-icon">?</i>
+                    </a>
+                    <ul class="submenu">
+                <li><a href="nova-familia.html">Nova família</a></li>
+                <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                        <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
+                <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
+                        <li><a href="aniversariantes.html">Aniversariantes</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Overlay do Sidebar -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Conte?do Principal -->
+    <main class="main-content">
+        <div class="main-container">
+            <!-- Título da Página -->
+            <h1 class="page-title">Meus dados</h1>
+            
+            <!-- Notificação -->
+            <div id="notification" class="notification"></div>
+            
+            <!-- Botões de Ação -->
+            <div class="action-buttons">
+                <button class="btn-save" id="btnSave">
+                    <i class="fas fa-save"></i>
+                    Salvar
+                </button>
+                <button class="btn-change-password" id="btnChangePassword">
+                    <i class="fas fa-lock"></i>
+                    Alterar senha
+                </button>
+            </div>
+            
+            <!-- Seção: Informações de acesso -->
+            <div class="profile-section">
+                <h2 class="section-title">
+                    <i class="fas fa-key"></i>
+                    Informações de acesso
+                </h2>
+                
+                <div class="row-fields">
+                    <div class="form-group">
+                        <label class="form-label" for="userName">Nome</label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-control" id="userName" placeholder="Digite seu nome">
+                            <button type="button" class="clear-btn" onclick="clearField('userName')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="userEmail">Email *</label>
+                        <div style="position: relative;">
+                            <input type="email" class="form-control" id="userEmail" placeholder="Digite seu email" required>
+                            <button type="button" class="clear-btn" onclick="clearField('userEmail')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="userPhone">Celular</label>
+                    <div style="position: relative;">
+                        <input type="tel" class="form-control" id="userPhone" placeholder="(00) 00000-0000">
+                        <button type="button" class="clear-btn" onclick="clearField('userPhone')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção: Imagem de perfil -->
+            <div class="profile-section">
+                <h2 class="section-title">
+                    <i class="fas fa-camera"></i>
+                    Imagem de perfil
+                </h2>
+                
+                <div class="profile-image-section">
+                    <div class="profile-image-container" id="profileImageContainer">
+                        <i class="fas fa-user image-placeholder" id="imagePlaceholder"></i>
+                        <img id="profileImage" class="profile-image" style="display: none;">
+                    </div>
+                    
+                    <div class="image-buttons">
+                        <button class="btn-select-image" id="btnSelectImage">
+                            <i class="fas fa-folder-open"></i>
+                            Selecionar imagem
+                        </button>
+                        <button class="btn-upload-image" id="btnUploadImage">
+                            <i class="fas fa-upload"></i>
+                            Fazer upload
+                        </button>
+                        <button class="btn-remove-image" id="btnRemoveImage">
+                            <i class="fas fa-trash"></i>
+                            Remover imagem
+                        </button>
+                    </div>
+                    
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                </div>
+            </div>
+            
+            <!-- Seção: Endereço -->
+            <div class="profile-section">
+                <h2 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Endereço
+                </h2>
+                
+                <div class="form-group">
+                    <label class="form-label" for="userCep">CEP</label>
+                    <div class="cep-group">
+                        <div class="cep-input">
+                            <input type="text" class="form-control" id="userCep" placeholder="00000-000" maxlength="9">
+                        </div>
+                        <button class="btn-search-cep" id="btnSearchCep">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row-fields-three">
+                    <div class="form-group">
+                        <label class="form-label" for="userCity">Cidade</label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-control" id="userCity" placeholder="Digite a cidade">
+                            <button type="button" class="clear-btn" onclick="clearField('userCity')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="userState">UF</label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-control" id="userState" placeholder="UF" maxlength="2">
+                            <button type="button" class="clear-btn" onclick="clearField('userState')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="userNumber">Número</label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-control" id="userNumber" placeholder="Nº">
+                            <button type="button" class="clear-btn" onclick="clearField('userNumber')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row-fields">
+                    <div class="form-group">
+                        <label class="form-label" for="userStreet">Logradouro</label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-control" id="userStreet" placeholder="Digite o logradouro">
+                            <button type="button" class="clear-btn" onclick="clearField('userStreet')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="userNeighborhood">Bairro</label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-control" id="userNeighborhood" placeholder="Digite o bairro">
+                            <button type="button" class="clear-btn" onclick="clearField('userNeighborhood')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Alterar Senha -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordModalLabel">
+                        <i class="fas fa-lock"></i>
+                        Alterar Senha
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <div class="form-group mb-3">
+                            <label class="form-label" for="currentPassword">Senha Atual *</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label class="form-label" for="newPassword">Nova Senha *</label>
+                            <input type="password" class="form-control" id="newPassword" required minlength="6">
+                            <small class="text-muted">Mínimo de 6 caracteres</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label class="form-label" for="confirmPassword">Confirmar Nova Senha *</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnSavePassword">
+                        <i class="fas fa-save"></i>
+                        Salvar Nova Senha
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    
+    <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js?v=20250127003" defer></script>
+    
+    <!-- Scripts de compatibilidade para hospedagem -->
+    <script src="../assets/js/resource-preloader.js?v=20250127003" defer></script>
+    <script src="../assets/js/hosting-compatibility.js?v=20250127003" defer></script>
+    
+    <script src="../firebase-config.js?v=20250127003" defer></script>
+    <script src="../assets/js/auth-guard.js?v=20250127003" defer></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003" defer></script>
+    
+    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+
+    <!-- Script Melhorado do Accordion -->
+    <script>
+    // Fun??o melhorada para inicializar o accordion
+    function initializeImprovedAccordion() {
+        console.log('?? Inicializando accordion melhorado...');
+        
+        // Aguarda um pouco para garantir que todos os elementos estejam prontos
+        setTimeout(() => {
+            // Seleciona todos os itens de submenu
+            const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+            console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
+            
+            submenuItems.forEach((menuItem, index) => {
+                // Encontra o link clic?vel dentro do item
+                const menuLink = menuItem.querySelector('.menu-link, a');
+                const submenu = menuItem.querySelector('.submenu');
+                const arrowIcon = menuItem.querySelector('.arrow-icon');
+                
+                if (menuLink && submenu) {
+                    // Remove event listeners existentes clonando o elemento
+                    const newMenuLink = menuLink.cloneNode(true);
+                    menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+                    
+                    // Adiciona novo event listener melhorado
+                    newMenuLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log(`??? Clique no item ${index + 1}`);
+                        
+                        // Fecha todos os outros submenus
+                        const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                        allMenuItems.forEach(item => {
+                            if (item !== menuItem) {
+                                item.classList.remove('expanded');
+                            }
+                        });
+                        
+                        // Toggle do item atual
+                        menuItem.classList.toggle('expanded');
+                        
+                        const isExpanded = menuItem.classList.contains('expanded');
+                        console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra?do'}`);
+                        
+                        // Atualiza o ?cone da seta se existir
+                        if (arrowIcon) {
+                            arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                        }
+                    });
+                    
+                    console.log(`? Evento vinculado ao item ${index + 1}`);
+                } else {
+                    console.warn(`?? Item ${index + 1} n?o tem link ou submenu v?lido`);
+                }
+            });
+            
+            console.log('? Accordion melhorado inicializado com sucesso!');
+        }, 100);
+    }
+    
+    // Inicializa quando o DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+    } else {
+        initializeImprovedAccordion();
+    }
+    
+    // Tamb?m disponibiliza globalmente para re-inicializa??o manual
+    window.reinitializeAccordion = initializeImprovedAccordion;
+    </script>
+    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/empresa-display-fix.js?v=20250127003" defer></script>
+    <script src="../assets/js/active-company-display.js?v=20250127003" defer></script>
+    <script src="../assets/js/perfil.js?v=20250127003" defer></script>
+    
+    
+
+    
+
+    <!-- Corre??o Completa do Sidebar com Accordion -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Aguardar que todos os scripts sejam carregados
+        function initializeSidebar() {
+            console.log('?? Inicializando corre??o completa do sidebar...');
+            
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (!menuToggle) {
+                console.error('? Bot?o do menu n?o encontrado!');
+                return;
+            }
+            
+            if (!sidebar) {
+                console.error('? Sidebar n?o encontrado!');
+                return;
+            }
+            
+            console.log('? Elementos encontrados - aplicando corre??o...');
+            
+            // Limpar todos os event listeners existentes
+            const newMenuToggle = menuToggle.cloneNode(true);
+            menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+            
+            // Fun??o para abrir o sidebar
+            function openSidebar() {
+                sidebar.classList.add('open', 'menu-aberto');
+                sidebar.style.transform = 'translateX(0)';
+                sidebar.style.left = '0';
+                if (overlay) {
+                    overlay.classList.add('active');
+                    overlay.style.display = 'block';
+                }
+                document.body.style.overflow = 'hidden';
+                console.log('?? Sidebar aberto');
+            }
+            
+            // Fun??o para fechar o sidebar
+            function closeSidebar() {
+                sidebar.classList.remove('open', 'menu-aberto');
+                sidebar.style.transform = 'translateX(-100%)';
+                sidebar.style.left = '-280px';
+                if (overlay) {
+                    overlay.classList.remove('active');
+                    overlay.style.display = 'none';
+                }
+                document.body.style.overflow = '';
+                console.log('?? Sidebar fechado');
+            }
+            
+            // Event listener para o bot?o do menu
+            newMenuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('??? Clique no menu detectado');
+                
+                const isOpen = sidebar.classList.contains('open') || 
+                              sidebar.classList.contains('menu-aberto') ||
+                              sidebar.style.transform === 'translateX(0px)' ||
+                              sidebar.style.left === '0px';
+                
+                if (isOpen) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            });
+            
+            // Event listener para o overlay
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeSidebar();
+                    console.log('?? Sidebar fechado via overlay');
+                });
+            }
+            
+            // Event listener para a tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const isOpen = sidebar.classList.contains('open') || 
+                                  sidebar.classList.contains('menu-aberto');
+                    if (isOpen) {
+                        closeSidebar();
+                        console.log('?? Sidebar fechado via ESC');
+                    }
+                }
+            });
+            
+            // Event listener para bot?o de fechar (se existir)
+            const closeButton = document.getElementById('sidebar-close') || 
+                               document.querySelector('.sidebar-close') ||
+                               document.querySelector('#sidebar .close-btn');
+            if (closeButton) {
+                closeButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeSidebar();
+                    console.log('?? Sidebar fechado via bot?o fechar');
+                });
+            }
+            
+            // Implementar funcionalidade de accordion
+            const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+            console.log('?? Itens do menu encontrados:', menuItems.length);
+            
+            menuItems.forEach(function(item) {
+                const link = item.querySelector('.menu-link');
+                const submenu = item.querySelector('.submenu');
+                
+                if (link && submenu) {
+                    // Remover event listeners existentes
+                    const newLink = link.cloneNode(true);
+                    link.parentNode.replaceChild(newLink, link);
+                    
+                    newLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('??? Clique no menu:', newLink.textContent.trim());
+                        
+                        // Fechar outros submenus
+                        menuItems.forEach(function(otherItem) {
+                            if (otherItem !== item) {
+                                otherItem.classList.remove('expanded');
+                                const otherSubmenu = otherItem.querySelector('.submenu');
+                                if (otherSubmenu) {
+                                    otherSubmenu.style.display = 'none';
+                                }
+                            }
+                        });
+                        
+                        // Alternar o submenu atual
+                        const isExpanded = item.classList.contains('expanded');
+                        if (isExpanded) {
+                            item.classList.remove('expanded');
+                            submenu.style.display = 'none';
+                            console.log('?? Submenu fechado:', newLink.textContent.trim());
+                        } else {
+                            item.classList.add('expanded');
+                            submenu.style.display = 'block';
+                            console.log('?? Submenu aberto:', newLink.textContent.trim());
+                        }
+                    });
+                    
+                    console.log('? Event listener adicionado para:', link.textContent.trim());
+                }
+            });
+                
+            
+            // Garantir que o sidebar inicie fechado
+            closeSidebar();
+            
+            console.log('? Corre??o completa do sidebar aplicada com sucesso!');
+        }
+        
+        // Inicializar quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(initializeSidebar, 1000);
+            });
+        } else {
+            setTimeout(initializeSidebar, 1000);
+        }
+        
+    })();
+    </script>
+</body>
+</html>
+
+
+
+
+

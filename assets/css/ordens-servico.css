@@ -1,0 +1,321 @@
+/* Ordens de Serviço Page Styles */
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 1rem 0;
+    padding-left: 1rem;
+}
+
+.breadcrumb {
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Filter Section */
+.filter-section {
+    background: white;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.filter-btn, .whatsapp-btn, .email-btn, .export-btn, .options-btn, .receive-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover, .export-btn:hover, .options-btn:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.whatsapp-btn {
+    background: #25d366;
+    color: white;
+    border-color: #25d366;
+}
+
+.whatsapp-btn:hover {
+    background: #1ea952;
+}
+
+.email-btn {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.email-btn:hover {
+    background: #c82333;
+}
+
+.receive-btn {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.receive-btn:hover {
+    background: #218838;
+}
+
+.filter-applied {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* Table Styles */
+.table-container {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.orders-table thead {
+    background: #f8f9fa;
+}
+
+.orders-table th {
+    padding: 0.75rem 0.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.orders-table td {
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.orders-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Empty State */
+.empty-row {
+    height: 200px;
+}
+
+.empty-message {
+    text-align: center;
+    color: #6c757d;
+    padding: 3rem 1rem;
+}
+
+.empty-message i {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-message p {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.empty-message small {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Records Info */
+.records-info {
+    padding: 1rem;
+    text-align: right;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+.records-count {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Summary Section */
+.summary-section {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.summary-cards {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.summary-card {
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+.summary-card.received {
+    background: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.summary-card.difference {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.summary-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.summary-card.received .summary-value {
+    color: #155724;
+}
+
+.summary-card.difference .summary-value {
+    color: #721c24;
+}
+
+/* Status Buttons */
+.status-btn {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+}
+
+.status-btn.atrasada {
+    background: #dc3545;
+    color: white;
+}
+
+.status-btn.pendente {
+    background: #ffc107;
+    color: #212529;
+}
+
+.status-btn.pago {
+    background: #28a745;
+    color: white;
+}
+
+/* Action Buttons */
+.action-btn {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    margin: 0 0.125rem;
+}
+
+.action-btn:hover {
+    background: #f8f9fa;
+}
+
+.action-btn i {
+    color: #007bff;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .summary-cards {
+        flex-wrap: wrap;
+    }
+    
+    .summary-card {
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+    }
+    
+    .filter-btn, .whatsapp-btn, .email-btn, .export-btn, .options-btn, .receive-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .orders-table {
+        min-width: 900px;
+    }
+    
+    .summary-cards {
+        flex-direction: column;
+    }
+    
+    .summary-card {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.25rem;
+        padding-left: 0.5rem;
+    }
+    
+    .filter-section, .summary-section {
+        margin: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    .orders-table th,
+    .orders-table td {
+        padding: 0.5rem 0.25rem;
+    }
+}

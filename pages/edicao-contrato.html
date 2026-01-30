@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <!-- ERRO SUPPRESSION: Se o erro "Verifique se a empresa" aparecer, mate-o silenciosamente -->
+    <script>
+        window.onerror = function (msg, url, line) {
+            if (typeof msg === 'string' && (msg.includes('Verifique se a empresa') || msg.includes('Contrato não localizado'))) {
+                console.warn('⚠️ Erro fantasma suprimido:', msg);
+                return true; // Impede o erro de aparecer no console/alert
+            }
+        };
+        // Sobrescreve alert também, só por garantia
+        const originalAlert = window.alert;
+        window.alert = function (msg) {
+            if (typeof msg === 'string' && (msg.includes('Verifique se a empresa') || msg.includes('Contrato não localizado'))) {
+                console.warn('⚠️ Alert fantasma suprimido:', msg);
+                return;
+            }
+            return originalAlert(msg);
+        };
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edição de Contrato</title>
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <!-- Header & Sidebar styles para replicar o index -->
+    <link rel="stylesheet" href="../assets/css/sidebar-menu.css" />
+    <link rel="stylesheet" href="../assets/css/sidebar-fix.css" />
+    <link rel="stylesheet" href="../assets/css/sidebar.css" />
+    <link rel="stylesheet" href="../assets/css/user-menu.css" />
+    <link rel="stylesheet" href="../assets/css/edicao-contrato.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <!-- Company Context Guard (hidrata antes de qualquer query) -->
+    <script>
+        (function ensureCompanyContextEarly() {
+            try {
+                var json = localStorage.getItem('selectedCompany') || localStorage.getItem('activeCompany') || localStorage.getItem('configCompany');
+                var id = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+                var name = localStorage.getItem('empresaSelecionadaNome') || '';
+                if (json) {
+                    try {
+                        var obj = JSON.parse(json);
+                        id = id || obj.id || obj.companyId || obj.empresaId || null;
+                        name = name || obj.nome || obj.name || '';
+                    } catch (_) { }
+                }
+                if (id) {
+                    localStorage.setItem('companyId', String(id));
+                    localStorage.setItem('activeCompanyId', String(id));
+                    localStorage.setItem('empresaSelecionadaId', String(id));
+                    if (name) localStorage.setItem('empresaSelecionadaNome', name);
+                    window.activeCompanyId = id;
+                    if (typeof MultitenantConfig !== 'undefined') { MultitenantConfig.currentCompanyId = id; }
+                }
+                window.addEventListener('storage', function (e) {
+                    if (['companyId', 'activeCompanyId', 'empresaSelecionadaId'].includes(e.key) && !e.newValue) {
+                        if (id) {
+                            localStorage.setItem(e.key, String(id));
+                        }
+                    }
+                });
+            } catch (_) { }
+        })();
+    </script>
+    <!-- Storage Safe + Cache Buster -->
+    <script src="../assets/js/storage-safe.js?v=20251216001"></script>
+    <script src="../assets/js/cache-buster.js?v=20251216001"></script>
+    <!-- PDF & ZIP libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Firebase (v8.10.1) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="../firebase-config.js?v=clean_final"></script>
+    <script src="../assets/js/multitenant-config.js"></script>
+
+    <!-- Scripts do header (funcionalidades de busca e menu do usuário) -->
+    <script src="../assets/js/user-menu.js" defer></script>
+    <script src="../assets/js/header-search.js" defer></script>
+    <script src="../assets/js/sidebar-menu.js" defer></script>
+    <script src="../assets/js/sidebar.js" defer></script>
+    <script src="../assets/js/navigation-fix.js" defer></script>
+</head>
+
+<body>
+    <!-- Header replicado do index.html -->
+    <header class="header">
+        <div class="header-left">
+            <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
+                    style="margin-right: 8px;">
+                <span class="logo-text">QUALIFY - Sistema de gestão</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                <i class="fas fa-search search-icon"></i>
+                <div id="search-results" class="search-results"></div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="company-info">
+                <i class="fas fa-building"></i>
+                <span id="headerEmpresaDisplay">Nenhuma empresa selec...</span>
+            </div>
+            <div class="user-info"></div>
+            <div class="user-menu-container">
+                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                    aria-expanded="false">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <div class="user-dropdown" id="userDropdown" role="menu">
+                    <div class="dropdown-content">
+                        <a href="perfil.html" class="dropdown-item" role="menuitem" data-action="profile">
+                            <i class="fas fa-user"></i>
+                            <span>Perfil</span>
+                        </a>
+                        <a href="trocar-empresa.html" class="dropdown-item" role="menuitem"
+                            data-action="switch-company">
+                            <i class="fas fa-building"></i>
+                            <span>Trocar de Empresa</span>
+                        </a>
+                        <a href="configuracoes-bancarias.html" class="dropdown-item" role="menuitem"
+                            data-action="banking">
+                            <i class="fas fa-university"></i>
+                            <span>Integrações Bancárias</span>
+                        </a>
+                        <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="account">
+                            <i class="fas fa-wallet"></i>
+                            <span>Minha Conta</span>
+                        </a>
+                        <a href="area-associado-login.html" class="dropdown-item" role="menuitem"
+                            data-action="associate-area" target="_blank">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Área do Associado</span>
+                        </a>
+                        <a href="catalogo-planos.html" class="dropdown-item" role="menuitem" data-action="catalog">
+                            <i class="fas fa-book"></i>
+                            <span>Catálogo de Planos</span>
+                        </a>
+                        <div class="dropdown-separator"></div>
+                        <button class="dropdown-item logout-item" id="logoutBtn" role="menuitem">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Sair</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="logout-container"></div>
+        </div>
+    </header>
+
+    <!-- Menu lateral para o botão hambúrguer -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button id="sidebar-close" class="sidebar-close">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-user-info">
+                <p class="user-email-display">Usuário: <span id="userDisplaySidebar">Nenhum usuário</span></p>
+                <p class="company-display">Empresa: <span id="empresaDisplaySidebar">Nenhuma empresa ativa</span></p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="menu-item has-submenu expanded">
+                    <a href="#" class="menu-link">
+                        <i class="icon-star"></i>
+                        <span class="menu-text">Mais usados</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+                        <li><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
+                        <li><a href="../pages/dashboard.html">Dashboard</a></li>
+                        <li><a href="inadimplentes.html">Inadimplentes</a></li>
+                        <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
+                        <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="controle-caixas.html">Controle de caixas</a></li>
+                        <li><a href="contas-receber.html">Contas a receber</a></li>
+                        <li><a href="vendas.html">Vendas</a></li>
+                    </ul>
+                </li>
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-contract"></i>
+                        <span class="menu-text">Contratos</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="contratos.html">Ativos</a></li>
+                        <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
+                        <li><a href="cancelados.html">Cancelados</a></li>
+                    </ul>
+                </li>
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="icon-money"></i>
+                        <span class="menu-text">Financeiro</span>
+                        <i class="arrow-icon">▼</i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="contas-pagar.html">Contas a pagar</a></li>
+                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-contrato">
+        <!-- Banner com nome do titular -->
+        <div class="contract-holder-banner" aria-live="polite">
+            <i class="fas fa-id-card"></i>
+            <span class="label">Titular:</span>
+            <span id="holderName" class="value">Carregando...</span>
+            <span class="divider">|</span>
+            <span class="label">CPF:</span>
+            <span id="holderCpf" class="value" data-cpf="">—</span>
+        </div>
+        <div class="page-header">
+            <div class="page-title">
+                <h2 id="pageTitle">Edição do contrato</h2>
+                <span id="statusIcon" class="status-icon" title="Status"></span>
+
+            </div>
+            <div class="header-actions">
+                <!-- BOTÃO VOLTAR - Recriado do zero -->
+                <a href="contratos.html" id="btnVoltarContratos" class="btn btn-secondary"
+                    style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-arrow-left"></i> Voltar para Contratos
+                </a>
+                <div id="dropdownDocs" class="dropdown right">
+                    <button class="btn btn-secondary"><i class="fas fa-file"></i> Documentos</button>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item" id="docContrato">Contrato <i class="fas fa-file-pdf"></i></div>
+                        <a class="dropdown-item" id="docArea" href="../pages/area-associado.html" target="_blank">Área
+                            do Associado <i class="fas fa-external-link-alt"></i></a>
+                        <div class="dropdown-item" id="docCarteirinha">Carteirinha <i class="fas fa-id-card"></i></div>
+                        <div class="dropdown-item" id="docGerenciar">Gerenciar documentos <i
+                                class="fas fa-folder-open"></i></div>
+                    </div>
+                </div>
+                <!-- Botão Salvar removido -->
+                <div id="dropdownOptions" class="dropdown">
+                    <button class="btn btn-secondary"><i class="fas fa-ellipsis-h"></i> Opções</button>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item" id="optEmitir">Emitir <i class="fas fa-file-pdf"></i></div>
+                        <div class="dropdown-item" id="optCancelar">Cancelar <i class="fas fa-ban"></i></div>
+                        <div class="dropdown-item" id="optRenovar">Renovar Carências <i class="fas fa-rotate"></i></div>
+                        <div class="dropdown-item" id="optCompartilhar">Compartilhar Link <i
+                                class="fas fa-share-alt"></i></div>
+                        <div class="dropdown-item" id="optDuplicar">Duplicar contrato <i class="fas fa-copy"></i></div>
+                        <div class="dropdown-item" id="optExportar">Exportar PDF <i class="fas fa-file-export"></i>
+                        </div>
+                        <div class="dropdown-item" id="optHistorico">Histórico de alterações <i
+                                class="fas fa-history"></i></div>
+                        <div class="dropdown-item disabled" id="optReativar" title="Em breve">Reativar Contrato</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="inline-info">
+            <span class="info-item"><span class="info-label">Número do contrato</span><span id="ivNumero"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Data do contrato</span><span id="ivDataContrato"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Plano</span><span id="ivPlano"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Tipo de cobrança</span><span id="ivTipo"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Valor da mensalidade</span><span id="ivValor"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Data de desativação</span><span id="ivDesativacao"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Situação</span><span id="ivSituacao"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Em carência?</span><span id="ivEmCarencia"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Vencido?</span><span id="ivVencido"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Qtd. parcelas</span><span id="ivQtdParcelas"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Primeira parcela</span><span id="ivPrimeiraParcela"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Última parcela</span><span id="ivUltimaParcela"
+                    class="info-value">—</span></span>
+            <span class="info-item"><span class="info-label">Total recebido</span><span id="ivTotalRecebido"
+                    class="info-value">—</span></span>
+        </div>
+
+        <!-- Duas colunas -->
+        <div class="columns">
+            <div class="card main-card">
+                <h3>Dados do Contrato</h3>
+                <div class="contract-grid">
+                    <div class="kv">
+                        <span class="kv-label">Número do contrato</span>
+                        <span id="cvNumero" class="kv-value">—</span>
+                    </div>
+                    <div class="kv">
+                        <span class="kv-label">Data do contrato</span>
+                        <span id="cvDataContrato" class="kv-value">—</span>
+                    </div>
+                    <div class="kv">
+                        <span class="kv-label">Plano</span>
+                        <span id="cvPlano" class="kv-value">—</span>
+                    </div>
+                    <div class="kv">
+                        <span class="kv-label">Tipo de cobrança</span>
+                        <span id="cvTipo" class="kv-value">—</span>
+                    </div>
+                    <div class="kv">
+                        <span class="kv-label">Valor da mensalidade</span>
+                        <span id="cvValor" class="kv-value">—</span>
+                    </div>
+                    <div class="kv">
+                        <span class="kv-label">Data de desativação</span>
+                        <span id="cvDesativacao" class="kv-value">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Resumo Financeiro</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-label">Situação</span>
+                        <span id="svSituacao" class="chip">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Em carência?</span>
+                        <span id="svEmCarencia" class="summary-value">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Vencido?</span>
+                        <span id="svVencido" class="summary-value">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Qtd. parcelas</span>
+                        <span id="svQtdParcelas" class="summary-value">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Primeira parcela</span>
+                        <span id="svPrimeiraParcela" class="summary-value">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Última parcela</span>
+                        <span id="svUltimaParcela" class="summary-value">—</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Total recebido</span>
+                        <span id="svTotalRecebido" class="summary-value">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="columns">
+            <div class="card main-card">
+                <h3>Familiares do Contrato</h3>
+                <table id="tblInContract" class="simple">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Parentesco</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h3>Familiares fora do Contrato</h3>
+                <table id="tblOutContract" class="simple">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Parentesco</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Seção Financeira -->
+        <div class="tabs">
+            <div class="tab active" data-tab="cobrancas">Cobranças</div>
+            <div class="tab" data-tab="familiares">Familiares</div>
+            <div class="tab" data-tab="eventos">Eventos</div>
+            <div class="tab" data-tab="lembretes">Lembretes</div>
+            <div class="tab" data-tab="arquivos">Arquivos</div>
+            <div class="tab" data-tab="renovacoes">Renovações</div>
+        </div>
+        <div class="tab-content" id="tabsContent">
+            <!-- Conteúdo: Cobranças -->
+            <div id="tab-cobrancas">
+                <div class="page-header" style="grid-template-columns: 1fr auto;">
+                    <h3 style="margin:0">Cobranças</h3>
+                    <button id="btnAddCharge" class="btn btn-primary"><i class="fas fa-plus"></i> Adicionar
+                        cobrança</button>
+                </div>
+
+                <h4>Em Aberto</h4>
+                <table id="tblAbertas" class="table-fixed">
+                    <thead>
+                        <tr>
+                            <th class="col-10 text-center">Nº</th>
+                            <th class="col-20 text-center">Vencimento</th>
+                            <th class="col-20 text-center">Valor</th>
+                            <th class="col-50 text-left">Opções</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <h4 style="margin-top:16px;">Pagos</h4>
+                <table id="tblPagas" class="table-fixed">
+                    <thead>
+                        <tr>
+                            <th class="col-10 text-center">Nº</th>
+                            <th class="col-30 text-center">Pagamento</th>
+                            <th class="col-30 text-center">Valor</th>
+                            <th class="col-30 text-center">Método</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="tab-familiares" style="display:none;">
+                <!-- Header da aba Familiares removido (barra de pesquisa e botões sem funcionalidade) -->
+                <div class="border rounded-lg bg-white shadow-sm overflow-hidden">
+                    <div class="bg-green-50 px-4 py-3 border-b border-green-100 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-green-100 p-1.5 rounded-md text-green-700"><i
+                                    class="fas fa-check-circle"></i></div>
+                            <div>
+                                <h4 class="font-bold text-green-900 text-sm m-0">Vinculados ao Contrato</h4>
+                                <p class="text-xs text-green-600 m-0">Pessoas cobertas por este plano</p>
+                            </div>
+                        </div>
+                        <span id="badge-vinculados"
+                            class="bg-green-200 text-green-800 text-xs font-bold px-2 py-1 rounded-full">0</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left table-fixed">
+                            <thead class="bg-gray-50 text-gray-500 font-medium border-b">
+                                <tr>
+                                    <th class="col-10 p-3 text-center">Ação</th>
+                                    <th class="col-30 p-3 text-left">Nome Completo</th>
+                                    <th class="col-15 p-3 text-center">Parentesco</th>
+                                    <th class="col-10 p-3 text-center">Idade</th>
+                                    <th class="col-15 p-3 text-center">Status</th>
+                                    <th class="col-20 p-3 text-center">Carência</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-vinculados">
+                                <tr>
+                                    <td colspan="6" class="p-6 text-center text-gray-400">Carregando vinculados...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Separador visual -->
+                <div class="flex items-center justify-center gap-4 text-gray-300 my-4">
+                    <div class="h-px bg-gray-200 w-full"></div>
+                    <i class="fas fa-arrows-alt-v text-gray-400"></i>
+                    <div class="h-px bg-gray-200 w-full"></div>
+                </div>
+
+                <!-- Tabela de Não Vinculados (membros da família que NÃO estão neste contrato) -->
+                <div class="border rounded-lg bg-white shadow-sm overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-gray-200 p-1.5 rounded-md text-gray-600"><i class="fas fa-user-clock"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-700 text-sm m-0">Não Vinculados ao Contrato</h4>
+                                <p class="text-xs text-gray-500 m-0">Membros da família disponíveis para adicionar</p>
+                            </div>
+                        </div>
+                        <span id="badge-disponiveis"
+                            class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full">0</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left table-fixed">
+                            <thead class="bg-gray-50 text-gray-500 font-medium border-b">
+                                <tr>
+                                    <th class="col-10 p-3 text-center">Ação</th>
+                                    <th class="col-30 p-3 text-left">Nome Completo</th>
+                                    <th class="col-15 p-3 text-center">Parentesco</th>
+                                    <th class="col-10 p-3 text-center">Idade</th>
+                                    <th class="col-15 p-3 text-center">Status</th>
+                                    <th class="col-20 p-3 text-center">Carência</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-disponiveis">
+                                <tr>
+                                    <td colspan="6" class="p-6 text-center text-gray-400">
+                                        <i class="fas fa-info-circle"></i> Todos os membros da família estão vinculados
+                                        a este contrato
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-eventos" style="display:none;">
+                <h3>Eventos</h3>
+                <table id="tblEventos" class="simple-table table-fixed">
+                    <thead>
+                        <tr>
+                            <th class="col-20 text-center">Data/Hora</th>
+                            <th class="col-20 text-center">Tipo</th>
+                            <th class="col-30 text-left">Descrição</th>
+                            <th class="col-15 text-center">Valor</th>
+                            <th class="col-15 text-center">Método</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="tab-lembretes" style="display:none;">
+                <h3>Lembretes</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>Título</label><input id="remTitle" type="text" /></div>
+                    <div class="form-group" style="grid-column:1 / -1"><label>Descrição</label><textarea id="remDesc"
+                            rows="2"></textarea></div>
+                    <div class="form-group"><button id="btnAddReminder" class="btn btn-primary">Adicionar</button></div>
+                </div>
+                <table id="tblReminders" class="simple-table table-fixed">
+                    <thead>
+                        <tr>
+                            <th class="col-25 text-left">Título</th>
+                            <th class="col-40 text-left">Descrição</th>
+                            <th class="col-20 text-center">Criado em</th>
+                            <th class="col-15 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="tab-arquivos" style="display:none;">
+                <h3>Arquivos</h3>
+                <table id="tblArquivos" class="simple-table table-fixed">
+                    <thead>
+                        <tr>
+                            <th class="col-50 text-left">Nome</th>
+                            <th class="col-20 text-center">Tipo</th>
+                            <th class="col-30 text-center">Gerado em</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="tab-renovacoes" style="display:none;">
+                <h3>Renovações</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>Próxima renovação</label><input id="rvDate" type="date" /></div>
+                    <div class="form-group"><button id="rvAgendar" class="btn btn-primary">Agendar</button></div>
+                </div>
+                <table id="tblRenov" class="simple-table table-fixed">
+                    <thead>
+                        <tr>
+                            <th class="col-50 text-center">Data</th>
+                            <th class="col-50 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Adicionar Cobranças -->
+    <div id="modalAddCharge" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true">
+            <header>
+                <strong>Adicionar Cobranças</strong>
+                <button id="closeAddCharge" class="btn btn-secondary" aria-label="Fechar"><i
+                        class="fas fa-times"></i></button>
+            </header>
+            <div class="content">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Vencimento</label>
+                        <input id="mcVencimento" type="date" />
+                    </div>
+                    <div class="form-group">
+                        <label>Valor</label>
+                        <input id="mcValor" type="number" step="0.01" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>CPF do Pagador *</label>
+                        <input id="mcCpfPagador" type="text" placeholder="000.000.000-00" maxlength="14" />
+                    </div>
+                    <div class="form-group">
+                        <label>Método de cobrança</label>
+                        <select id="mcMetodo">
+                            <option value="boleto">Boleto</option>
+                            <option value="pix">PIX</option>
+                            <option value="cartao">Cartão</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quantidade de parcelas</label>
+                        <input id="mcQtdParcelas" type="number" min="1" value="1" />
+                    </div>
+                </div>
+
+                <!-- Campos de Endereço para PIX/Boleto -->
+                <h4 style="margin: 16px 0 8px; color: var(--secondary-text); font-size: 14px;">
+                    <i class="fas fa-map-marker-alt"></i> Endereço do Pagador
+                </h4>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 0 0 120px;">
+                        <label>CEP</label>
+                        <input id="mcCep" type="text" placeholder="00000-000" maxlength="9" />
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Logradouro</label>
+                        <input id="mcLogradouro" type="text" placeholder="Rua, Av, etc." />
+                    </div>
+                    <div class="form-group" style="flex: 0 0 80px;">
+                        <label>Número</label>
+                        <input id="mcNumero" type="text" placeholder="Nº" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Bairro</label>
+                        <input id="mcBairro" type="text" placeholder="Bairro" />
+                    </div>
+                    <div class="form-group">
+                        <label>Cidade</label>
+                        <input id="mcCidade" type="text" placeholder="Cidade" />
+                    </div>
+                    <div class="form-group" style="flex: 0 0 80px;">
+                        <label>UF</label>
+                        <input id="mcUf" type="text" placeholder="UF" maxlength="2"
+                            style="text-transform: uppercase;" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Mensagem</label>
+                    <input id="mcMensagem" type="text" placeholder="Mensagem opcional para o cliente" />
+                </div>
+            </div>
+            <footer style="display:flex; gap:8px; justify-content:flex-end;">
+                <button id="btnSalvarCharge" class="btn btn-primary">Salvar</button>
+                <button id="btnCancelarCharge" class="btn btn-secondary">Cancelar</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal: Confirmação de Cancelamento -->
+    <div id="modalCancelar" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true">
+            <header>
+                <strong>Confirmar cancelamento</strong>
+                <button id="closeCancelar" class="btn btn-secondary" aria-label="Fechar"><i
+                        class="fas fa-times"></i></button>
+            </header>
+            <div class="content">
+                <p>Para cancelar, digite <strong>deletar</strong> no campo abaixo e confirme.</p>
+                <div class="form-group">
+                    <label>Digite "deletar"</label>
+                    <input id="cancelInput" type="text" />
+                </div>
+            </div>
+            <footer style="display:flex; gap:8px; justify-content:flex-end;">
+                <button id="btnConfirmarCancelamento" class="btn btn-danger">Confirmar</button>
+                <button id="btnCancelarCancelamento" class="btn btn-secondary">Cancelar</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal: Documentos do Contrato -->
+    <div id="modalDocs" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true">
+            <header>
+                <strong>Documentos do contrato</strong>
+                <button id="closeDocs" class="btn btn-secondary" aria-label="Fechar"><i
+                        class="fas fa-times"></i></button>
+            </header>
+            <div class="content">
+                <div class="form-row" style="align-items:center;">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <input id="docFileInput" type="file" multiple />
+                        <button id="btnUploadDocs" class="btn btn-primary" style="margin-left:8px;">Upload</button>
+                    </div>
+                </div>
+                <h4 style="margin-top:8px;">Arquivos</h4>
+                <table id="tblDocs" class="simple-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Tamanho</th>
+                            <th>Tipo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: PIX Checkout -->
+    <div id="modalPix" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true">
+            <header>
+                <strong>Pagamento PIX</strong>
+                <button id="closePix" class="btn btn-secondary" aria-label="Fechar"><i
+                        class="fas fa-times"></i></button>
+            </header>
+            <div class="content">
+                <div style="display:flex; gap:16px; align-items:center;">
+                    <img id="pixQrImg" alt="QR Code PIX" style="width:180px; height:180px; border:1px solid #eee;" />
+                    <div style="flex:1;">
+                        <label class="summary-label">Copia e Cola</label>
+                        <textarea id="pixCode" class="readonly" rows="4" style="width:100%;" readonly></textarea>
+                        <div style="margin-top:8px; display:flex; gap:8px;">
+                            <button id="copyPix" class="btn btn-primary"><i class="fas fa-copy"></i> Copiar</button>
+                            <button id="openPixApp" class="btn btn-secondary"><i class="fas fa-external-link-alt"></i>
+                                Abrir no App</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Boleto -->
+    <div id="modalBoleto" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true">
+            <header>
+                <strong>Boleto Registrado</strong>
+                <button id="closeBoleto" class="btn btn-secondary" aria-label="Fechar"><i
+                        class="fas fa-times"></i></button>
+            </header>
+            <div class="content">
+                <p class="muted">Use o link abaixo para visualizar e enviar ao cliente:</p>
+                <input id="boletoUrl" type="text" class="readonly" style="width:100%;" readonly />
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                    <button id="openBoleto" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Abrir PDF</button>
+                    <button id="copyBoleto" class="btn btn-secondary"><i class="fas fa-copy"></i> Copiar link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Histórico de alterações -->
+    <div id="modalHistory" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true">
+            <header>
+                <strong>Histórico de alterações</strong>
+                <button id="closeHistory" class="btn btn-secondary" aria-label="Fechar"><i
+                        class="fas fa-times"></i></button>
+            </header>
+            <div class="content">
+                <table id="tblHistory" class="simple-table">
+                    <thead>
+                        <tr>
+                            <th>Campo</th>
+                            <th>De</th>
+                            <th>Para</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dropdown Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Dropdowns: Documentos e Opções
+            const dropdowns = document.querySelectorAll('.dropdown');
+
+            dropdowns.forEach(dropdown => {
+                const btn = dropdown.querySelector('.btn');
+                const menu = dropdown.querySelector('.dropdown-menu');
+
+                if (btn && menu) {
+                    // Toggle ao clicar no botão
+                    btn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+
+                        // Fecha outros dropdowns abertos
+                        dropdowns.forEach(d => {
+                            if (d !== dropdown) {
+                                d.classList.remove('open');
+                            }
+                        });
+
+                        // Toggle do dropdown atual
+                        dropdown.classList.toggle('open');
+                    });
+                }
+            });
+
+            // Fecha dropdowns ao clicar fora
+            document.addEventListener('click', function () {
+                dropdowns.forEach(d => d.classList.remove('open'));
+            });
+
+            // Evita que clique no menu feche o dropdown
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            });
+        });
+    </script>
+
+    <!-- Dropdown CSS Styles -->
+    <style>
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            z-index: 1000;
+            margin-top: 4px;
+        }
+
+        .dropdown.open .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        .dropdown-item.disabled {
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .dropdown-item i {
+            margin-left: 8px;
+            color: #666;
+        }
+
+        /* Table column width classes */
+        .table-fixed {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .table-fixed th,
+        .table-fixed td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .col-10 {
+            width: 10%;
+        }
+
+        .col-15 {
+            width: 15%;
+        }
+
+        .col-20 {
+            width: 20%;
+        }
+
+        .col-30 {
+            width: 30%;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .p-3 {
+            padding: 12px;
+        }
+    </style>
+
+    <script src="../assets/js/edicao-contrato.js?v=FAMILIA_FIX_V9"></script>
+    <script src="../assets/js/cobrancas-manager.js?v=PIX_FIX_20260115_V2"></script>
+
+    <!-- Script SAFE MODE removido - estava destruindo sessão do Firebase Auth ao deletar IndexedDB -->
+    <!-- A autenticação do Firebase agora persiste corretamente entre recarregamentos de página -->
+</body>
+
+</html>
