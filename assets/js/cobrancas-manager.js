@@ -167,17 +167,107 @@
             const statusBadge = getStatusBadge(cob.status);
 
             if (tipo === 'aberta') {
-                // Botões de ação para cobranças abertas
+                // ============================================
+                // LÓGICA À PROVA DE FALHAS - NUNCA FICA VAZIO
+                // ============================================
                 let acoesHTML = '';
 
-                if (cob.linkPagamento || cob.invoiceUrl) {
-                    acoesHTML += `<button class="btn btn-sm btn-primary" onclick="copiarLink('${cob.linkPagamento || cob.invoiceUrl}')" title="Copiar Link"><i class="fas fa-copy"></i></button> `;
-                    acoesHTML += `<a href="${cob.linkPagamento || cob.invoiceUrl}" target="_blank" class="btn btn-sm btn-secondary" title="Abrir Link"><i class="fas fa-external-link-alt"></i></a> `;
+                // Normaliza o tipo de cobrança
+                const tipoRaw = cob.billingType || cob.tipo || cob.metodoPagamento || '';
+                const billingType = tipoRaw.toUpperCase();
+
+                // ============================================
+                // DETECTOR UNIVERSAL DE ID DO ASAAS
+                // ============================================
+                // Tenta achar o ID em qualquer variação possível
+                const idReal = cob.paymentId || cob.asaasPaymentId || cob.asaasId || cob.invoiceId || null;
+
+                // Monta link com prioridade: URL salva > construir com ID
+                let linkPagamento = cob.bankSlipUrl || cob.invoiceUrl || cob.linkPagamento;
+                if (!linkPagamento && idReal) {
+                    linkPagamento = `https://www.asaas.com/i/${idReal}`;
                 }
 
-                if (cob.pixCopiaECola) {
-                    acoesHTML += `<button class="btn btn-sm btn-success" onclick="copiarPix('${cob.pixCopiaECola}')" title="Copiar PIX"><i class="fas fa-qrcode"></i></button> `;
+                // LOG DE RAIO-X para debug
+                console.log('📋 LINHA:', { billingType, tipoRaw, idReal, linkPagamento, campos: Object.keys(cob) });
+
+
+                // ============================================
+                // DETECÇÃO POR INCLUDES (mais flexível)
+                // ============================================
+                if (billingType.includes('BOLETO')) {
+                    // ========== BOLETO ==========
+                    if (linkPagamento) {
+                        acoesHTML = `
+                            <a href="${linkPagamento}" target="_blank" class="btn btn-sm" style="background:#ff6b35; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;" title="Visualizar/Imprimir Boleto">
+                                <i class="fas fa-file-pdf"></i> Boleto
+                            </a>
+                        `;
+                    } else {
+                        // SEM ID = Botão desabilitado
+                        acoesHTML = `
+                            <span class="btn btn-sm" style="background:#999; color:white; padding:6px 12px; border-radius:6px; cursor:not-allowed; opacity:0.7;" title="ID de pagamento não encontrado">
+                                <i class="fas fa-exclamation-triangle"></i> Sem ID
+                            </span>
+                        `;
+                    }
+                } else if (billingType.includes('PIX')) {
+                    // ========== PIX ==========
+                    if (cob.pixCopiaECola) {
+                        acoesHTML += `
+                            <button class="btn btn-sm" style="background:#00c853; color:white; padding:6px 10px; border-radius:6px; border:none; cursor:pointer;" onclick="copiarPix('${cob.pixCopiaECola}')" title="Copiar Código Pix">
+                                <i class="fas fa-copy"></i> Copiar
+                            </button>
+                        `;
+                    }
+                    if (cob.imagemQrcode) {
+                        acoesHTML += `
+                            <button class="btn btn-sm" style="background:#7c4dff; color:white; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; margin-left:4px;" onclick="verQrCode('${cob.imagemQrcode}')" title="Ver QR Code">
+                                <i class="fas fa-qrcode"></i> QR
+                            </button>
+                        `;
+                    }
+                    // Fallback PIX sem dados
+                    if (!acoesHTML) {
+                        acoesHTML = `
+                            <span class="btn btn-sm" style="background:#999; color:white; padding:6px 12px; border-radius:6px; cursor:not-allowed; opacity:0.7;" title="Dados PIX não encontrados">
+                                <i class="fas fa-exclamation-triangle"></i> Sem dados
+                            </span>
+                        `;
+                    }
+                } else if (billingType.includes('CREDIT') || billingType.includes('CARTAO') || billingType.includes('CARTÃO')) {
+                    // ========== CARTÃO ==========
+                    if (linkPagamento) {
+                        acoesHTML = `
+                            <a href="${linkPagamento}" target="_blank" class="btn btn-sm" style="background:#0066ff; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;" title="Link de Pagamento">
+                                <i class="fas fa-credit-card"></i> Pagar
+                            </a>
+                        `;
+                    } else {
+                        acoesHTML = `
+                            <span class="btn btn-sm" style="background:#999; color:white; padding:6px 12px; border-radius:6px; cursor:not-allowed; opacity:0.7;" title="Link não disponível">
+                                <i class="fas fa-exclamation-triangle"></i> Sem link
+                            </span>
+                        `;
+                    }
+                } else {
+                    // ========== TIPO DESCONHECIDO - FALLBACK ==========
+                    if (linkPagamento) {
+                        acoesHTML = `
+                            <a href="${linkPagamento}" target="_blank" class="btn btn-sm btn-secondary" style="padding:6px 10px; border-radius:6px;" title="Abrir Link">
+                                <i class="fas fa-external-link-alt"></i> Abrir
+                            </a>
+                        `;
+                    } else {
+                        acoesHTML = `
+                            <span class="btn btn-sm" style="background:#666; color:white; padding:6px 12px; border-radius:6px; font-size:11px;" title="Tipo: ${tipoRaw || 'indefinido'}">
+                                <i class="fas fa-question-circle"></i> ${tipoRaw || '?'}
+                            </span>
+                        `;
+                    }
                 }
+
+
 
                 // 5 colunas: Tipo | Vencimento | Valor | Status | Ações
                 tr.innerHTML = `
@@ -186,11 +276,12 @@
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;"><strong>${valor}</strong></td>
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${statusBadge}</td>
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">
-                        <div style="display:flex; gap:4px; justify-content:center; flex-wrap:nowrap;">
+                        <div style="display:flex; gap:6px; justify-content:center; flex-wrap:nowrap;">
                             ${acoesHTML || '<span style="color:#999; font-size:11px;">-</span>'}
                         </div>
                     </td>
                 `;
+
             } else {
                 // Para cobranças pagas - 4 colunas: Tipo | Data Pgto | Valor | Método
                 let dataPagamento = '-';
@@ -276,6 +367,47 @@
         });
     };
 
+    // Função para exibir QR Code do PIX em modal
+    window.verQrCode = function (imagemBase64) {
+        // Remove modal anterior se existir
+        const existing = document.getElementById('modalQrCode');
+        if (existing) existing.remove();
+
+        const modalHTML = `
+            <div id="modalQrCode" style="
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 99999;
+            " onclick="if(event.target.id==='modalQrCode') this.remove();">
+                <div style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 24px;
+                    text-align: center;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                ">
+                    <h3 style="margin:0 0 16px; color:#333;">QR Code PIX</h3>
+                    <img src="${imagemBase64}" alt="QR Code PIX" style="max-width: 280px; border-radius: 8px;">
+                    <p style="margin: 16px 0 0; color: #666; font-size: 13px;">Escaneie com o app do seu banco</p>
+                    <button onclick="document.getElementById('modalQrCode').remove()" style="
+                        margin-top: 16px;
+                        padding: 10px 24px;
+                        background: #0066ff;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">Fechar</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    };
 
     /**
      * Vincula eventos do botão de adicionar cobrança
@@ -579,11 +711,243 @@
     async function gerarCobrancaBoleto(empresaId, vencimento, valor, devedor, mensagem, numeroContrato) {
         console.log('📄 Gerando cobrança Boleto para empresa:', empresaId);
 
-        // Por enquanto, salva localmente
-        await salvarCobrancaLocal(vencimento, valor, 'boleto', mensagem, numeroContrato, empresaId);
+        // Busca CPF do pagador
+        let cpfDevedor = null;
+        const cpfInput = document.getElementById('mcCpfPagador');
+        if (cpfInput && cpfInput.value) {
+            cpfDevedor = cpfInput.value.replace(/\D/g, '');
+        }
 
-        showToast('Boleto salvo como pendente (integração em desenvolvimento)', 'info');
+        // Fallback: holderCpf
+        if (!cpfDevedor || cpfDevedor.length < 11) {
+            const cpfEl = document.getElementById('holderCpf');
+            if (cpfEl && cpfEl.dataset.cpf) {
+                cpfDevedor = cpfEl.dataset.cpf.replace(/\D/g, '');
+            }
+        }
+
+        if (!cpfDevedor || cpfDevedor.length < 11) {
+            throw new Error('CPF do pagador é obrigatório para gerar boleto.');
+        }
+
+        // Captura campos de endereço
+        const cep = document.getElementById('mcCep')?.value || '';
+        const logradouro = document.getElementById('mcLogradouro')?.value || '';
+        const numero = document.getElementById('mcNumero')?.value || '';
+        const bairro = document.getElementById('mcBairro')?.value || '';
+        const cidade = document.getElementById('mcCidade')?.value || '';
+        const uf = document.getElementById('mcUf')?.value?.toUpperCase() || '';
+
+        const payload = {
+            empresaId: empresaId,
+            valor: valor,
+            vencimento: vencimento,
+            descricao: mensagem || `Cobrança contrato ${numeroContrato}`,
+            pagador: {
+                nome: devedor,
+                cpf: cpfDevedor,
+                endereco: {
+                    cep: cep,
+                    logradouro: logradouro,
+                    numero: numero,
+                    bairro: bairro,
+                    cidade: cidade,
+                    uf: uf
+                }
+            },
+            contratoNumero: numeroContrato
+        };
+
+        const response = await fetch(`${API_BASE}/boleto`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        console.log('📄 Resposta do backend boleto:', result);
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Erro ao gerar boleto');
+        }
+
+        // Exibe modal com link do boleto (usa invoiceUrl como fallback)
+        const linkBoleto = result.bankSlipUrl || result.invoiceUrl;
+        if (linkBoleto) {
+            console.log('🔗 Link do boleto:', linkBoleto);
+            showBoletoModal(linkBoleto, valor);
+        } else {
+            console.warn('⚠️ Boleto criado mas sem link disponível ainda');
+            showToast('Boleto criado! O link estará disponível em breve.', 'info');
+        }
+
+        // O backend já salvou no Firestore, não precisa salvar novamente
+
+        // Recarrega a tabela de cobranças
+        console.log('🔄 Recarregando tabela de cobranças...');
+        if (typeof carregarCobrancasContrato === 'function') {
+            await carregarCobrancasContrato(empresaId);
+        }
+
+        return result;
     }
+
+    /**
+     * Exibe modal com Link do Boleto - Design Premium
+     */
+    function showBoletoModal(link, valor) {
+        // Remove modal anterior se existir
+        const existing = document.getElementById('modalBoletoLink');
+        if (existing) existing.remove();
+
+        const valorFormatado = parseFloat(valor).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        });
+
+        // Cria o modal
+        const modalHTML = `
+            <div id="modalBoletoLink" style="
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.6);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 99999;
+            ">
+                <div style="
+                    background: white;
+                    border-radius: 16px;
+                    width: 520px;
+                    max-width: 95vw;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    overflow: hidden;
+                ">
+                    <header style="
+                        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+                        color: white;
+                        padding: 20px 24px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 28px;">📄</span>
+                            <div>
+                                <strong style="font-size: 18px; display: block;">Boleto Gerado!</strong>
+                                <small style="opacity: 0.9;">Cobrança via Boleto Bancário</small>
+                            </div>
+                        </div>
+                        <button id="closeBoletoModal" style="
+                            background: rgba(255,255,255,0.2);
+                            border: none;
+                            color: white;
+                            width: 36px;
+                            height: 36px;
+                            border-radius: 50%;
+                            cursor: pointer;
+                            font-size: 20px;
+                        ">&times;</button>
+                    </header>
+                    <div style="padding: 24px;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <span style="
+                                display: inline-block;
+                                background: #fff3e0;
+                                color: #e65100;
+                                padding: 8px 20px;
+                                border-radius: 50px;
+                                font-weight: 700;
+                                font-size: 20px;
+                            ">${valorFormatado}</span>
+                        </div>
+                        <p style="color: #555; text-align: center; margin-bottom: 16px;">
+                            Envie este link para o cliente acessar o boleto:
+                        </p>
+                        <div style="
+                            background: #f8f9fa;
+                            border: 2px dashed #dee2e6;
+                            border-radius: 10px;
+                            padding: 16px;
+                            margin-bottom: 20px;
+                        ">
+                            <input type="text" id="boletoLinkInput" value="${link}" readonly style="
+                                width: 100%;
+                                padding: 12px;
+                                font-size: 12px;
+                                border: 1px solid #ced4da;
+                                border-radius: 8px;
+                                background: white;
+                                text-align: center;
+                                box-sizing: border-box;
+                            ">
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button id="copyBoletoLink" style="
+                                flex: 1;
+                                background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+                                color: white;
+                                border: none;
+                                padding: 14px 24px;
+                                border-radius: 10px;
+                                font-size: 15px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                            ">
+                                <i class="fas fa-copy"></i> Copiar Link
+                            </button>
+                            <a href="${link}" target="_blank" style="
+                                background: #28a745;
+                                color: white;
+                                border: none;
+                                padding: 14px 20px;
+                                border-radius: 10px;
+                                font-size: 15px;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                                text-decoration: none;
+                            ">
+                                <i class="fas fa-download"></i> Baixar PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Eventos
+        document.getElementById('closeBoletoModal').onclick = () => {
+            document.getElementById('modalBoletoLink').remove();
+        };
+
+        document.getElementById('copyBoletoLink').onclick = () => {
+            const input = document.getElementById('boletoLinkInput');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                showToast('Link do boleto copiado!', 'success');
+            });
+        };
+
+        document.getElementById('modalBoletoLink').onclick = (e) => {
+            if (e.target.id === 'modalBoletoLink') {
+                document.getElementById('modalBoletoLink').remove();
+            }
+        };
+    }
+
 
     /**
      * NOVO: Gera assinatura recorrente via Cartão de Crédito (Link de Pagamento)
