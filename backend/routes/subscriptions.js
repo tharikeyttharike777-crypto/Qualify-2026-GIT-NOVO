@@ -60,18 +60,28 @@ router.post('/criar-link', async (req, res) => {
             return res.status(400).json({ error: 'customerId ou cpfCnpj é obrigatório' });
         }
 
-        // --- SOBRESCRITA NUCLEAR ---
+        // --- LÓGICA DE DECISÃO: PIX MANUAL vs AUTOMÁTICO (2026) ---
         let billingTypeFinal = req.body.billingType;
-        const descricaoRecebida = description || ''; // usa variável que já desestruturamos
-        console.log('📦 Recebido do Front:', { billingType: req.body.billingType, desc: descricaoRecebida });
+        const descricaoRecebida = (description || '').toUpperCase();
+        console.log('🔍 Analisando tipo para:', descricaoRecebida);
 
-        // Se a descrição mencionar PIX, ignoramos qualquer outra variável e forçamos PIX
-        if (descricaoRecebida.toUpperCase().includes('PIX')) {
-            console.log('☢️ DETECTADO PIX NA DESCRIÇÃO. FORÇANDO billingType = PIX');
-            billingTypeFinal = 'PIX';
-        } else if (!billingTypeFinal) {
-            billingTypeFinal = 'CREDIT_CARD'; // Só cai aqui se não for Pix e não tiver tipo definido
+        // 1. Se a descrição diz "AUTOMÁTICO" ou "AUTOMATICO", é o novo produto do BC
+        if (descricaoRecebida.includes('AUTOMATICO') || descricaoRecebida.includes('AUTOMÁTICO')) {
+            console.log('✨ DETECTADO PIX AUTOMÁTICO (Débito em Conta) - Enviando flag específica');
+            // Tenta a tag específica que diferencia o produto na API v3/v4
+            billingTypeFinal = 'PIX_AUTOMATIC';
         }
+        // 2. Se for apenas PIX (Recorrência simples/manual)
+        else if (descricaoRecebida.includes('PIX') || billingTypeFinal === 'PIX') {
+            console.log('⚠️ DETECTADO PIX RECORRENTE (Pagamento Manual Mensal)');
+            billingTypeFinal = 'PIX';
+        }
+        // 3. Fallback para Cartão
+        else if (!billingTypeFinal) {
+            billingTypeFinal = 'CREDIT_CARD';
+        }
+
+        console.log('🚀 Payload Final BillingType:', billingTypeFinal);
 
         // Cria assinatura no Asaas
         const subscription = await asaasBankService.criarAssinatura(empresaConfig, {

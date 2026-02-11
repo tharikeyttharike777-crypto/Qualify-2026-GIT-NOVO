@@ -1339,7 +1339,48 @@
 
         // Exibe modal com o link para o cliente autorizar/pagar
         const paymentLink = result.paymentLink || result.invoiceUrl;
-        if (paymentLink) {
+
+        // VERIFICA SE É PIX AUTOMATICO COM QR CODE RETORNADO
+        if (result.qrcode || result.imagemQrcode) {
+            const qrCodeBase64 = result.qrcode || result.imagemQrcode;
+            const pixCopiaECola = result.pixCopiaECola;
+
+            console.log('📱 Exibindo Modal de PIX Automático (Autorização)');
+
+            // Usa a função global `verQrCode` mas adaptada para mostrar o Copia e Cola também se possível
+            // Como `verQrCode` é simples (só imagem), vamos criar um modal mais completo aqui ou usar o Swal se disponível
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '📱 PIX Automático Gerado!',
+                    html: `
+                        <p style="color: #666; margin-bottom: 15px;">Peça para o cliente escanear para <strong>autorizar</strong> a recorrência:</p>
+                        <div style="margin: 20px auto; display: inline-block; padding: 10px; border: 2px dashed #28a745; border-radius: 8px;">
+                             <img src="data:image/png;base64,${qrCodeBase64}" style="width: 200px; height: 200px;">
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <p style="font-size: 13px; color: #555; margin-bottom: 5px;">Ou use o Pix Copia e Cola:</p>
+                            <input type="text" value="${pixCopiaECola}" id="swalPixCopiaCola" readonly 
+                                style="width: 100%; font-size: 12px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    `,
+                    confirmButtonText: 'Copiar Código',
+                    showCancelButton: true,
+                    cancelButtonText: 'Fechar',
+                    confirmButtonColor: '#28a745'
+                }).then((resAlert) => {
+                    if (resAlert.isConfirmed) {
+                        navigator.clipboard.writeText(pixCopiaECola);
+                        showToast('Pix Copia e Cola copiado!', 'success');
+                    }
+                });
+            } else {
+                // Fallback para função simples
+                window.verQrCode(`data:image/png;base64,${qrCodeBase64}`);
+            }
+
+        } else if (paymentLink) {
+            // Fluxo normal de Link (Cartão ou Fallback)
             showPaymentLinkModal(paymentLink, valor);
         }
 
