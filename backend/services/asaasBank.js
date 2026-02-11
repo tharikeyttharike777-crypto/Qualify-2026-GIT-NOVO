@@ -521,6 +521,47 @@ class AsaasBankService {
     }
 
     /**
+     * Cria uma autorização de PIX Automático (Jornada 3)
+     * @param {Object} empresaConfig - Configuração da empresa
+     * @param {Object} dados - Dados da autorização
+     * @returns {Object} Dados da autorização criada (incluindo immediateQrCode)
+     */
+    async criarAutorizacaoPixAutomatico(empresaConfig, dados) {
+        const apiKey = process.env.ASAAS_API_KEY || this.decryptCredential(empresaConfig.asaasApiKey);
+        const sandbox = empresaConfig.sandbox || false;
+        // O endpoint de autorização costuma estar na v3 também
+        const baseUrl = this.getBaseUrl(sandbox);
+
+        if (!apiKey) throw new Error('API Key do Asaas não configurada');
+
+        console.log('📱 Criando Autorização de PIX Automático no Asaas...');
+
+        try {
+            const payload = {
+                customer: dados.customer,
+                value: dados.value,
+                cycle: dados.cycle || 'MONTHLY',
+                description: dados.description || 'Autorização de PIX Automático',
+                // Parâmetros específicos da Jornada 3
+                agreementSignatureText: "Autorizo o débito automático via Pix para esta recorrência.",
+                // Opcional: callbackUrl se necessário, mas usaremos webhooks globais
+                // expireAt: dados.expireAt // Se quiser limitar o tempo para autorizar
+            };
+
+            const response = await axios.post(`${baseUrl}/pix/automatic/authorizations`, payload, {
+                headers: this.getHeaders(apiKey)
+            });
+
+            console.log('✅ Autorização de PIX Automático criada:', response.data.id);
+            return response.data;
+
+        } catch (error) {
+            console.error('❌ Erro ao criar autorização PIX Automático:', error.response?.data || error.message);
+            throw new Error(error.response?.data?.errors?.[0]?.description || 'Erro ao criar autorização PIX Automático');
+        }
+    }
+
+    /**
      * Limpa cache (mantido para compatibilidade)
      */
     limparCache(empresaId) {

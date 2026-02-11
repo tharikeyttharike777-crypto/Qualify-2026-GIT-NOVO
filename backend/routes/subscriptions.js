@@ -83,107 +83,109 @@ router.post('/criar-link', async (req, res) => {
 
         console.log('🚀 Payload Final BillingType:', billingTypeFinal);
 
-        // Cria assinatura no Asaas
-        const subscription = await asaasBankService.criarAssinatura(empresaConfig, {
-            customer: customerIdFinal,
-            billingType: billingTypeFinal,
-            value: parseFloat(value),
-            nextDueDate: nextDueDate,
-            cycle: cycle || 'MONTHLY',
-            description: description || 'Assinatura Qualify'
-        });
-
-        // --- LÓGICA DE CORREÇÃO PARA PIX AUTOMÁTICO (E CARTÃO) ---
-
-        // 1. DELAY OBRIGATÓRIO (RACE CONDITION FIX)
-        console.log('⏳ Esperando 3 segundos pro Asaas respirar...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
-
+        let asaasResponse = null;
+        let qrCodeData = null;
         let paymentId = null;
         let paymentLink = null;
-        let invoiceUrl = subscription.invoiceUrl || null;
+        let invoiceUrl = null;
+        let subscriptionId = null;
 
+        if (billingTypeFinal === 'PIX_AUTOMATIC') {
+            // --- JORNADA 3: AUTORIZAÇÃO DE PIX AUTOMÁTICO ---
+            console.log('✨ Iniciando Fluxo de Autorização (Jornada 3)');
+            asaasResponse = await asaasBankService.criarAutorizacaoPixAutomatico(empresaConfig, {
+                customer: customerIdFinal,
+                value: parseFloat(value),
+                cycle: cycle || 'MONTHLY',
+                description: description || 'Autorização de PIX Automático'
+            });
 
-        // Se o Asaas não retornou invoiceUrl ou se queremos garantir o ID da cobrança (pay_...)
-        // Fazemos uma busca ativa pela primeira cobrança gerada
-        let qrCodeData = null;
+            subscriptionId = asaasResponse.id;
+            paymentId = asaasResponse.id;
 
-        try {
-            console.log('🔗 Buscando cobranças da assinatura:', subscription.id);
-            const payments = await asaasBankService.listarCobrancasAssinatura(empresaConfig, subscription.id);
-            console.log('📦 Resultado da busca:', payments ? payments.length : 0, 'itens');
+            if (asaasResponse.immediateQrCode) {
+                qrCodeData = {
+                    qrcode: asaasResponse.immediateQrCode.encodedImage,
+                    pixCopiaECola: asaasResponse.immediateQrCode.payload,
+                    expirationDate: asaasResponse.immediateQrCode.expirationDate
+                };
+            }
+            console.log('✅ Autorização criada com sucesso!');
 
-            if (payments && payments.length > 0) {
-                const firstPayment = payments[0];
-                paymentId = firstPayment.id; // O ID real da cobrança (pay_...)
-                paymentLink = firstPayment.axisPaymentLink || firstPayment.invoiceUrl || firstPayment.bankSlipUrl;
-                invoiceUrl = firstPayment.invoiceUrl;
-                console.log('✅ Cobrança identificada:', paymentId);
+        } else {
+            // --- FLUXO ORIGINAL: ASSINATURA PADRÃO (PIX MANUAL OU CARTÃO) ---
+            asaasResponse = await asaasBankService.criarAssinatura(empresaConfig, {
+                customer: customerIdFinal,
+                billingType: billingTypeFinal,
+                value: parseFloat(value),
+                nextDueDate: nextDueDate,
+                cycle: cycle || 'MONTHLY',
+                description: description || 'Assinatura Qualify'
+            });
 
-                // --- NOVO: BUSCA QR CODE DO PIX SE FOR PIX ---
-                if (billingTypeFinal === 'PIX') {
-                    // Tenta buscar QR Code da Assinatura (Feature de Autorização Recorrente?)
-                    console.log('📱 Tentando obter QR Code da Assinatura (Autorização)...');
-                    qrCodeData = await asaasBankService.obterQrCodeAssinatura(empresaConfig, subscription.id);
+            subscriptionId = asaasResponse.id;
+            invoiceUrl = asaasResponse.invoiceUrl || null;
 
-                    if (qrCodeData) {
-                        console.log('✅ QR Code de Autorização da Assinatura obtido!', qrCodeData.pixCopiaECola.substring(0, 20) + '...');
-                    } else {
-                        // Se não conseguiu da assinatura, pega da cobrança (Fallback padrão)
-                        console.log('📱 Buscando QR Code PIX para a primeira cobrança da assinatura...');
-                        try {
+            console.log('⏳ Esperando 3 segundos pro Asaas gerar a primeira cobrança...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            try {
+                console.log('🔗 Buscando cobranças da assinatura:', subscriptionId);
+                const payments = await asaasBankService.listarCobrancasAssinatura(empresaConfig, subscriptionId);
+
+                if (payments && payments.length > 0) {
+                    const firstPayment = payments[0];
+                    paymentId = firstPayment.id;
+                    paymentLink = firstPayment.axisPaymentLink || firstPayment.invoiceUrl || firstPayment.bankSlipUrl;
+                    invoiceUrl = firstPayment.invoiceUrl;
+
+                    if (billingTypeFinal === 'PIX') {
+                        qrCodeData = await asaasBankService.obterQrCodeAssinatura(empresaConfig, subscriptionId);
+                        if (!qrCodeData) {
                             qrCodeData = await asaasBankService.obterQrCodePix(empresaConfig, paymentId);
-                            console.log('✅ QR Code obtido com sucesso!');
-                        } catch (qrError) {
-                            console.error('⚠️ Erro ao buscar QR Code PIX:', qrError.message);
                         }
                     }
+                } else {
+                    console.warn('⚠️ Nenhuma cobrança gerada ainda para a assinatura:', subscriptionId);
                 }
-
-            } else {
-                console.warn('⚠️ Nenhuma cobrança gerada ainda para a assinatura:', subscription.id);
+            } catch (listError) {
+                console.warn('⚠️ Erro ao listar cobranças:', listError.message);
             }
-        } catch (fetchError) {
-            console.error('❌ Erro ao buscar cobranças da assinatura:', fetchError.message);
         }
 
-        console.log('✅ Assinatura criada:', subscription.id, 'Cobrança:', paymentId || '(Provisória)');
+        console.log('✅ Operação concluída:', subscriptionId, 'Cobrança:', paymentId || '(Provisória)');
 
         // NOVO: Salva cobrança no Firestore para aparecer na tabela
         const db = req.app.get('db');
         if (db) {
             try {
-                // Determina o tipo para o Frontend (ícone correto)
-                const billingTypeReal = req.body.billingType || 'CREDIT_CARD';
                 let tipoFrontend = 'cartao';
+                if (billingTypeFinal === 'PIX_AUTOMATIC' || billingTypeFinal === 'PIX') {
+                    tipoFrontend = 'pix_automatico';
+                } else if (billingTypeFinal === 'BOLETO') {
+                    tipoFrontend = 'boleto';
+                }
 
-                if (billingTypeReal === 'PIX') tipoFrontend = 'pix_automatico';
-                else if (billingTypeReal === 'BOLETO') tipoFrontend = 'boleto';
-
-                // FALLBACK: Se não tiver paymentId, usa subscriptionId e marca como PROCESSING
-                const idFinal = paymentId || subscription.id;
-                const statusFinal = paymentId ? 'PENDING' : 'PROCESSING'; // PROCESSING avisa o user que tá carregando
-                const statusDisplayFinal = paymentId ? 'Em Aberto' : 'Processando...';
+                const idFinal = paymentId || subscriptionId;
+                const statusFinal = billingTypeFinal === 'PIX_AUTOMATIC' ? 'PENDING_AUTHORIZATION' : (paymentId ? 'PENDING' : 'PROCESSING');
+                const statusDisplayFinal = billingTypeFinal === 'PIX_AUTOMATIC' ? 'Aguardando Autorização' : (paymentId ? 'Em Aberto' : 'Processando...');
 
                 const cobrancaData = {
-                    tipo: tipoFrontend, // 'pix_automatico' ou 'cartao'
-                    billingType: billingTypeReal,
+                    tipo: tipoFrontend,
+                    billingType: billingTypeFinal,
                     valor: parseFloat(value),
                     vencimento: nextDueDate,
-                    status: statusFinal, // PENDING ou PROCESSING
+                    status: statusFinal,
                     statusDisplay: statusDisplayFinal,
 
-                    // IDs cruciais
                     id: idFinal,
-                    paymentId: paymentId,             // ID da cobrança (se houver)
-                    subscriptionId: subscription.id,  // ID da assinatura
-                    asaasPaymentId: paymentId || subscription.id, // Compatibilidade
+                    paymentId: paymentId,
+                    subscriptionId: subscriptionId,
+                    asaasPaymentId: paymentId || subscriptionId,
 
-                    // Dados do Pagamento
                     linkPagamento: paymentLink || invoiceUrl,
                     invoiceUrl: invoiceUrl,
 
-                    // Dados PIX (Se houver)
                     qrcode: qrCodeData ? qrCodeData.qrcode : null,
                     imagemQrcode: qrCodeData ? qrCodeData.qrcode : null,
                     pixCopiaECola: qrCodeData ? qrCodeData.pixCopiaECola : null,
@@ -197,29 +199,23 @@ router.post('/criar-link', async (req, res) => {
                     atualizadoEm: new Date().toISOString()
                 };
 
-                const cobrancasRef = db.collection('empresas').doc(empresaId).collection('cobrancas');
-
-                // Salva com o ID determinado (paymentId ou subscriptionId)
-                await cobrancasRef.doc(idFinal).set(cobrancaData);
-                console.log(`💾 Cobrança salva no Firestore (${statusFinal}):`, idFinal);
+                await db.collection('empresas').doc(empresaId).collection('cobrancas').doc(idFinal).set(cobrancaData);
+                console.log(`💾 Registro salvo no Firestore (${statusFinal}):`, idFinal);
 
             } catch (firestoreError) {
-                console.error('⚠️ Erro ao salvar cobrança no Firestore (não crítico):', firestoreError.message);
+                console.error('⚠️ Erro ao salvar cobrança no Firestore:', firestoreError.message);
             }
         }
 
         res.json({
             success: true,
-            subscriptionId: subscription.id,
-            status: subscription.status,
-            value: subscription.value,
-            nextDueDate: subscription.nextDueDate,
-            cycle: subscription.cycle,
+            subscriptionId: subscriptionId,
+            status: asaasResponse.status,
+            value: parseFloat(value),
+            nextDueDate: nextDueDate,
             invoiceUrl: invoiceUrl,
             paymentLink: paymentLink || invoiceUrl,
             customerId: customerIdFinal,
-
-            // Dados PIX para o Frontend
             qrcode: qrCodeData ? qrCodeData.qrcode : null,
             imagemQrcode: qrCodeData ? qrCodeData.qrcode : null,
             pixCopiaECola: qrCodeData ? qrCodeData.pixCopiaECola : null
