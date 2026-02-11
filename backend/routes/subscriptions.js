@@ -112,12 +112,21 @@ router.post('/criar-link', async (req, res) => {
 
                 // --- NOVO: BUSCA QR CODE DO PIX SE FOR PIX ---
                 if (billingTypeFinal === 'PIX') {
-                    console.log('📱 Buscando QR Code PIX para a primeira cobrança da assinatura...');
-                    try {
-                        qrCodeData = await asaasBankService.obterQrCodePix(empresaConfig, paymentId);
-                        console.log('✅ QR Code obtido com sucesso!');
-                    } catch (qrError) {
-                        console.error('⚠️ Erro ao buscar QR Code PIX:', qrError.message);
+                    // Tenta buscar QR Code da Assinatura (Feature de Autorização Recorrente?)
+                    console.log('📱 Tentando obter QR Code da Assinatura (Autorização)...');
+                    qrCodeData = await asaasBankService.obterQrCodeAssinatura(empresaConfig, subscription.id);
+
+                    if (qrCodeData) {
+                        console.log('✅ QR Code de Autorização da Assinatura obtido!', qrCodeData.pixCopiaECola.substring(0, 20) + '...');
+                    } else {
+                        // Se não conseguiu da assinatura, pega da cobrança (Fallback padrão)
+                        console.log('📱 Buscando QR Code PIX para a primeira cobrança da assinatura...');
+                        try {
+                            qrCodeData = await asaasBankService.obterQrCodePix(empresaConfig, paymentId);
+                            console.log('✅ QR Code obtido com sucesso!');
+                        } catch (qrError) {
+                            console.error('⚠️ Erro ao buscar QR Code PIX:', qrError.message);
+                        }
                     }
                 }
 

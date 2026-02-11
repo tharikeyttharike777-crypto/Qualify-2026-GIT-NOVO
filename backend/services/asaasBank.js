@@ -252,6 +252,38 @@ class AsaasBankService {
     }
 
     /**
+     * Tenta obter QR Code PIX da Assinatura (para autorização recorrente, se houver)
+     */
+    async obterQrCodeAssinatura(empresaConfig, subscriptionId) {
+        const apiKey = process.env.ASAAS_API_KEY || this.decryptCredential(empresaConfig.asaasApiKey);
+        const sandbox = empresaConfig.sandbox || false;
+        const baseUrl = this.getBaseUrl(sandbox);
+
+        if (!apiKey) throw new Error('API Key do Asaas não configurada');
+
+        console.log(`📱 Tentando obter QR Code da ASSINATURA: ${subscriptionId}`);
+
+        try {
+            // Tenta endpoint de QR Code da assinatura (hipótese de fluxo de autorização)
+            const response = await axios.get(`${baseUrl}/subscriptions/${subscriptionId}/pixQrCode`, {
+                headers: this.getHeaders(apiKey)
+            });
+
+            console.log('✅ QR Code da ASSINATURA obtido com sucesso!');
+            return {
+                qrcode: response.data.encodedImage,
+                pixCopiaECola: response.data.payload,
+                expirationDate: response.data.expirationDate,
+                isSubscriptionQr: true
+            };
+
+        } catch (error) {
+            console.warn('⚠️ Endpoint de QR Code da Assinatura não disponível ou erro:', error.response?.status);
+            return null;
+        }
+    }
+
+    /**
      * Consulta status de uma cobrança
      * @param {Object} empresaConfig - Configuração da empresa
      * @param {string} paymentId - ID da cobrança no Asaas
