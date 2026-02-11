@@ -207,7 +207,12 @@ router.post('/criar-link', async (req, res) => {
             cycle: subscription.cycle,
             invoiceUrl: invoiceUrl,
             paymentLink: paymentLink || invoiceUrl,
-            customerId: customerIdFinal
+            customerId: customerIdFinal,
+
+            // Dados PIX para o Frontend
+            qrcode: qrCodeData ? qrCodeData.qrcode : null,
+            imagemQrcode: qrCodeData ? qrCodeData.qrcode : null,
+            pixCopiaECola: qrCodeData ? qrCodeData.pixCopiaECola : null
         });
 
     } catch (error) {
