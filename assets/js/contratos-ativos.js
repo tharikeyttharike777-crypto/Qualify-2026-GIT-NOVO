@@ -40,6 +40,22 @@ waitForDependencies().then(() => {
 function initializeContratosAtivos() {
     initializeEventListeners();
     setupModals();
+
+    // Check for reset filter parameter
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') === 'true') {
+        console.log('🧹 Resetando filtros solicitados via URL...');
+        // Limpa inputs imediatamente para evitar que loadData leia valores antigos
+        document.querySelectorAll('.filter-group input, .filter-group select').forEach(input => input.value = '');
+        const quick = document.getElementById('quickSearchInput');
+        if (quick) quick.value = '';
+        currentFilters = {};
+
+        // Remove o parâmetro da URL para não ficar "preso" no reset
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+
     // Aguarda multitenant e empresa ativa antes de carregar
     const tryLoad = () => {
         const mt = window.multitenantConfig;
@@ -96,12 +112,12 @@ async function loadData() {
     try {
         // Mostra loading
         showLoadingState();
-        
+
         // Remove listener anterior se existir
         if (realtimeListenerId) {
             window.userDataManager.removeListener(realtimeListenerId);
         }
-        
+
         // Helper para determinar se um status é considerado "ativo"
         const isActiveStatus = (status) => {
             const s = String(status || '').trim().toLowerCase();
@@ -125,16 +141,16 @@ async function loadData() {
                     });
                     return;
                 }
-                
+
                 // Filtra apenas contratos ativos (compatível com vários valores de status)
                 const activeContracts = (Array.isArray(data) ? data : [])
                     .map(mapContractShape)
                     .filter(contract => isActiveStatus(contract.status));
-                
+
                 contractsData.length = 0; // Limpa array
                 contractsData.push(...activeContracts);
                 filteredData = [...contractsData];
-                
+
                 if (contractsData.length === 0) {
                     // Se a coleção "contratos" está vazia, tenta compor a lista a partir das famílias
                     loadFromFamiliesFirestore().then((ok) => {
@@ -156,7 +172,7 @@ async function loadData() {
                 orderBy: { field: 'date', direction: 'desc' }
             }
         );
-        
+
         if (!realtimeListenerId) {
             throw new Error('Falha ao configurar listener em tempo real');
         }
@@ -186,7 +202,7 @@ function showEmptyState(message) {
     if (tableBody) {
         tableBody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">${message}</td></tr>`;
     }
-    
+
     // Limpa paginação
     const pagination = document.querySelector('.pagination');
     if (pagination) {
@@ -199,22 +215,22 @@ function initializeEventListeners() {
     // Botões principais
     document.getElementById('filterBtn')?.addEventListener('click', openFilterModal);
     document.getElementById('exportBtn')?.addEventListener('click', exportData);
-    
+
     // Paginação
     document.querySelectorAll('.page-btn').forEach(btn => {
         btn.addEventListener('click', handlePagination);
     });
-    
+
     // Registros por página
-    document.getElementById('recordsPerPage')?.addEventListener('change', function() {
+    document.getElementById('recordsPerPage')?.addEventListener('change', function () {
         recordsPerPage = parseInt(this.value);
         currentPage = 1;
         renderTable();
     });
-    
+
     // Tabs
     document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', function() {
+        tab.addEventListener('click', function () {
             switchTab(this.dataset.tab);
         });
     });
@@ -238,28 +254,28 @@ function setupModals() {
     document.getElementById('closeFilterModal')?.addEventListener('click', closeFilterModal);
     document.getElementById('applyFiltersBtn')?.addEventListener('click', applyFilters);
     document.getElementById('clearFiltersBtn')?.addEventListener('click', clearFilters);
-    
+
     // Modal de detalhes
     document.getElementById('closeDetailsModal')?.addEventListener('click', closeDetailsModal);
     document.getElementById('editContractBtn')?.addEventListener('click', editCurrentContract);
     document.getElementById('cancelContractBtn')?.addEventListener('click', cancelCurrentContract);
     document.getElementById('printContractBtn')?.addEventListener('click', printCurrentContract);
-    
+
     // Modal de novo contrato
     document.getElementById('closeNewContractModal')?.addEventListener('click', closeNewContractModal);
     document.getElementById('cancelNewContractBtn')?.addEventListener('click', closeNewContractModal);
     document.getElementById('saveNewContractBtn')?.addEventListener('click', saveNewContract);
-    
+
     // Tabs do modal de detalhes
     document.querySelectorAll('.detail-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
+        tab.addEventListener('click', function () {
             switchDetailTab(this.dataset.tab);
         });
     });
-    
+
     // Fechar modal clicando fora
     document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
             if (e.target === this) {
                 this.classList.remove('show');
             }
@@ -278,11 +294,11 @@ function renderTable() {
 
     const getStatusClass = (status) => {
         const s = String(status || '').toLowerCase();
-        if (['emitido','ativo','assinado','vigente'].includes(s)) return 'status-emitido';
-        if (['orcamento','orçamento','proposta'].includes(s)) return 'status-orcamento';
-        if (['pendente','atrasado','em aberto'].includes(s)) return 'status-pendente';
-        if (['pago','quitado'].includes(s)) return 'status-pago';
-        if (['cancelado','inativo','encerrado'].includes(s)) return 'status-cancelado';
+        if (['emitido', 'ativo', 'assinado', 'vigente'].includes(s)) return 'status-emitido';
+        if (['orcamento', 'orçamento', 'proposta'].includes(s)) return 'status-orcamento';
+        if (['pendente', 'atrasado', 'em aberto'].includes(s)) return 'status-pendente';
+        if (['pago', 'quitado'].includes(s)) return 'status-pago';
+        if (['cancelado', 'inativo', 'encerrado'].includes(s)) return 'status-cancelado';
         return 'status-orcamento';
     };
 
@@ -335,7 +351,7 @@ function updateRecordsInfo() {
 function updatePagination() {
     const totalRecords = filteredData.length;
     const totalPages = Math.ceil(totalRecords / recordsPerPage);
-    
+
     // Atualizar botões de paginação
     const pageButtons = document.querySelectorAll('.page-btn');
     pageButtons.forEach(btn => {
@@ -343,7 +359,7 @@ function updatePagination() {
         if (btn.dataset.page == currentPage) {
             btn.classList.add('active');
         }
-        
+
         // Desabilitar botões conforme necessário
         if (btn.dataset.page === 'first' || btn.dataset.page === 'prev') {
             btn.disabled = currentPage === 1;
@@ -358,13 +374,13 @@ function updatePagination() {
 function handlePagination(e) {
     const page = e.target.dataset.page;
     const totalPages = Math.ceil(filteredData.length / recordsPerPage);
-    
+
     if (page === 'first') currentPage = 1;
     else if (page === 'prev') currentPage = Math.max(1, currentPage - 1);
     else if (page === 'next') currentPage = Math.min(totalPages, currentPage + 1);
     else if (page === 'last') currentPage = totalPages;
     else currentPage = parseInt(page);
-    
+
     renderTable();
 }
 
@@ -403,7 +419,7 @@ function applyFilters() {
     // Preserva termo da busca rápida
     const quickSearchInput = document.getElementById('quickSearchInput');
     currentFilters.search = quickSearchInput?.value.trim() || currentFilters.search || '';
-    
+
     filterData();
     closeFilterModal();
     currentPage = 1;
@@ -443,33 +459,33 @@ function filterData() {
         if (currentFilters.contractNumber && !contract.id.toString().includes(currentFilters.contractNumber)) {
             return false;
         }
-        
+
         // Filtro por titular
         if (currentFilters.titular && !contract.titular.toLowerCase().includes(currentFilters.titular.toLowerCase())) {
             return false;
         }
-        
+
         // Filtro por plano
         if (currentFilters.plano && contract.plano !== currentFilters.plano) {
             return false;
         }
-        
+
         // Filtro por status
         if (currentFilters.status && contract.status !== currentFilters.status) {
             return false;
         }
-        
+
         // Filtro por vendedor
         if (currentFilters.vendedor && !contract.vendedor.toLowerCase().includes(currentFilters.vendedor.toLowerCase())) {
             return false;
         }
-        
+
         // Filtro por valor (robusto para diferentes formatos)
-        const valor = parseFloat(String(contract.valorTotal || '0').replace('R$', '').replace(/\s/g,'').replace(/[.]/g,'').replace(',', '.')) || 0;
+        const valor = parseFloat(String(contract.valorTotal || '0').replace('R$', '').replace(/\s/g, '').replace(/[.]/g, '').replace(',', '.')) || 0;
         if (valor < currentFilters.valorMin || valor > currentFilters.valorMax) {
             return false;
         }
-        
+
         return true;
     });
 }
@@ -477,7 +493,7 @@ function filterData() {
 // Utilitário: debounce
 function debounce(fn, delay = 300) {
     let timer;
-    return function(...args) {
+    return function (...args) {
         clearTimeout(timer);
         timer = setTimeout(() => fn.apply(this, args), delay);
     };
@@ -507,10 +523,10 @@ function populateDetailsModal(contract) {
     document.getElementById('detailValorTotal').textContent = contract.valorTotal;
     document.getElementById('detailParcelas').textContent = contract.parcelas;
     document.getElementById('detailObservacoes').textContent = contract.observacoes;
-    
+
     // Histórico de pagamentos
     populatePaymentHistory(contract.payments || []);
-    
+
     // Histórico do contrato
     populateContractHistory(contract.history || []);
 }
@@ -518,7 +534,7 @@ function populateDetailsModal(contract) {
 function populatePaymentHistory(payments) {
     const tbody = document.getElementById('paymentHistoryBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = payments.map(payment => `
         <tr>
             <td>${payment.parcela}</td>
@@ -533,7 +549,7 @@ function populatePaymentHistory(payments) {
 function populateContractHistory(history) {
     const tbody = document.getElementById('contractHistoryBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = history.map(item => `
         <tr>
             <td>${item.data}</td>
@@ -548,15 +564,15 @@ function switchDetailTab(tabName) {
     document.querySelectorAll('.detail-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    
+
     // Adicionar classe active na tab clicada
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    
+
     // Mostrar/ocultar conteúdo das tabs
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
-    
+
     document.getElementById(`${tabName}Tab`).classList.add('active');
 }
 
@@ -604,7 +620,7 @@ function saveNewContract() {
         form.reportValidity();
         return;
     }
-    
+
     const newContract = {
         id: Math.max(...contractsData.map(c => c.id)) + 1,
         date: new Date().toLocaleDateString('pt-BR'),
@@ -627,7 +643,7 @@ function saveNewContract() {
             }
         ]
     };
-    
+
     contractsData.push(newContract);
     filteredData = [...contractsData];
     renderTable();
@@ -647,7 +663,7 @@ function openContractDetailsModal(contract) {
     currentContract = contract;
     document.getElementById('contractDetailsModal')?.classList.add('show');
     document.getElementById('contractDetailNumber').textContent = contract.id;
-    
+
     // Preencher informações gerais
     const infoContent = document.getElementById('contractInfo');
     if (infoContent) {
@@ -692,7 +708,7 @@ function openContractDetailsModal(contract) {
             </div>
         `;
     }
-    
+
     // Preencher pagamentos
     const paymentsContent = document.getElementById('contractPayments');
     if (paymentsContent) {
@@ -725,7 +741,7 @@ function openContractDetailsModal(contract) {
             </div>
         `;
     }
-    
+
     // Preencher histórico
     const historyContent = document.getElementById('contractHistory');
     if (historyContent) {
@@ -799,10 +815,10 @@ function showOptionsMenu() {
         'Configurações',
         'Relatórios avançados'
     ];
-    
+
     const choice = prompt(`Escolha uma opção:\n${options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`);
-    
-    switch(choice) {
+
+    switch (choice) {
         case '1':
             exportData();
             break;
@@ -884,7 +900,7 @@ function exportData() {
         const zip = new window.JSZip();
         pdfBlobs.forEach(({ filename, blob }) => zip.file(filename, blob));
         zip.generateAsync({ type: 'blob' }).then(zipBlob => {
-            downloadBlob(zipBlob, `contratos_ativos_${new Date().toISOString().slice(0,10)}.zip`);
+            downloadBlob(zipBlob, `contratos_ativos_${new Date().toISOString().slice(0, 10)}.zip`);
             showMessage('ZIP com PDFs gerado com sucesso!', 'success');
         }).catch(err => {
             console.error('Erro ao gerar ZIP:', err);
@@ -913,10 +929,10 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    
+
     // Adicionar classe active na tab clicada
     document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active');
-    
+
     if (tabName === 'relatorios') {
         showMessage('Seção de relatórios será implementada', 'info');
     }
@@ -927,15 +943,15 @@ function switchDetailTab(tabName) {
     document.querySelectorAll('.detail-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    
+
     // Adicionar classe active na tab clicada
     document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active');
-    
+
     // Mostrar/ocultar conteúdo das tabs
     document.querySelectorAll('.detail-content').forEach(content => {
         content.classList.remove('active');
     });
-    
+
     document.getElementById(`contract${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`)?.classList.add('active');
 }
 
@@ -955,7 +971,7 @@ function showMessage(message, type = 'info') {
         `;
         document.body.appendChild(messageContainer);
     }
-    
+
     const messageElement = document.createElement('div');
     messageElement.className = `message message-${type}`;
     messageElement.style.cssText = `
@@ -967,7 +983,7 @@ function showMessage(message, type = 'info') {
         animation: slideInRight 0.3s ease;
         cursor: pointer;
     `;
-    
+
     // Cores por tipo
     const colors = {
         success: '#28a745',
@@ -975,17 +991,17 @@ function showMessage(message, type = 'info') {
         warning: '#ffc107',
         info: '#17a2b8'
     };
-    
+
     messageElement.style.backgroundColor = colors[type] || colors.info;
     messageElement.textContent = message;
-    
+
     // Remover mensagem ao clicar
     messageElement.addEventListener('click', () => {
         messageElement.remove();
     });
-    
+
     messageContainer.appendChild(messageElement);
-    
+
     // Remover automaticamente após 5 segundos
     setTimeout(() => {
         if (messageElement.parentNode) {
@@ -1110,7 +1126,7 @@ function showMessage(message, type = 'info') {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
     messageDiv.textContent = message;
-    
+
     // Estilos da mensagem
     messageDiv.style.cssText = `
         position: fixed;
@@ -1123,7 +1139,7 @@ function showMessage(message, type = 'info') {
         z-index: 1000;
         animation: slideIn 0.3s ease;
     `;
-    
+
     // Cores baseadas no tipo
     const colors = {
         success: '#28a745',
@@ -1131,12 +1147,12 @@ function showMessage(message, type = 'info') {
         warning: '#ffc107',
         info: '#17a2b8'
     };
-    
+
     messageDiv.style.backgroundColor = colors[type] || colors.info;
-    
+
     // Adicionar ao DOM
     document.body.appendChild(messageDiv);
-    
+
     // Remover após 3 segundos
     setTimeout(() => {
         messageDiv.style.animation = 'slideOut 0.3s ease';
@@ -1181,14 +1197,14 @@ function filterContracts(searchTerm) {
         filteredData = [...contractsData];
     } else {
         const s = String(searchTerm || '').toLowerCase();
-        filteredData = contractsData.filter(contract => 
+        filteredData = contractsData.filter(contract =>
             String(contract.titular || '').toLowerCase().includes(s) ||
             String(contract.plano || '').toLowerCase().includes(s) ||
             String(contract.vendedor || '').toLowerCase().includes(s) ||
             String(contract.id || '').toLowerCase().includes(s)
         );
     }
-    
+
     currentPage = 1;
     renderTable();
     updatePaginationInfo();
@@ -1354,7 +1370,7 @@ function initializeImport() {
         console.warn('ExcelImportManager não está disponível - funcionalidade de importação desabilitada');
         return;
     }
-    
+
     const fieldMappings = {
         'numero_contrato': 'Número do Contrato',
         'nome_cliente': 'Nome do Cliente',
@@ -1365,7 +1381,7 @@ function initializeImport() {
         'status': 'Status',
         'observacoes': 'Observações'
     };
-    
+
     const importCallbacks = {
         onSuccess: (data) => {
             console.log('Dados importados com sucesso:', data);
@@ -1375,7 +1391,7 @@ function initializeImport() {
             console.error('Erro na importação:', error);
         }
     };
-    
+
     ExcelImportManager.showImportInterface(fieldMappings, importCallbacks);
 }
 

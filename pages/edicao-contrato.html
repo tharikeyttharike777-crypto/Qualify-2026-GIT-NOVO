@@ -238,8 +238,8 @@
 
             </div>
             <div class="header-actions">
-                <!-- BOTÃO VOLTAR - Recriado do zero -->
-                <a href="contratos.html" id="btnVoltarContratos" class="btn btn-secondary"
+                <!-- BOTÃO VOLTAR - CORRIGIDO PARA RESETAR FILTROS -->
+                <a href="contratos.html?reset=true" id="btnVoltarContratos" class="btn btn-secondary"
                     style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                     <i class="fas fa-arrow-left"></i> Voltar para Contratos
                 </a>
@@ -628,10 +628,12 @@
                     </div>
                     <div class="form-group">
                         <label>Método de cobrança</label>
-                        <select id="mcMetodo">
-                            <option value="boleto">Boleto</option>
+                        <select id="mcMetodo" class="form-control" style="background: #f8f9fa;">
                             <option value="pix">PIX</option>
-                            <option value="cartao">Cartão</option>
+                            <option value="pix_automatico">PIX Automático</option>
+                            <option value="boleto">Boleto Bancário</option>
+                            <option value="cartao">Cartão de Crédito</option>
+                            <option value="money">Dinheiro (Manual)</option>
                         </select>
                     </div>
                 </div>
@@ -942,8 +944,8 @@
         }
     </style>
 
-    <script src="../assets/js/edicao-contrato.js?v=FAMILIA_FIX_V9"></script>
-    <script src="../assets/js/cobrancas-manager.js?v=PIX_FIX_20260115_V2"></script>
+    <script src="../assets/js/edicao-contrato.js?v=FAMILIA_FIX_V13"></script>
+    <script src="../assets/js/cobrancas-manager.js?v=PIX_SAFETY_LOCK_V7"></script>
 
     <!-- Script SAFE MODE removido - estava destruindo sessão do Firebase Auth ao deletar IndexedDB -->
     <!-- A autenticação do Firebase agora persiste corretamente entre recarregamentos de página -->

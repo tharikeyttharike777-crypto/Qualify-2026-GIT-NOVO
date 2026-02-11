@@ -609,6 +609,20 @@ async function attachContractWatcher(numeroUrl) {
             const dadosContrato = contratoDoc.data();
             console.log("✅ Dados Carregados:", dadosContrato);
 
+            // EXPÕE DADOS GLOBALMENTE (Para PDF e Cobranças)
+            window.currentContract = { id: contratoDoc.id, ...dadosContrato };
+
+            // Recarrega cobranças com o número CORRETO do contrato (evita mismatch de URL)
+            // Timeout pequeno para garantir que carregarCobrancasContrato já foi definido
+            setTimeout(() => {
+                if (window.carregarCobrancasContrato) {
+                    // Usa o número do contrato salvo ou o ID
+                    const realNumero = dadosContrato.numero || dadosContrato.id || contratoDoc.id;
+                    const empresaId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId');
+                    window.carregarCobrancasContrato(empresaId, realNumero);
+                }
+            }, 500);
+
             // Busca Família (ou usa dados já carregados)
             const familyId = dadosContrato.familyId || dadosContrato.familiaId;
             let dadosFamilia = {};
@@ -638,6 +652,7 @@ async function attachContractWatcher(numeroUrl) {
 
                 if (famSnap.exists) {
                     dadosFamilia = famSnap.data();
+                    window.currentFamily = { id: familyId, ...dadosFamilia }; // Expor globalmente
                     console.log('✅ Família encontrada:', dadosFamilia);
                 } else {
                     console.error(`❌ Família ${familyId} não encontrada em nenhuma coleção!`);
@@ -720,4 +735,215 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mata funções velhas
     window.fetchMembers = () => { };
     window.initFamilyRealtime = () => { };
+
+    // Bind Botão Contrato PDF
+    const btnContrato = document.getElementById('docContrato');
+    if (btnContrato) {
+        btnContrato.addEventListener('click', () => {
+            if (window.generateContractPDF) {
+                window.generateContractPDF();
+            } else {
+                alert('Funcionalidade de PDF em desenvolvimento...');
+            }
+        });
+    }
 });
+
+// =================================================================
+// 5. GERAÇÃO DE PDF DO CONTRATO
+// =================================================================
+window.generateContractPDF = async function () {
+    console.log('🖨️ Iniciando geração de PDF...');
+    const contrato = window.currentContract;
+    const familia = window.currentFamily;
+
+    if (!contrato) {
+        alert('Dados do contrato não carregados. Aguarde...');
+        return;
+    }
+
+    // Mostra loading indicativo
+    const btn = document.getElementById('docContrato');
+    const oldText = btn ? btn.innerHTML : '';
+    if (btn) btn.innerHTML = 'Gerando... <i class="fas fa-spinner fa-spin"></i>';
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // --- FETCH DADOS DO PLANO (CLÁUSULAS) ---
+        let clausulasTexto = "Cláusulas padrão do contrato de prestação de serviços.\n1. O contratante deve cumprir com os pagamentos em dia.\n2. O serviço será prestado conforme modalidade escolhida.\n3. Cancelamentos devem ser solicitados com 30 dias de antecedência.";
+
+        try {
+            const db = firebase.firestore();
+            const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId');
+            const nomePlano = contrato.plano || contrato.nome_plano;
+
+            if (companyId && nomePlano) {
+                console.log(`🔍 Buscando plano '${nomePlano}' na empresa '${companyId}'...`);
+                // Tenta buscar pelo nome exato (mais comum)
+                const q = await db.collection(`empresas/${companyId}/planos`)
+                    .where('nome', '==', nomePlano)
+                    .limit(1)
+                    .get();
+
+                if (!q.empty) {
+                    const planoData = q.docs[0].data();
+                    if (planoData.clausulas || planoData.contrato || planoData.descricao) {
+                        clausulasTexto = planoData.clausulas || planoData.contrato || planoData.descricao;
+                    }
+                } else {
+                    console.warn("⚠️ Plano não encontrado pelo nome exato. Usando texto padrão.");
+                }
+            }
+        } catch (errPlano) {
+            console.warn("Erro ao buscar plano:", errPlano);
+        }
+
+        // --- GERAÇÃO DO PDF ---
+
+        // Configurações Globais
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const maxLineWidth = pageWidth - (margin * 2);
+        let cursorY = 20;
+
+        // Cabeçalho / Título
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("CONTRATO DE PRESTAÇÃO DE SERVIÇOS", pageWidth / 2, cursorY, { align: "center" });
+        cursorY += 15;
+
+        // Dados do Contrato (Box)
+        doc.setDrawColor(200);
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin, cursorY, maxLineWidth, 35, 'FD'); // Box fundo cinza
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(50);
+
+        let linhaBox = cursorY + 8;
+        doc.text(`CONTRATO Nº:`, margin + 5, linhaBox);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${contrato.numero || contrato.id || '---'}`, margin + 35, linhaBox);
+
+        doc.setFont("helvetica", "bold");
+        doc.text(`DATA:`, margin + 100, linhaBox);
+        dateStr = contrato.data_contrato || contrato.createdAt
+            ? new Date(contrato.data_contrato || contrato.createdAt).toLocaleDateString('pt-BR')
+            : new Date().toLocaleDateString('pt-BR');
+        doc.setFont("helvetica", "normal");
+        doc.text(dateStr, margin + 115, linhaBox);
+
+        linhaBox += 10;
+
+        // Titular
+        let nomeTitular = "Cliente";
+        let cpfTitular = "";
+        let endTitular = "";
+
+        if (familia && familia.titular) {
+            nomeTitular = (typeof familia.titular === 'object') ? familia.titular.nome : familia.titular;
+            cpfTitular = (typeof familia.titular === 'object') ? (familia.titular.cpf || '') : '';
+
+            // Formatar endereço
+            if (familia.endereco) {
+                const e = familia.endereco;
+                endTitular = `${e.rua || ''}, ${e.numero || ''} - ${e.bairro || ''}, ${e.cidade || ''}/${e.estado || ''}`;
+            }
+        }
+        if (!cpfTitular && contrato.cpf) cpfTitular = contrato.cpf;
+
+        doc.setFont("helvetica", "bold");
+        doc.text(`CONTRATANTE:`, margin + 5, linhaBox);
+        doc.setFont("helvetica", "normal");
+        doc.text(nomeTitular.toUpperCase(), margin + 35, linhaBox);
+
+        linhaBox += 6;
+        doc.setFont("helvetica", "bold");
+        doc.text(`CPF/CNPJ:`, margin + 5, linhaBox);
+        doc.setFont("helvetica", "normal");
+        doc.text(cpfTitular || '---', margin + 35, linhaBox);
+
+        cursorY += 45;
+
+        // Objeto do Contrato (Plano)
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("1. DO OBJETO", margin, cursorY);
+        cursorY += 7;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        const textoObjeto = `O presente contrato tem por objeto a prestação de serviços referentes ao plano ${contrato.plano || contrato.nome_plano || 'STANDARD'}, sob o valor mensal de R$ ${contrato.valor || '0,00'}.`;
+        const linhasObjeto = doc.splitTextToSize(textoObjeto, maxLineWidth);
+        doc.text(linhasObjeto, margin, cursorY);
+        cursorY += (linhasObjeto.length * 5) + 5;
+
+        // Cláusulas (Dinâmicas)
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("2. DAS CONDIÇÕES GERAIS E CLÁUSULAS", margin, cursorY);
+        cursorY += 7;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9); // Texto um pouco menor para cláusulas longas
+
+        // Remove tags HTML simples se houver (básico)
+        let textoLimpo = clausulasTexto.replace(/<[^>]*>?/gm, '');
+        const linhasClausulas = doc.splitTextToSize(textoLimpo, maxLineWidth);
+
+        // Paginação para cláusulas longas
+        if (cursorY + (linhasClausulas.length * 4) > 280) {
+            // Imprime o que cabe
+            let linesPerPage = Math.floor((280 - cursorY) / 4);
+            let chunk = linhasClausulas.slice(0, linesPerPage);
+            doc.text(chunk, margin, cursorY);
+
+            doc.addPage();
+            cursorY = 20;
+            let remaining = linhasClausulas.slice(linesPerPage);
+            doc.text(remaining, margin, cursorY);
+            cursorY += (remaining.length * 4) + 10;
+        } else {
+            doc.text(linhasClausulas, margin, cursorY);
+            cursorY += (linhasClausulas.length * 4) + 15;
+        }
+
+        // Assinaturas
+        if (cursorY > 240) { doc.addPage(); cursorY = 40; } // Nova página se estiver no fim
+
+        cursorY += 20;
+        const lineY = cursorY;
+
+        // Assinatura Contratante
+        doc.line(margin, lineY, margin + 80, lineY);
+        doc.setFontSize(8);
+        doc.text("CONTRATANTE", margin + 40, lineY + 5, { align: "center" });
+        doc.text(nomeTitular.substring(0, 35), margin + 40, lineY + 10, { align: "center" });
+
+        // Assinatura Contratada (Empresa)
+        doc.line(pageWidth - margin - 80, lineY, pageWidth - margin, lineY);
+        doc.text("CONTRATADA", pageWidth - margin - 40, lineY + 5, { align: "center" });
+        const empresaNome = localStorage.getItem('empresaSelecionadaNome') || "Empresa Responsável";
+        doc.text(empresaNome, pageWidth - margin - 40, lineY + 10, { align: "center" });
+
+        // Rodapé
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Página ${i} de ${pageCount} - Gerado em ${new Date().toLocaleString()}`, pageWidth / 2, 290, { align: "center" });
+        }
+
+        doc.save(`Contrato_${contrato.numero || 'emitido'}.pdf`);
+
+    } catch (e) {
+        console.error('Erro PDF:', e);
+        alert('Erro ao gerar PDF: ' + e.message);
+    } finally {
+        if (btn) btn.innerHTML = oldText;
+    }
+};

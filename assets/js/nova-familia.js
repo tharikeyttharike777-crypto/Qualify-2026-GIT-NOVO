@@ -85,7 +85,31 @@ function initializeForm() {
 }
 
 // Prefill do formulário quando editando uma família existente
+// Prefill do formulário quando editando uma família existente
 async function prefillIfEditing() {
+    // Cria/exibe overlay de loading
+    const showLoadingOverlay = () => {
+        let overlay = document.getElementById('prefill-loading-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'prefill-loading-overlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(255, 255, 255, 0.8); z-index: 9999;
+                display: flex; align-items: center; justify-content: center;
+                font-family: sans-serif; font-size: 1.2rem; color: #333;
+            `;
+            overlay.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><i class="fas fa-spinner fa-spin fa-2x"></i><span>Carregando dados...</span></div>';
+            document.body.appendChild(overlay);
+        }
+        overlay.style.display = 'flex';
+    };
+
+    const hideLoadingOverlay = () => {
+        const overlay = document.getElementById('prefill-loading-overlay');
+        if (overlay) overlay.style.display = 'none';
+    };
+
     try {
         // Entra em modo edição SOMENTE se houver ID via parâmetro de URL
         const params = new URLSearchParams(window.location.search);
@@ -95,6 +119,9 @@ async function prefillIfEditing() {
         if (!editId) {
             return; // novo cadastro, não fazer prefill
         }
+
+        showLoadingOverlay();
+
         let familias = JSON.parse(localStorage.getItem('familias') || '[]');
         let familia = familias.find(f => String(f.id) === String(editId));
 
@@ -157,6 +184,7 @@ async function prefillIfEditing() {
         const rgEl = document.getElementById('rg');
         const dnEl = document.getElementById('dataNascimento');
         const telEl = document.getElementById('telefone');
+        const celEl = document.getElementById('celular');
         const emailEl = document.getElementById('email');
         const seguradoraEl = document.getElementById('seguradora');
 
@@ -165,8 +193,20 @@ async function prefillIfEditing() {
         if (rgEl) rgEl.value = (titularAssoc?.rg || '');
         if (dnEl) dnEl.value = (titularAssoc?.dataNascimento || '');
         if (telEl) telEl.value = (titularAssoc?.telefone || '');
+        if (celEl) celEl.value = (titularAssoc?.celular || familia.titular?.celular || '');
         if (emailEl) emailEl.value = (titularAssoc?.email || '');
         if (seguradoraEl) seguradoraEl.value = (titularAssoc?.seguradora || familia.titular?.seguradora || '');
+
+        // Genero / Sexo
+        const sexoVal = titularAssoc?.genero || titularAssoc?.sexo || familia.titular?.genero || '';
+        if (sexoVal) {
+            // Tenta selecionar pelo value (lowercase ou original)
+            let radio = document.querySelector(`input[name="sexo"][value="${sexoVal}"]`);
+            if (!radio) {
+                radio = document.querySelector(`input[name="sexo"][value="${sexoVal.toLowerCase()}"]`);
+            }
+            if (radio) radio.checked = true;
+        }
 
         // Endereço
         const end = familia.endereco || {};
@@ -226,6 +266,9 @@ async function prefillIfEditing() {
         showMessage('Modo edição: dados carregados.', 'info');
     } catch (e) {
         console.warn('Falha no prefill de edição:', e);
+        showMessage('Erro ao carregar dados da família.', 'error');
+    } finally {
+        hideLoadingOverlay();
     }
 }
 
@@ -409,7 +452,7 @@ function applyMasks() {
 function applyModalMasks() {
     // Máscaras para campos dos modais
     const modalCpfFields = ['depCpf', 'paiCpf'];
-    const modalPhoneFields = ['depTelefone', 'paiTelefone'];
+    const modalPhoneFields = ['depCelular', 'paiTelefone'];
     const modalCurrencyFields = ['contValor'];
 
     modalCpfFields.forEach(fieldId => {
@@ -750,7 +793,7 @@ function openDependenteModal() {
         const cpfEl = document.getElementById('depCpf');
         const generoEl = document.getElementById('depGenero');
         const psicoEl = document.getElementById('depPsicologo');
-        const telEl = document.getElementById('depTelefone');
+        const telEl = document.getElementById('depCelular');
         const segEl = document.getElementById('depSeguradora');
         if (nomeEl) nomeEl.value = '';
         if (parentescoEl) { parentescoEl.value = ''; parentescoEl.required = true; parentescoEl.disabled = false; }
@@ -796,7 +839,7 @@ function openEditDependente(dependenteId) {
     const cpfEl = document.getElementById('depCpf');
     const generoEl = document.getElementById('depGenero');
     const psicoEl = document.getElementById('depPsicologo');
-    const telEl = document.getElementById('depTelefone');
+    const telEl = document.getElementById('depCelular');
     const segEl = document.getElementById('depSeguradora');
 
     if (nomeEl) nomeEl.value = dep.nome || '';
@@ -824,7 +867,7 @@ function openEditDependente(dependenteId) {
     if (cpfEl) cpfEl.value = dep.cpf || '';
     if (generoEl) generoEl.value = dep.genero || '';
     if (psicoEl) psicoEl.value = dep.psicologo || '';
-    if (telEl) telEl.value = dep.telefone || '';
+    if (telEl) telEl.value = dep.celular || '';
     if (segEl) segEl.value = dep.seguradora || '';
 
     openModal('dependenteModal');
@@ -1286,6 +1329,13 @@ async function salvarDependente() {
         parentesco = 'Titular';
     }
 
+    // Validação estrita de CPF (se informado)
+    const cpf = formData.get('cpf') || '';
+    if (cpf && !isValidCPF(cpf)) {
+        showMessage('O CPF informado é inválido.', 'error');
+        return;
+    }
+
     // Atualização quando em modo edição
     if (editingDependenteId) {
         const idx = (familiaData.dependentes || []).findIndex(d => String(d.id) === String(editingDependenteId));
@@ -1299,7 +1349,7 @@ async function salvarDependente() {
                 cpf: formData.get('cpf') || '',
                 genero: formData.get('genero') || '',
                 psicologo: formData.get('psicologo') || '',
-                telefone: formData.get('telefone') || '',
+                celular: formData.get('celular') || '',
                 seguradora: formData.get('seguradora') || '',
                 carencia: car,
                 carenciaCustomizada: car !== 'padrao'
@@ -1323,7 +1373,7 @@ async function salvarDependente() {
         cpf: formData.get('cpf') || '',
         genero: formData.get('genero') || '',
         psicologo: formData.get('psicologo') || '',
-        telefone: formData.get('telefone') || '',
+        celular: formData.get('celular') || '',
         seguradora: formData.get('seguradora') || '',
         carencia: formData.get('carencia') || 'padrao',
         carenciaCustomizada: (formData.get('carencia') || 'padrao') !== 'padrao',
@@ -1679,7 +1729,7 @@ function renderDependentesTable() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${dependente.id}</td>
-            <td>${dependente.nome}${dependente.carenciaCustomizada ? ' <span class="badge">carência customizada</span>' : ''}</td>
+            <td>${dependente.nome}</td>
             <td>${dependente.parentesco}</td>
             <td>${dependente.dataNascimento}</td>
             <td>${dependente.cpf}</td>
@@ -1827,6 +1877,8 @@ async function salvarTitular() {
     const dataNasc = document.getElementById('dataNascimento')?.value || '';
     const cpf = document.getElementById('cpf')?.value || '';
     const telefone = document.getElementById('telefone')?.value || '';
+    const celular = document.getElementById('celular')?.value || '';
+    const genero = document.querySelector('input[name="sexo"]:checked')?.value || '';
 
     if (!nome || !dataNasc || !cpf) {
         showMessage('Preencha Nome, Data de nascimento e CPF do titular.', 'error');
@@ -1843,8 +1895,9 @@ async function salvarTitular() {
         parentesco: 'Titular',
         dataNascimento: formattedDate,
         cpf,
-        genero: '',
+        genero,
         telefone,
+        celular,
         seguradora: '',
         carencia: 'padrao',
         carenciaCustomizada: false
@@ -2324,6 +2377,8 @@ async function salvarFamilia(evt) {
                 id: familia.titular?.id || generateId(),
                 nome: titularData.nome,
                 cpf: titularData.cpf,
+                genero: titularData.genero,
+                celular: titularData.celular,
                 seguradora: titularData.seguradora || ''
             };
             familia.endereco = {
@@ -2368,6 +2423,8 @@ async function salvarFamilia(evt) {
                     rg: titularData.rg,
                     dataNascimento: titularData.dataNascimento,
                     telefone: titularData.telefone,
+                    celular: titularData.celular,
+                    genero: titularData.genero,
                     email: titularData.email,
                     endereco: familia.endereco,
                     foto: familiaData.foto,
@@ -2387,6 +2444,8 @@ async function salvarFamilia(evt) {
                     rg: titularData.rg,
                     dataNascimento: titularData.dataNascimento,
                     telefone: titularData.telefone,
+                    celular: titularData.celular,
+                    genero: titularData.genero,
                     email: titularData.email,
                     endereco: familia.endereco,
                     foto: familiaData.foto,
@@ -2521,6 +2580,8 @@ async function salvarFamilia(evt) {
                 nome: titularData.nome,
                 cpf: titularData.cpf,
                 dataNascimento: titularData.dataNascimento, // CRÍTICO: incluir data de nascimento!
+                genero: titularData.genero,
+                celular: titularData.celular,
                 seguradora: titularData.seguradora || ''
             },
             dataCriacao: new Date().toISOString(),
@@ -2551,6 +2612,8 @@ async function salvarFamilia(evt) {
             rg: titularData.rg,
             dataNascimento: titularData.dataNascimento,
             telefone: titularData.telefone,
+            celular: titularData.celular,
+            genero: titularData.genero,
             email: titularData.email,
             endereco: familia.endereco,
             foto: familiaData.foto,
@@ -2816,6 +2879,8 @@ function coletarDadosTitular() {
         rg: document.getElementById('rg')?.value || '',
         dataNascimento: document.getElementById('dataNascimento')?.value || '',
         telefone: document.getElementById('telefone')?.value || '',
+        celular: document.getElementById('celular')?.value || '',
+        genero: document.querySelector('input[name="sexo"]:checked')?.value || '',
         email: document.getElementById('email')?.value || '',
         seguradora: document.getElementById('seguradora')?.value || '',
         cep: document.getElementById('cep')?.value || '',

@@ -44,7 +44,8 @@
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', function () {
-        console.log('🔄 Inicializando sistema de cobranças...');
+        console.log('🔄 Inicializando sistema de cobranças... [VERSÃO: FIX-BOLETO-FINAL-V2]');
+
 
         // Bind dos eventos
         bindChargeEvents();
@@ -65,8 +66,8 @@
      * Carrega cobranças do Firestore e popula as tabelas
      * @param {string} empresaId - ID da empresa
      */
-    async function carregarCobrancasContrato(empresaId) {
-        console.log('📋 Carregando cobranças para empresa:', empresaId);
+    async function carregarCobrancasContrato(empresaId, contratoNumeroOverride = null) {
+        console.log('📋 Carregando cobranças para empresa:', empresaId, 'Contrato:', contratoNumeroOverride);
 
         if (!empresaId) {
             empresaId = getEmpresaId();
@@ -98,7 +99,19 @@
             }
 
             const db = firebase.firestore();
-            const cobrancasRef = db.collection('empresas').doc(empresaId).collection('cobrancas');
+            let cobrancasRef = db.collection('empresas').doc(empresaId).collection('cobrancas');
+
+            // FILTRO POR CONTRATO (CRÍTICO)
+            // Prioridade: Argumento > URL Param
+            const params = new URLSearchParams(window.location.search);
+            const numeroContrato = contratoNumeroOverride || params.get('numero');
+
+            if (numeroContrato) {
+                console.log(`🔍 Filtrando cobranças pelo contrato: ${numeroContrato}`);
+                // Garante que é string para busca exata
+                cobrancasRef = cobrancasRef.where('contratoNumero', '==', String(numeroContrato));
+            }
+
             // Busca sem orderBy pois campos de data têm nomes diferentes (criadoEm vs criadaEm)
             const snapshot = await cobrancasRef.get();
 
@@ -119,6 +132,25 @@
             });
 
             console.log(`✅ Cobranças carregadas: ${cobrancasAbertas.length} abertas, ${cobrancasPagas.length} pagas`);
+
+            // Ordenação Cronológica (Data de Vencimento ASC)
+            // Ordenação Cronológica (Data de Vencimento ASC) - STRING COMPARISON (Mais seguro)
+            const sorter = (a, b) => {
+                const dA = String(a.vencimento || '2999-12-31').substring(0, 10);
+                const dB = String(b.vencimento || '2999-12-31').substring(0, 10);
+                if (dA < dB) return -1;
+                if (dA > dB) return 1;
+                return 0;
+            };
+
+            cobrancasAbertas.sort(sorter);
+            cobrancasPagas.sort((a, b) => {
+                // Pagas ordenadas por data de pagamento (desc ou asc? Geralmente mais recentes primeiro)
+                // Mas o usuário pediu "hierarquico; mês 1, mês 2...", então vamos manter vencimento também ou dataPagamento ASC
+                const dA = new Date(a.dataPagamento || a.vencimento || '1970-01-01');
+                const dB = new Date(b.dataPagamento || b.vencimento || '1970-01-01');
+                return dA - dB;
+            });
 
             // Renderiza cobranças em aberto
             renderizarTabelaCobranças(tbodyAbertas, cobrancasAbertas, 'aberta');
@@ -233,6 +265,42 @@
                             <span class="btn btn-sm" style="background:#999; color:white; padding:6px 12px; border-radius:6px; cursor:not-allowed; opacity:0.7;" title="Dados PIX não encontrados">
                                 <i class="fas fa-exclamation-triangle"></i> Sem dados
                             </span>
+                            </span>
+                        `;
+                    }
+                } else if (billingType.includes('PIX_AUTOMATICO')) {
+                    // ========== PIX AUTOMÁTICO ==========
+                    // Botão Copiar (se disponível)
+                    if (cob.pixCopiaECola) {
+                        acoesHTML += `
+                            <button class="btn btn-sm" style="background:#00c853; color:white; padding:6px 10px; border-radius:6px; border:none; cursor:pointer;" onclick="copiarPix('${cob.pixCopiaECola}')" title="Copiar Código Pix">
+                                <i class="fas fa-copy"></i> Copiar
+                            </button>
+                        `;
+                    } else {
+                        // Desabilitado se não tiver código
+                        acoesHTML += `
+                            <button class="btn btn-sm" style="background:#ccc; color:#666; padding:6px 10px; border-radius:6px; border:none; cursor:not-allowed;" title="Aguardando código...">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        `;
+                    }
+
+                    // Botão QR Code (se disponível)
+                    if (cob.imagemQrcode) {
+                        acoesHTML += `
+                            <button class="btn btn-sm" style="background:#7c4dff; color:white; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; margin-left:4px;" onclick="verQrCode('${cob.imagemQrcode}')" title="Ver QR Code">
+                                <i class="fas fa-qrcode"></i> QR
+                            </button>
+                        `;
+                    }
+
+                    // Fallback se não tiver nada (apenas para não ficar vazio)
+                    if (!acoesHTML && linkPagamento) {
+                        acoesHTML = `
+                            <a href="${linkPagamento}" target="_blank" class="btn btn-sm btn-secondary" style="padding:6px 10px; border-radius:6px;" title="Abrir Fatura">
+                                <i class="fas fa-external-link-alt"></i> Fatura
+                            </a>
                         `;
                     }
                 } else if (billingType.includes('CREDIT') || billingType.includes('CARTAO') || billingType.includes('CARTÃO')) {
@@ -276,31 +344,164 @@
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;"><strong>${valor}</strong></td>
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${statusBadge}</td>
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">
-                        <div style="display:flex; gap:6px; justify-content:center; flex-wrap:nowrap;">
+                        <div style="display:flex; gap:6px; justify-content:center; flex-wrap:nowrap; align-items:center;">
                             ${acoesHTML || '<span style="color:#999; font-size:11px;">-</span>'}
+                            
+                            <!-- Botão Baixa Manual (FORÇADO PARAA APARECER) -->
+                            <div style="display:inline-block; margin: 0 4px;">
+                                <button type="button" 
+                                    onclick="window.confirmarPagamentoManual('${cob.id}', '${cob.valor}')"
+                                    style="
+                                        display: inline-flex !important;
+                                        align-items: center;
+                                        justify-content: center;
+                                        width: 32px;
+                                        height: 32px;
+                                        background-color: #28a745 !important;
+                                        color: white !important;
+                                        border: none !important;
+                                        border-radius: 6px !important;
+                                        cursor: pointer !important;
+                                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                        opacity: 1 !important;
+                                        visibility: visible !important;
+                                    " 
+                                    title="Dar Baixa Manual (Confirmar Pagamento)">
+                                    <i class="fas fa-check" style="pointer-events: none;"></i>
+                                </button>
+                            </div>
+
+                            <button class="btn btn-sm btn-delete-charge" 
+                                style="background:transparent; color:#dc3545; border:1px solid #dc3545; padding:6px 10px; border-radius:6px; cursor:pointer;" 
+                                title="Excluir Cobrança"
+                                onclick="excluirCobranca('${cob.id}')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </td>
                 `;
 
             } else {
-                // Para cobranças pagas - 4 colunas: Tipo | Data Pgto | Valor | Método
+                // Para cobranças pagas - 5 colunas: Tipo | Data Pgto | Valor | Método | Ações (Nova)
                 let dataPagamento = '-';
                 if (cob.dataPagamento || cob.confirmedDate) {
                     const dp = new Date(cob.dataPagamento || cob.confirmedDate);
                     dataPagamento = dp.toLocaleDateString('pt-BR');
                 }
 
+                // Coluna de ações para pagas (Excluir)
+                const acoesPagas = `
+                    <button class="btn btn-sm btn-delete-charge" 
+                        style="background:transparent; color:#dc3545; border:1px solid #dc3545; padding:6px 10px; border-radius:6px; cursor:pointer;" 
+                        title="Excluir Transação"
+                        onclick="excluirCobranca('${cob.id}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+
                 tr.innerHTML = `
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${tipoIcone}</td>
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${dataPagamento}</td>
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;"><strong style="color:#28a745;">${valor}</strong></td>
                     <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">${getTipoLabel(cob.tipo || cob.billingType)}</td>
+                    <td style="padding:10px; text-align:center; border-bottom:1px solid #eee;">
+                        <div style="display:flex; gap:6px; justify-content:center;">${acoesPagas}</div>
+                    </td>
                 `;
             }
 
             tbody.appendChild(tr);
         });
     }
+
+    /**
+     * Exclui uma cobrança
+     */
+    window.excluirCobranca = async function (id) {
+        if (!confirm('Tem certeza que deseja EXCLUIR esta cobrança?\nEssa ação não pode ser desfeita.')) {
+            return;
+        }
+
+        const empresaId = getEmpresaId();
+        if (!empresaId) {
+            showToast('Erro: Empresa não identificada', 'error');
+            return;
+        }
+
+        try {
+            showLoading('Excluindo...');
+            const db = firebase.firestore();
+            await db.collection('empresas').doc(empresaId).collection('cobrancas').doc(id).delete();
+
+            showToast('Cobrança excluída com sucesso!', 'success');
+
+            // Recarrega a lista COM AWAIT para garantir sync
+            const params = new URLSearchParams(window.location.search);
+            const numeroContrato = params.get('numero');
+
+            console.log('🔄 Recarregando após exclusão...');
+            if (typeof carregarCobrancasContrato === 'function') {
+                await carregarCobrancasContrato(empresaId, numeroContrato);
+            } else if (window.carregarCobrancasContrato) {
+                await window.carregarCobrancasContrato(empresaId, numeroContrato);
+            }
+
+        } catch (error) {
+            console.error('Erro ao excluir:', error);
+            showToast('Erro ao excluir cobrança: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    };
+
+    /**
+     * Confirma pagamento manual (Baixa Manual)
+     */
+    window.confirmarPagamentoManual = async function (id, valor) {
+        if (!confirm('Deseja confirmar o pagamento manual desta cobrança?\n\nEsta ação moverá a cobrança para "Pagas".')) {
+            return;
+        }
+
+        const empresaId = getEmpresaId();
+        if (!empresaId) {
+            showToast('Erro: Empresa não identificada', 'error');
+            return;
+        }
+
+        try {
+            showLoading('Dando baixa...');
+            const db = firebase.firestore();
+
+            // Atualiza status local e remoto
+            await db.collection('empresas').doc(empresaId).collection('cobrancas').doc(id).update({
+                status: 'CONFIRMED',
+                statusTraduzido: 'Pago Manualmente',
+                dataPagamento: new Date().toISOString(),
+                metodoPagamento: 'MANUAL', // Marca que foi manual
+                atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Sucesso Visual com Modal
+            await showSuccessModal('Pagamento Confirmado!', 'A cobrança foi movida para a lista de PAGOS com sucesso.');
+
+            // Recarrega a lista COM AWAIT para garantir sync
+            const params = new URLSearchParams(window.location.search);
+            const numeroContrato = params.get('numero');
+
+            console.log('🔄 Recarregando após baixa manual...');
+            if (typeof carregarCobrancasContrato === 'function') {
+                await carregarCobrancasContrato(empresaId, numeroContrato);
+            } else if (window.carregarCobrancasContrato) {
+                await window.carregarCobrancasContrato(empresaId, numeroContrato);
+            }
+
+        } catch (error) {
+            console.error('Erro ao confirmar pagamento:', error);
+            showToast('Erro ao confirmar: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    };
 
 
     /**
@@ -309,8 +510,11 @@
     function getTipoIcone(tipo) {
         const t = (tipo || '').toLowerCase();
         if (t === 'pix') return '<i class="fas fa-qrcode" style="color:#00a651; font-size:18px;" title="PIX"></i>';
+        if (t === 'pix_automatico') return '<i class="fas fa-qrcode" style="color:#00a651; font-size:18px;" title="PIX Automático"></i>';
+        if (t === 'pix_automatico') return '<i class="fas fa-qrcode" style="color:#00a651; font-size:18px;" title="PIX Automático"></i>';
         if (t === 'boleto') return '<i class="fas fa-barcode" style="color:#333; font-size:18px;" title="Boleto"></i>';
         if (t === 'cartao' || t === 'credit_card') return '<i class="fas fa-credit-card" style="color:#0d6efd; font-size:18px;" title="Cartão"></i>';
+        if (t === 'money' || t === 'dinheiro') return '<i class="fas fa-money-bill-wave" style="color:#28a745; font-size:18px;" title="Dinheiro"></i>';
         return '<i class="fas fa-money-bill" style="color:#666; font-size:18px;" title="Outro"></i>';
     }
 
@@ -320,9 +524,11 @@
     function getTipoLabel(tipo) {
         const t = (tipo || '').toLowerCase();
         if (t === 'pix') return '<span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:4px; font-size:12px;">PIX</span>';
+        if (t === 'pix_automatico') return '<span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:4px; font-size:12px;">PIX Auto</span>';
         if (t === 'boleto') return '<span style="background:#fff3e0; color:#e65100; padding:4px 8px; border-radius:4px; font-size:12px;">Boleto</span>';
         if (t === 'cartao' || t === 'credit_card') return '<span style="background:#e3f2fd; color:#1565c0; padding:4px 8px; border-radius:4px; font-size:12px;">Cartão</span>';
-        return '<span style="background:#f5f5f5; color:#666; padding:4px 8px; border-radius:4px; font-size:12px;">Outro</span>';
+        if (t === 'money' || t === 'dinheiro') return '<span style="background:#d4edda; color:#155724; padding:4px 8px; border-radius:4px; font-size:12px;">Dinheiro (Manual)</span>';
+        return `<span style="background:#f5f5f5; color:#666; padding:4px 8px; border-radius:4px; font-size:12px;">${tipo}</span>`;
     }
 
     /**
@@ -557,35 +763,66 @@
             return;
         }
 
-        // Obtém dados do contrato
-        const numeroContrato = $('ivNumero')?.textContent || '';
+        // Obtém o número do contrato PRIORIZANDO a URL para garantir consistência com o filtro
+        const params = new URLSearchParams(window.location.search);
+        const numeroContrato = params.get('numero') || $('ivNumero')?.textContent || '';
         const titular = $('holderName')?.textContent || 'Cliente';
 
         showLoading('Gerando cobrança...');
 
         try {
-            if (metodo === 'pix') {
-                await gerarCobrancaPix(empresaId, vencimento, valor, titular, mensagem, numeroContrato);
-            } else if (metodo === 'boleto') {
-                await gerarCobrancaBoleto(empresaId, vencimento, valor, titular, mensagem, numeroContrato);
-            } else if (metodo === 'cartao' || metodo === 'credit_card') {
-                // NOVO: Gera assinatura com link de pagamento
-                await gerarAssinaturaCartao(empresaId, vencimento, valor, titular, mensagem, numeroContrato);
-            } else {
-                // Salva localmente para outros métodos
-                await salvarCobrancaLocal(vencimento, valor, metodo, mensagem, numeroContrato, empresaId);
+            // Loop para parcelas
+            let dataBase = new Date(vencimento);
+
+            for (let i = 0; i < qtdParcelas; i++) {
+                // Calcula vencimento da parcela atual
+                // Clona a data base para não afetar as próximas iterações incorretamente
+                const dataParcela = new Date(dataBase);
+                dataParcela.setMonth(dataBase.getMonth() + i);
+
+                // Formata para YYYY-MM-DD
+                const vencimentoParcela = dataParcela.toISOString().split('T')[0];
+                const msgParcela = qtdParcelas > 1 ? `${mensagem} (${i + 1}/${qtdParcelas})` : mensagem;
+
+                console.log(`🔄 Gerando parcela ${i + 1}/${qtdParcelas} para ${vencimentoParcela}`);
+
+                if (metodo === 'pix') {
+                    await gerarCobrancaPix(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
+                } else if (metodo === 'pix_automatico') {
+                    // PIX Automático trata como assinatura (cria apenas uma vez)
+                    if (i === 0) await gerarAssinaturaPix(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
+                } else if (metodo === 'boleto') {
+                    await gerarCobrancaBoleto(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
+                } else if (metodo === 'cartao' || metodo === 'credit_card') {
+                    if (i === 0) await gerarAssinaturaCartao(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
+                } else if (metodo === 'money') {
+                    // Dinheiro é sempre manual e local (sem API)
+                    await salvarCobrancaLocal(vencimentoParcela, valor, 'money', msgParcela, numeroContrato, empresaId);
+                } else {
+                    await salvarCobrancaLocal(vencimentoParcela, valor, metodo, msgParcela, numeroContrato, empresaId);
+                }
+
+                // Pequeno delay para não estourar rate limit da API
+                if (qtdParcelas > 1) await new Promise(r => setTimeout(r, 500));
             }
 
             closeAddChargeModal();
             hideLoading();
-            showToast('Cobrança gerada com sucesso!', 'success');
 
-            // Recarrega a lista de cobranças
-            if (typeof reloadCharges === 'function') {
-                reloadCharges();
-            }
-            if (typeof carregarCobrancas === 'function') {
-                carregarCobrancas(empresaId);
+            // Sucesso Visual com Modal
+            await showSuccessModal('Cobrança gerada com sucesso!', 'Agora ela aparecerá na lista de cobranças em aberto.');
+
+            // Recarrega a lista de cobranças com força
+            console.log('🔄 Forçando recarregamento das cobranças...');
+
+            // Tenta chamar a função global exposta
+            if (typeof window.carregarCobrancasContrato === 'function') {
+                await window.carregarCobrancasContrato(empresaId, numeroContrato);
+            } else if (typeof carregarCobrancasContrato === 'function') {
+                await carregarCobrancasContrato(empresaId, numeroContrato);
+            } else {
+                console.warn('⚠️ Função de recarregamento não encontrada, recarregando página...');
+                window.location.reload();
             }
 
         } catch (error) {
@@ -593,6 +830,85 @@
             hideLoading();
             showToast(error.message || 'Erro ao gerar cobrança', 'error');
         }
+    }
+
+    /**
+     * Modal de Sucesso Customizado
+     */
+    function showSuccessModal(title, message) {
+        return new Promise((resolve) => {
+            const modalId = 'successModal_' + Date.now();
+            const modalHTML = `
+                <div id="${modalId}" style="
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0,0,0,0.6);
+                    backdrop-filter: blur(4px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 100000;
+                    animation: fadeIn 0.3s ease;
+                ">
+                    <div style="
+                        background: white;
+                        border-radius: 16px;
+                        padding: 32px;
+                        text-align: center;
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+                        max-width: 90%;
+                        width: 400px;
+                        transform: scale(0.9);
+                        animation: scaleIn 0.3s ease forwards;
+                    ">
+                        <div style="
+                            width: 80px;
+                            height: 80px;
+                            background: #d4edda;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0 auto 24px;
+                        ">
+                            <i class="fas fa-check" style="font-size: 40px; color: #28a745;"></i>
+                        </div>
+                        <h2 style="margin: 0 0 12px; color: #333; font-size: 24px;">${title}</h2>
+                        <p style="margin: 0 0 24px; color: #666; font-size: 16px; line-height: 1.5;">${message}</p>
+                        <button id="btnSuccess_${modalId}" style="
+                            background: #28a745;
+                            color: white;
+                            border: none;
+                            padding: 12px 32px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            width: 100%;
+                            transition: background 0.2s;
+                        ">OK, Entendi</button>
+                    </div>
+                </div>
+                <style>
+                    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                    @keyframes scaleIn { from { transform: scale(0.9); } to { transform: scale(1); } }
+                </style>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            const btn = document.getElementById(`btnSuccess_${modalId}`);
+            const modal = document.getElementById(modalId);
+
+            const close = () => {
+                modal.remove();
+                resolve();
+            };
+
+            btn.addEventListener('click', close);
+            // Também fecha ao clicar fora, opcional
+            // modal.addEventListener('click', (e) => { if(e.target === modal) close(); });
+        });
     }
 
     /**
@@ -690,14 +1006,16 @@
         }
 
         // Salva cobrança no Firestore (CORRIGIDO: passa empresaId diretamente)
+        // FIX: Mapeamento correto dos campos PIX
+        // showPixModal usa result.qrcode como Imagem e result.pixCopiaECola como Texto
         await salvarCobrancaFirestore({
             tipo: 'pix',
             valor: valor,
             vencimento: vencimento,
             status: 'pendente',
             txid: result.txid,
-            pixCopiaECola: result.qrcode,
-            imagemQrcode: result.imagemQrcode,
+            pixCopiaECola: result.pixCopiaECola, // O TEXTO copia e cola
+            imagemQrcode: result.qrcode,         // A IMAGEM Base64
             contratoNumero: numeroContrato,
             criadoEm: new Date().toISOString()
         }, empresaId);
@@ -948,6 +1266,85 @@
         };
     }
 
+
+    /**
+     * Gera assinatura recorrente via PIX AUTOMÁTICO
+     */
+    async function gerarAssinaturaPix(empresaId, vencimento, valor, devedor, mensagem, numeroContrato) {
+        console.log('💠 Gerando PIX AUTOMÁTICO (Assinatura) para empresa:', empresaId);
+
+        // Busca CPF do pagador (modal -> holder -> local)
+        let cpfDevedor = null;
+        const cpfInput = document.getElementById('mcCpfPagador');
+        if (cpfInput && cpfInput.value) cpfDevedor = cpfInput.value.replace(/\D/g, '');
+        if (!cpfDevedor) {
+            const cpfEl = document.getElementById('holderCpf');
+            if (cpfEl && cpfEl.dataset.cpf) cpfDevedor = cpfEl.dataset.cpf.replace(/\D/g, '');
+        }
+
+        if (!cpfDevedor || cpfDevedor.length < 11) {
+            throw new Error('CPF do pagador é obrigatório para PIX Automático.');
+        }
+
+        // --- TRATAMENTO DE CHOQUE SOLICITADO ---
+        // Garante que o Backend receba estritamente 'PIX' ou 'BOLETO' ou 'CREDIT_CARD'
+        let metodoSelecionado = document.getElementById('mcMetodo') ? document.getElementById('mcMetodo').value : 'pix_automatico';
+        let billingTypeEnvio = 'CREDIT_CARD'; // Default fallback
+
+        if (metodoSelecionado.includes('pix') || metodoSelecionado.includes('Pix') || metodoSelecionado.includes('PIX')) {
+            billingTypeEnvio = 'PIX';
+        } else if (metodoSelecionado.includes('boleto') || metodoSelecionado.includes('Boleto')) {
+            billingTypeEnvio = 'BOLETO';
+        } else {
+            billingTypeEnvio = 'CREDIT_CARD';
+        }
+
+        // Força BRUTA se esta função é "gerarAssinaturaPix", tem que ser PIX.
+        billingTypeEnvio = 'PIX';
+
+        console.log('🚀 ENVIANDO BILLING TYPE:', billingTypeEnvio);
+
+        const payload = {
+            empresaId: empresaId,
+            cpfCnpj: cpfDevedor,
+            nomeCliente: devedor,
+            value: valor,
+            nextDueDate: vencimento,
+            description: mensagem || `PIX Automático contrato ${numeroContrato}`,
+            cycle: 'MONTHLY',
+            billingType: billingTypeEnvio, // << USA A VARIÁVEL TRATADA
+            contratoNumero: numeroContrato
+        };
+
+        // --- TRAVA DE SEGURANÇA FINAL ---
+        // Se a descrição diz que é PIX, ENTÃO É PIX!
+        if (payload.description && payload.description.toUpperCase().includes('PIX')) {
+            console.log('🛑 CORRIGINDO TIPO PARA PIX BASEADO NA DESCRIÇÃO');
+            payload.billingType = 'PIX';
+        }
+        // --------------------------------
+        console.log('🚀 Payload Final:', payload); // Quero ver isso no console
+
+        const response = await fetch(`${API_BASE}/subscriptions/criar-link`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Erro ao criar PIX Automático');
+        }
+
+        // Exibe modal com o link para o cliente autorizar/pagar
+        const paymentLink = result.paymentLink || result.invoiceUrl;
+        if (paymentLink) {
+            showPaymentLinkModal(paymentLink, valor);
+        }
+
+        console.log('✅ PIX Automático criado com sucesso!');
+    }
 
     /**
      * NOVO: Gera assinatura recorrente via Cartão de Crédito (Link de Pagamento)
