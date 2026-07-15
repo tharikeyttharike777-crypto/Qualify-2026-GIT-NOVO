@@ -6,7 +6,6 @@
 const express = require('express');
 const router = express.Router();
 const encryptionService = require('../services/encryption');
-const asaasBankService = require('../services/asaasBank');
 
 /**
  * GET /api/config/:empresaId/bancaria
@@ -65,7 +64,6 @@ router.post('/:empresaId/bancaria/asaas', async (req, res) => {
 
         if (error) throw error;
 
-        asaasBankService.limparCache(empresaId);
         res.json({ success: true, message: 'Configuração salva no Supabase.' });
     } catch (error) {
         console.error('Erro ao salvar config:', error);
