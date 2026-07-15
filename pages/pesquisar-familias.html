@@ -15,18 +15,14 @@
     <link rel="stylesheet" href="../assets/css/pesquisar-familias.css?v=20250127003">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003"
         rel="stylesheet">
-    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
-    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
 
-    <!-- Firebase Scripts (v8.10.1) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <script src="../firebase-config.js?v=20250127003" defer></script>
-    <script src="../assets/js/multitenant-config.js?v=1.0.2"></script>
-    <script src="../assets/js/firestore-utils.js?v=1.0.2"></script>
-    <script src="../assets/js/navigation-fix.js?v=1.0.2"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/multitenant-config.js?v=1.0.2"></script>
+    <script src="../assets/js/utils/navigation-fix.js?v=1.0.2"></script>
 </head>
 
 <body class="page-pesquisar-familias">
@@ -40,6 +36,255 @@
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
+            }
+
+            /* ═══════ BULK ACTION BAR ═══════ */
+            .bulk-bar {
+                display: none;
+                align-items: center;
+                justify-content: space-between;
+                background: linear-gradient(135deg, #4f46e5, #6366f1);
+                color: #fff;
+                padding: 12px 20px;
+                border-radius: 12px;
+                margin-bottom: 12px;
+                font-size: 14px;
+                font-weight: 600;
+                box-shadow: 0 4px 16px rgba(79, 70, 229, .35);
+                animation: slideDown .25s ease;
+            }
+
+            .bulk-bar.visible {
+                display: flex;
+            }
+
+            .bulk-bar .bulk-left {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .bulk-bar .bulk-right {
+                display: flex;
+                gap: 8px;
+            }
+
+            .bulk-bar button {
+                border: none;
+                border-radius: 8px;
+                padding: 8px 16px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all .2s;
+            }
+
+            .bulk-bar .btn-clear {
+                background: rgba(255, 255, 255, .2);
+                color: #fff;
+            }
+
+            .bulk-bar .btn-clear:hover {
+                background: rgba(255, 255, 255, .35);
+            }
+
+            .bulk-bar .btn-bulk-delete {
+                background: #ef4444;
+                color: #fff;
+            }
+
+            .bulk-bar .btn-bulk-delete:hover {
+                background: #dc2626;
+            }
+
+            /* ═══════ MODAL DE CONFIRMAÇÃO ═══════ */
+            .modal-overlay-delete {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, .55);
+                backdrop-filter: blur(4px);
+                z-index: 9999;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .modal-overlay-delete.open {
+                display: flex;
+                animation: fadeIn .2s ease;
+            }
+
+            .modal-card-delete {
+                background: #fff;
+                border-radius: 16px;
+                padding: 32px;
+                max-width: 480px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
+                text-align: center;
+                animation: scaleIn .25s ease;
+            }
+
+            .modal-icon-delete {
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: #fef2f2;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 16px;
+                font-size: 24px;
+                color: #ef4444;
+            }
+
+            .modal-title-delete {
+                font-size: 20px;
+                font-weight: 700;
+                color: #1a1a2e;
+                margin-bottom: 8px;
+            }
+
+            .modal-desc-delete {
+                font-size: 14px;
+                color: #64748b;
+                line-height: 1.6;
+                margin-bottom: 24px;
+            }
+
+            .modal-desc-delete strong {
+                color: #1e293b;
+            }
+
+            .modal-actions-delete {
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+            }
+
+            .modal-actions-delete .btn-cancel-modal {
+                padding: 10px 24px;
+                border-radius: 10px;
+                border: 1px solid #e2e8f0;
+                background: #fff;
+                color: #64748b;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all .2s;
+            }
+
+            .modal-actions-delete .btn-cancel-modal:hover {
+                background: #f8fafc;
+                border-color: #cbd5e1;
+            }
+
+            .modal-actions-delete .btn-confirm-delete-modal {
+                padding: 10px 24px;
+                border-radius: 10px;
+                border: none;
+                background: #ef4444;
+                color: #fff;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all .2s;
+            }
+
+            .modal-actions-delete .btn-confirm-delete-modal:hover {
+                background: #dc2626;
+            }
+
+            .modal-actions-delete .btn-confirm-delete-modal:disabled {
+                opacity: .6;
+                cursor: not-allowed;
+            }
+
+            /* ═══════ TOAST MELHORADO ═══════ */
+            .toast-container {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                z-index: 10000;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .toast {
+                background: #1a1a2e;
+                color: #fff;
+                padding: 14px 20px;
+                border-radius: 10px;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                min-width: 280px;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
+                animation: toastIn .3s ease;
+            }
+
+            .toast.success {
+                border-left: 4px solid #22c55e;
+            }
+
+            .toast.error {
+                border-left: 4px solid #ef4444;
+            }
+
+            .toast.warning {
+                border-left: 4px solid #f59e0b;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @keyframes scaleIn {
+                from {
+                    transform: scale(.9);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideDown {
+                from {
+                    transform: translateY(-10px);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes toastIn {
+                from {
+                    transform: translateX(40px);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
             }
         </style>
 
@@ -242,6 +487,22 @@
             <span class="filter-text">Nenhum filtro aplicado</span>
         </div>
 
+        <!-- Bulk Action Bar -->
+        <div class="bulk-bar" id="bulkBarFamilias">
+            <div class="bulk-left">
+                <i class="fas fa-check-circle"></i>
+                <span><span id="selectedCountFamilias">0</span> selecionado(s)</span>
+            </div>
+            <div class="bulk-right">
+                <button class="btn-clear" onclick="clearSelectionFamilias()">
+                    <i class="fas fa-times"></i> Limpar
+                </button>
+                <button class="btn-bulk-delete" onclick="openBulkDeleteModal()">
+                    <i class="fas fa-trash"></i> Excluir Selecionados
+                </button>
+            </div>
+        </div>
+
         <!-- Data Tabs -->
         <div class="data-tabs">
             <button class="tab-btn active" data-tab="dados">Dados</button>
@@ -430,8 +691,29 @@
     <!-- Toast notifications -->
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- Modal de Confirmação de Exclusão em Lote -->
+    <div id="deleteFamiliasModal" class="modal-overlay-delete" onclick="if(event.target===this)closeBulkDeleteModal()">
+        <div class="modal-card-delete">
+            <div class="modal-icon-delete"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="modal-title-delete">Confirmar Exclusão</div>
+            <div class="modal-desc-delete">
+                Você está prestes a excluir <strong><span id="deleteCountFamilias">0</span> família(s)</strong>.<br>
+                Todos os <strong>contratos vinculados</strong> e <strong>associados</strong> destas famílias também
+                serão excluídos.<br>
+                Esta ação <strong>não pode ser desfeita</strong>.
+            </div>
+            <div class="modal-actions-delete">
+                <button class="btn-cancel-modal" onclick="closeBulkDeleteModal()">Cancelar</button>
+                <button class="btn-confirm-delete-modal" id="btnConfirmDeleteFamilias"
+                    onclick="confirmBulkDeleteFamilias()">
+                    <i class="fas fa-trash"></i> Sim, excluir <span id="deleteCountBtnFamilias">0</span> famílias
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
-    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/sidebar-menu.js?v=20250127003" defer></script>
 
     <!-- Script Melhorado do Accordion -->
     <script>
@@ -503,9 +785,9 @@
         // Tamb?m disponibiliza globalmente para re-inicializa??o manual
         window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
-    <script src="../assets/js/storage-safe.js?v=20251216001"></script>
-    <script src="../assets/js/cache-buster.js?v=20251216001"></script>
-    <script src="../assets/js/pesquisar-familias.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/storage-safe.js?v=20251216001"></script>
+    <script src="../assets/js/utils/cache-buster.js?v=20251216001"></script>
+    <script src="../assets/js/features/pesquisar-familias.js?v=20250127003" defer></script>
     <script>
         // Configurar estado ativo do menu baseado na página atual
         document.addEventListener('DOMContentLoaded', function () {
@@ -937,3 +1219,4 @@
 </body>
 
 </html>
+

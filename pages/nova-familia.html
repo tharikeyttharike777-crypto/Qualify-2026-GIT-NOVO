@@ -15,15 +15,12 @@
     <link rel="stylesheet" href="../assets/css/nova-familia.css?v=20250127003">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003"
         rel="stylesheet">
-    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
-    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
 
-    <!-- Firebase Scripts (v8.10.1) e configuração -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <script src="../firebase-config.js?v=20250127003" defer></script>
+    <!-- Supabase SDK e Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
 </head>
 
 <body>
@@ -272,7 +269,8 @@
                         </div>
                         <div class="form-group">
                             <label for="celular">* Celular <span class="required-text">(obrigatório)</span></label>
-                            <input type="tel" id="celular" name="celular" placeholder="(00) 00000-0000" required class="required-field">
+                            <input type="tel" id="celular" name="celular" placeholder="(00) 00000-0000" required
+                                class="required-field">
                         </div>
                     </div>
                     <div class="form-actions inline-actions">
@@ -412,7 +410,7 @@
                     </div>
                 </div>
 
-                
+
 
                 <div class="form-actions bottom-actions sticky-actions">
                     <button type="button" id="btnSaveFamily" class="btn btn-success" onclick="salvarFamiliaStay(event)">
@@ -842,9 +840,9 @@
     </div>
 
     <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
-    <script src="../assets/js/storage-safe.js?v=20251216001"></script>
-    <script src="../assets/js/cache-buster.js?v=20251216001"></script>
-    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/storage-safe.js?v=20251216001"></script>
+    <script src="../assets/js/utils/cache-buster.js?v=20251216001"></script>
+    <script src="../assets/js/core/sidebar-menu.js?v=20250127003" defer></script>
 
     <!-- Script Melhorado do Accordion -->
     <script>
@@ -916,8 +914,8 @@
         // Tamb�m disponibiliza globalmente para re-inicializa��o manual
         window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
-    <script src="../assets/js/sequence-manager.js" defer></script>
-    <script src="../assets/js/nova-familia.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/sequence-manager.js" defer></script>
+    <script src="../assets/js/features/nova-familia.js?v=20250127003" defer></script>
     <script>
         // Configurar estado ativo do menu baseado na p�gina atual
         document.addEventListener('DOMContentLoaded', function () {
@@ -1280,3 +1278,4 @@
 </body>
 
 </html>
+

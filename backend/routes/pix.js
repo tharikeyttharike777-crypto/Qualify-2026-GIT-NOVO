@@ -1,16 +1,15 @@
 /**
  * Rotas de PIX
  * Endpoints para geração e consulta de cobranças PIX
- * Integração: Asaas API v3
+ * Integração Oficial: WOOVI (Substitui Asaas)
  */
 
 const express = require('express');
 const router = express.Router();
-const asaasBankService = require('../services/asaasBank');
+const wooviBankService = require('../services/wooviBank');
 
 /**
- * Middleware para carregar configuração bancária da empresa (Asaas)
- * Prioriza variável de ambiente ASAAS_API_KEY
+ * Middleware para carregar configuração bancária da empresa (Woovi)
  */
 async function loadBankConfig(req, res, next) {
     try {
@@ -23,40 +22,20 @@ async function loadBankConfig(req, res, next) {
             });
         }
 
-        // Verifica se há chave de API no ambiente
-        if (!process.env.ASAAS_API_KEY) {
+        if (!process.env.WOOVI_APP_ID) {
             return res.status(500).json({
-                error: 'Variável de ambiente ASAAS_API_KEY não configurada no servidor',
-                code: 'ASAAS_API_KEY_MISSING'
+                error: 'Variável de ambiente WOOVI_APP_ID não configurada',
+                code: 'WOOVI_APP_ID_MISSING'
             });
         }
 
-        // Busca configuração opcional do Firestore (para sandbox mode)
-        const db = req.app.get('db');
-        let sandbox = false;
-
-        try {
-            const configRef = db.collection('empresas').doc(empresaId)
-                .collection('configuracaoBancaria').doc('asaas');
-            const configDoc = await configRef.get();
-
-            if (configDoc.exists) {
-                sandbox = configDoc.data().sandbox || false;
-            }
-        } catch (e) {
-            // Config não existe, usa defaults
-            console.log('Config Firestore não encontrada, usando defaults');
-        }
-
-        // Cria config para o service (a chave vem do env)
+        // Cria config para o service (a chave vem do env por padrão para todas)
         req.bankConfig = {
             id: empresaId,
-            sandbox: sandbox,
-            ativo: true // Sempre ativo se ASAAS_API_KEY existe
+            appId: process.env.WOOVI_APP_ID
         };
 
         next();
-
     } catch (error) {
         console.error('Erro ao carregar config bancária:', error);
         res.status(500).json({
@@ -66,97 +45,84 @@ async function loadBankConfig(req, res, next) {
     }
 }
 
-
 /**
  * POST /api/pix/cob - Criar cobrança PIX imediata
  */
 router.post('/cob', loadBankConfig, async (req, res) => {
     try {
-        const { valor, descricao, pagador, expiracao } = req.body;
+        const { valor, descricao, pagador } = req.body;
 
-        console.log('📥 Requisição PIX (Asaas) recebida:', { valor, pagador: pagador?.nome });
+        console.log('📥 Requisição PIX (Woovi) recebida:', { valor, pagador: pagador?.nome });
 
         // Validações
         if (!valor || valor <= 0) {
             return res.status(400).json({ error: 'Valor inválido' });
         }
-
         if (!pagador || (!pagador.cpf && !pagador.cnpj)) {
             return res.status(400).json({ error: 'CPF ou CNPJ do pagador é obrigatório' });
         }
-
         if (!pagador.nome) {
             return res.status(400).json({ error: 'Nome do pagador é obrigatório' });
         }
 
-        // 1. Busca ou cria cliente no Asaas
         const cpfCnpj = pagador.cpf || pagador.cnpj;
-        const dadosCliente = {
-            name: pagador.nome,
-            cpfCnpj: cpfCnpj,
-            email: pagador.email || null,
-            phone: pagador.telefone || null,
-            // Endereço
-            postalCode: pagador.endereco?.cep || null,
-            address: pagador.endereco?.logradouro || null,
-            addressNumber: pagador.endereco?.numero || null,
-            province: pagador.endereco?.bairro || null
-        };
-
-        console.log('🔍 Buscando/criando cliente no Asaas...');
-        const cliente = await asaasBankService.buscarOuCriarCliente(req.bankConfig, cpfCnpj, dadosCliente);
-
-        // 2. Cria cobrança PIX com vencimento para hoje (imediata)
-        const hoje = new Date();
-        const dueDate = hoje.toISOString().split('T')[0]; // YYYY-MM-DD
-
-        console.log('💰 Criando cobrança PIX no Asaas...');
-        const cobranca = await asaasBankService.criarCobranca(req.bankConfig, {
-            customer: cliente.id,
-            billingType: 'PIX',
+        
+        // 1. Cria cobrança PIX
+        console.log('💰 Criando cobrança PIX na Woovi...');
+        const cobranca = await wooviBankService.criarCobranca(req.bankConfig, {
+            customer: {
+                name: pagador.nome,
+                cpfCnpj: cpfCnpj,
+                email: pagador.email,
+                phone: pagador.telefone
+            },
             value: parseFloat(valor),
-            dueDate: dueDate,
             description: descricao || 'Cobrança PIX Qualify',
             externalReference: req.body.invoiceId || null
         });
 
-        // 3. Obtém QR Code PIX
-        console.log('📱 Obtendo QR Code PIX...');
-        const qrCodeData = await asaasBankService.obterQrCodePix(req.bankConfig, cobranca.id);
-
-        // 4. Salva cobrança no Firestore
-        const db = req.app.get('db');
+        // 2. Salva cobrança no Supabase
+        const supabase = req.app.get('supabase');
         const empresaId = req.bankConfig.id;
+        const hoje = new Date().toISOString().split('T')[0];
 
-        await db.collection('empresas').doc(empresaId)
-            .collection('cobrancas').add({
+        // Woovi retorna brCode e qrCodeImage.
+        // Convertendo status Woovi (ACTIVE/COMPLETED) para padrão do banco de dados (pendente/paga)
+        const statusInterno = (cobranca.status === 'COMPLETED') ? 'paga' : 'pendente';
+
+        const { error: insertError } = await supabase
+            .from('cobrancas')
+            .insert({
                 tipo: 'pix',
-                tipoCobranca: 'imediata',
-                paymentId: cobranca.id, // ID no Asaas
-                txid: cobranca.id, // Compatibilidade
-                invoiceId: req.body.invoiceId || cobranca.id,
+                tipo_cobranca: 'imediata',
+                id_asaas: cobranca.correlationID, // Reusando campo para evitar quebrar o DB, salva o ID da Woovi aqui
+                invoice_id: req.body.invoiceId || cobranca.correlationID,
                 valor: parseFloat(valor),
                 descricao,
-                pagador,
-                customerId: cliente.id,
-                status: cobranca.status.toLowerCase(),
-                qrcode: qrCodeData.qrcode,
-                pixCopiaECola: qrCodeData.pixCopiaECola,
-                banco: 'asaas',
-                criadaEm: new Date(),
-                vencimento: dueDate
+                pagador_nome: pagador.nome,
+                pagador_documento: cpfCnpj,
+                pagador_email: pagador.email,
+                pagador_telefone: pagador.telefone,
+                status: statusInterno,
+                qrcode: cobranca.qrCodeImage, // Na Woovi isso é uma URL (ex: api.woovi.com/.../qrcode.png)
+                pix_copia_e_cola: cobranca.brCode,
+                banco: 'woovi',
+                company_id: empresaId,
+                vencimento: hoje
             });
 
-        console.log('✅ Cobrança PIX criada com sucesso:', cobranca.id);
+        if (insertError) throw insertError;
+
+        console.log('✅ Cobrança PIX Woovi criada com sucesso:', cobranca.correlationID);
 
         res.json({
             success: true,
-            txid: cobranca.id,
-            paymentId: cobranca.id,
-            qrcode: qrCodeData.qrcode, // Base64 da imagem
-            imagemQrcode: qrCodeData.qrcode,
-            pixCopiaECola: qrCodeData.pixCopiaECola,
-            status: cobranca.status.toLowerCase(),
+            txid: cobranca.correlationID,
+            paymentId: cobranca.correlationID,
+            qrcode: cobranca.qrCodeImage,
+            imagemQrcode: cobranca.qrCodeImage,
+            pixCopiaECola: cobranca.brCode,
+            status: statusInterno,
             valor: parseFloat(valor)
         });
 
@@ -174,96 +140,85 @@ router.post('/cob', loadBankConfig, async (req, res) => {
  */
 router.post('/cobv', loadBankConfig, async (req, res) => {
     try {
-        let { valor, descricao, pagador, vencimento, diasAposVencimento, invoiceId } = req.body;
+        let { valor, descricao, pagador, vencimento, invoiceId } = req.body;
 
-        console.log('📥 Requisição PIX com vencimento (Asaas):', { valor, vencimento, pagador: pagador?.nome });
+        console.log('📥 Requisição PIX com vencimento (Woovi):', { valor, vencimento, pagador: pagador?.nome });
 
         // Validações
         if (!valor || valor <= 0) {
             return res.status(400).json({ error: 'Valor inválido' });
         }
-
         if (!vencimento) {
             return res.status(400).json({ error: 'Data de vencimento é obrigatória' });
         }
-
         if (!pagador || (!pagador.cpf && !pagador.cnpj)) {
             return res.status(400).json({ error: 'CPF ou CNPJ do pagador é obrigatório' });
         }
 
-        // Converte data de DD/MM/YYYY para YYYY-MM-DD se necessário
+        // Converte data de DD/MM/YYYY para YYYY-MM-DD
         if (vencimento.includes('/')) {
             const partes = vencimento.split('/');
             if (partes.length === 3) {
                 vencimento = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                console.log('📅 Data convertida para:', vencimento);
             }
         }
 
-        // 1. Busca ou cria cliente no Asaas
         const cpfCnpj = pagador.cpf || pagador.cnpj;
-        const dadosCliente = {
-            name: pagador.nome,
-            cpfCnpj: cpfCnpj,
-            email: pagador.email || null,
-            phone: pagador.telefone || null,
-            postalCode: pagador.endereco?.cep || null,
-            address: pagador.endereco?.logradouro || null,
-            addressNumber: pagador.endereco?.numero || null,
-            province: pagador.endereco?.bairro || null
-        };
-
-        console.log('🔍 Buscando/criando cliente no Asaas...');
-        const cliente = await asaasBankService.buscarOuCriarCliente(req.bankConfig, cpfCnpj, dadosCliente);
-
-        // 2. Cria cobrança PIX
-        console.log('💰 Criando cobrança PIX com vencimento no Asaas...');
-        const cobranca = await asaasBankService.criarCobranca(req.bankConfig, {
-            customer: cliente.id,
-            billingType: 'PIX',
+        
+        // 1. Cria cobrança PIX (A Woovi trata dueDate/vencimento internamente via expiresIn, abstraímos no service)
+        console.log('💰 Criando cobrança PIX na Woovi...');
+        const cobranca = await wooviBankService.criarCobranca(req.bankConfig, {
+            customer: {
+                name: pagador.nome,
+                cpfCnpj: cpfCnpj,
+                email: pagador.email,
+                phone: pagador.telefone
+            },
             value: parseFloat(valor),
             dueDate: vencimento,
             description: descricao || 'Cobrança PIX Qualify',
             externalReference: invoiceId || null
         });
 
-        // 3. Obtém QR Code PIX
-        console.log('📱 Obtendo QR Code PIX...');
-        const qrCodeData = await asaasBankService.obterQrCodePix(req.bankConfig, cobranca.id);
-
-        // 4. Salva cobrança no Firestore
-        const db = req.app.get('db');
+        // 2. Salva cobrança no Supabase
+        const supabase = req.app.get('supabase');
         const empresaId = req.bankConfig.id;
+        
+        const statusInterno = (cobranca.status === 'COMPLETED') ? 'paga' : 'pendente';
 
-        await db.collection('empresas').doc(empresaId)
-            .collection('cobrancas').add({
+        const { error: insertErrorV } = await supabase
+            .from('cobrancas')
+            .insert({
                 tipo: 'pix',
-                tipoCobranca: 'vencimento',
-                paymentId: cobranca.id,
-                txid: cobranca.id,
-                invoiceId: invoiceId || cobranca.id,
+                tipo_cobranca: 'vencimento',
+                id_asaas: cobranca.correlationID, // Reusando campo para manter compatibilidade
+                invoice_id: invoiceId || cobranca.correlationID,
                 valor: parseFloat(valor),
                 descricao,
-                pagador,
-                customerId: cliente.id,
+                pagador_nome: pagador.nome,
+                pagador_documento: cpfCnpj,
+                pagador_email: pagador.email,
+                pagador_telefone: pagador.telefone,
                 vencimento,
-                status: cobranca.status.toLowerCase(),
-                qrcode: qrCodeData.qrcode,
-                pixCopiaECola: qrCodeData.pixCopiaECola,
-                banco: 'asaas',
-                criadaEm: new Date()
+                status: statusInterno,
+                qrcode: cobranca.qrCodeImage,
+                pix_copia_e_cola: cobranca.brCode,
+                banco: 'woovi',
+                company_id: empresaId
             });
 
-        console.log('✅ Cobrança PIX com vencimento criada:', cobranca.id);
+        if (insertErrorV) throw insertErrorV;
+
+        console.log('✅ Cobrança PIX com vencimento Woovi criada:', cobranca.correlationID);
 
         res.json({
             success: true,
-            txid: cobranca.id,
-            paymentId: cobranca.id,
-            qrcode: qrCodeData.qrcode,
-            imagemQrcode: qrCodeData.qrcode,
-            pixCopiaECola: qrCodeData.pixCopiaECola,
-            status: cobranca.status.toLowerCase(),
+            txid: cobranca.correlationID,
+            paymentId: cobranca.correlationID,
+            qrcode: cobranca.qrCodeImage,
+            imagemQrcode: cobranca.qrCodeImage,
+            pixCopiaECola: cobranca.brCode,
+            status: statusInterno,
             valor: parseFloat(valor),
             vencimento
         });
@@ -284,54 +239,44 @@ router.get('/:paymentId', loadBankConfig, async (req, res) => {
     try {
         const { paymentId } = req.params;
 
-        console.log('🔍 Consultando cobrança no Asaas:', paymentId);
-        const resultado = await asaasBankService.consultarCobranca(req.bankConfig, paymentId);
+        console.log('🔍 Consultando cobrança na Woovi:', paymentId);
+        const resultado = await wooviBankService.consultarCobranca(req.bankConfig, paymentId);
 
-        // Mapeia status do Asaas para padrão interno
+        // Mapeia status da Woovi para padrão interno (COMPLETED = paga, ACTIVE = pendente, EXPIRED = vencida)
         const statusMap = {
-            'PENDING': 'pendente',
-            'RECEIVED': 'paga',
-            'CONFIRMED': 'paga',
-            'OVERDUE': 'vencida',
-            'REFUNDED': 'estornada',
-            'RECEIVED_IN_CASH': 'paga',
-            'REFUND_REQUESTED': 'estornada',
-            'CHARGEBACK_REQUESTED': 'contestada',
-            'CHARGEBACK_DISPUTE': 'contestada',
-            'AWAITING_CHARGEBACK_REVERSAL': 'contestada',
-            'DUNNING_REQUESTED': 'negativada',
-            'DUNNING_RECEIVED': 'negativada',
-            'AWAITING_RISK_ANALYSIS': 'pendente'
+            'ACTIVE': 'pendente',
+            'COMPLETED': 'paga',
+            'EXPIRED': 'vencida',
+            'CANCELED': 'estornada'
         };
 
         const statusInterno = statusMap[resultado.status] || 'pendente';
 
-        // Atualiza status no Firestore se foi pago
+        // Atualiza status no Supabase se foi pago
         if (statusInterno === 'paga') {
-            const db = req.app.get('db');
+            const supabase = req.app.get('supabase');
             const empresaId = req.bankConfig.id;
 
-            const cobrancaRef = db.collection('empresas').doc(empresaId)
-                .collection('cobrancas').where('paymentId', '==', paymentId);
-
-            const snapshot = await cobrancaRef.get();
-
-            if (!snapshot.empty) {
-                const docRef = snapshot.docs[0].ref;
-                await docRef.update({
+            await supabase
+                .from('cobrancas')
+                .update({
                     status: 'paga',
-                    dataPagamento: resultado.paymentDate || new Date()
-                });
-            }
+                    data_pagamento: resultado.createdAt || new Date() // Woovi pode não retornar paymentDate, usamos createdAt do Pix ou geramos
+                })
+                .eq('id_asaas', paymentId) // id_asaas está armazenando o correlationID da Woovi
+                .eq('company_id', empresaId);
         }
 
+        // Woovi armazena o valor em centavos
+        const valorEmReais = (resultado.value / 100).toFixed(2);
+
         res.json({
-            paymentId: resultado.id,
-            txid: resultado.id,
+            paymentId: resultado.correlationID || paymentId,
+            txid: resultado.correlationID || paymentId,
             status: statusInterno,
             statusOriginal: resultado.status,
-            valor: resultado.value,
-            dataPagamento: resultado.paymentDate || null
+            valor: valorEmReais,
+            dataPagamento: (statusInterno === 'paga') ? (resultado.createdAt || new Date()) : null
         });
 
     } catch (error) {

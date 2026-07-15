@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,14 +13,16 @@
     <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/sidebar-fix.css?v=20250127003">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003"
+        rel="stylesheet">
     <link href="../assets/css/inadimplentes.css?v=20250127003" rel="stylesheet">
-    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
-    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
 </head>
+
 <body>
 
-        <div class="container-fluid">
+    <div class="container-fluid">
         <style>
             html {
                 scroll-behavior: smooth;
@@ -32,14 +35,15 @@
             }
         </style>
 
-                <!-- Header -->
+        <!-- Header -->
         <header class="header">
             <div class="header-left">
                 <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="logo">
-                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24" style="margin-right: 8px;">
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
+                        style="margin-right: 8px;">
                     <span class="logo-text">QUALIFY - Sistema de gestão</span>
                 </div>
             </div>
@@ -58,13 +62,14 @@
                 <div class="user-info">
                     <!-- Informa��es do usu�rio ser�o inseridas aqui pelo auth-manager -->
                 </div>
-                
+
                 <!-- Menu de Usu�rio -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usu�rio" aria-expanded="false">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usu�rio"
+                        aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
-                    
+
                     <!-- Dropdown Menu -->
                     <div class="user-dropdown" id="userDropdown" role="menu" aria-hidden="true">
                         <div class="dropdown-content">
@@ -78,7 +83,7 @@
                                     <span class="dropdown-item-subtitle">Configura��es pessoais</span>
                                 </div>
                             </a>
-                            
+
                             <!-- Item 2: Configura��es -->
                             <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
                                 <div class="dropdown-item-icon">
@@ -89,10 +94,10 @@
                                     <span class="dropdown-item-subtitle">Ajustes do sistema</span>
                                 </div>
                             </a>
-                            
+
                             <!-- Divider -->
                             <div class="dropdown-divider"></div>
-                            
+
                             <!-- Item 3: Ajuda -->
                             <a href="#" class="dropdown-item" role="menuitem" data-action="help">
                                 <div class="dropdown-item-icon">
@@ -103,12 +108,13 @@
                                     <span class="dropdown-item-subtitle">Suporte e documenta��o</span>
                                 </div>
                             </a>
-                            
+
                             <!-- Divider -->
                             <div class="dropdown-divider"></div>
-                            
+
                             <!-- Item 4: Logout -->
-                            <a href="#" class="dropdown-item logout-item" role="menuitem" data-action="logout" id="logoutBtn">
+                            <a href="#" class="dropdown-item logout-item" role="menuitem" data-action="logout"
+                                id="logoutBtn">
                                 <div class="dropdown-item-icon">
                                     <i class="fas fa-sign-out-alt"></i>
                                 </div>
@@ -123,962 +129,1008 @@
             </div>
         </header>
 
-    <!-- Menu Lateral Fixo -->
-    <nav id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h3>Menu</h3>
-            <button id="sidebar-close" class="sidebar-close">&times;</button>
-        </div>
-
-        <div class="sidebar-content">
-            <ul class="sidebar-menu">
-                <!-- Mais usados -->
-                <li class="menu-item has-submenu expanded">
-                    <a href="#" class="menu-link">
-                        <i class="icon-star"></i>
-                        <span class="menu-text">Mais usados</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
-                        <li><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
-                        <li><a href="dashboard.html">Dashboard</a></li>
-                        <li><a href="inadimplentes.html" class="active">Inadimplentes</a></li>
-                        <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                        <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
-                        <li><a href="controle-caixas.html">Controle de caixas</a></li>
-                        <li><a href="contas-receber.html">Contas a receber</a></li>
-
-                    </ul>
-                </li>
-
-                <!-- Contratos -->
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">
-                        <i class="icon-contract"></i>
-                        <span class="menu-text">Contratos</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="contratos.html">Ativos</a></li>
-                        <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
-                        <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
-                        <li><a href="cancelados.html">Cancelados</a></li>
-                    </ul>
-                </li>
-
-                <!-- Financeiro -->
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">
-                        <i class="icon-money"></i>
-                        <span class="menu-text">Financeiro</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
-                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
-                        <li><a href="contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="resumo-dia.html">Resumo do dia</a></li>
-                        <li><a href="comissionamento.html">Comissionamento</a></li>
-                        <li><a href="metas.html">Metas</a></li>
-                    </ul>
-                </li>
-
-                <!-- Famílias -->
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">
-                        <i class="icon-family"></i>
-                        <span class="menu-text">Famílias</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="nova-familia.html">Nova família</a></li>
-                        <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
-                        <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
-                <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
-                        <li><a href="aniversariantes.html">Aniversariantes</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </nav>
-
-    <!-- Overlay para fechar o menu em dispositivos móveis -->
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container-fluid">
-            <!-- Top Action Bar -->
-            <div class="top-action-bar">
-                <div class="row align-items-center">
-                    <div class="col-12">
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <div class="search-box">
-                                <input type="text" class="form-control" placeholder="Buscar contratos..." id="searchInput">
-                                <i class="fas fa-search search-icon"></i>
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-download"></i> Exportar
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" id="exportExcel"><i class="fas fa-file-excel"></i> Excel</a></li>
-                                    <li><a class="dropdown-item" href="#" id="exportPDF"><i class="fas fa-file-pdf"></i> PDF</a></li>
-                                    <li><a class="dropdown-item" href="#" id="exportCSV"><i class="fas fa-file-csv"></i> CSV</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Menu Lateral Fixo -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+                <button id="sidebar-close" class="sidebar-close">&times;</button>
             </div>
 
+            <div class="sidebar-content">
+                <ul class="sidebar-menu">
+                    <!-- Mais usados -->
+                    <li class="menu-item has-submenu expanded">
+                        <a href="#" class="menu-link">
+                            <i class="icon-star"></i>
+                            <span class="menu-text">Mais usados</span>
+                            <i class="arrow-icon">▼</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+                            <li><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
+                            <li><a href="dashboard.html">Dashboard</a></li>
+                            <li><a href="inadimplentes.html" class="active">Inadimplentes</a></li>
+                            <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
+                            <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="controle-caixas.html">Controle de caixas</a></li>
+                            <li><a href="contas-receber.html">Contas a receber</a></li>
 
-            <!-- Filter Info removido -->
-
-            <!-- Summary Cards -->
-            <div class="summary-cards">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="summary-card text-center">
-                            <h3 class="summary-title">Total em Atraso</h3>
-                            <p class="summary-value text-danger">R$ 0,00</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="summary-card text-center">
-                            <h3 class="summary-title">N° de Contratos</h3>
-                            <p class="summary-value">0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="summary-card text-center">
-                            <h3 class="summary-title">N° de Parcelas</h3>
-                            <p class="summary-value">0</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Data Table -->
-            <div class="table-container">
-                <div class="table-responsive">
-                    <table class="table table-hover" id="inadimplentesTable">
-                        <thead>
-                            <tr>
-                                <th width="50">
-                                    <input type="checkbox" id="selectAll" class="form-check-input">
-                                </th>
-                                <th>N° do Contrato</th>
-                                <th>Data do Contrato</th>
-                                <th>Titular</th>
-                                <th>Celular</th>
-                                <th>Dias</th>
-                                <th>Qtd.</th>
-                                <th>Valor</th>
-                                <th>Última observação</th>
-                                <th width="100">Opções</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Pagination -->
-            <div class="pagination-container">
-                <nav aria-label="Navegação da tabela">
-                    <ul class="pagination justify-content-center"></ul>
-                </nav>
-            </div>
-        </div>
-    </main>
-
-    <!-- Filter Modal -->
-    <div class="modal fade" id="filterModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Filtros Avançados</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Data Inicial</label>
-                                <input type="date" class="form-control" id="dataInicial">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Data Final</label>
-                                <input type="date" class="form-control" id="dataFinal">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Dias em Atraso (Mínimo)</label>
-                                <input type="number" class="form-control" id="diasMinimo" placeholder="Ex: 30">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Dias em Atraso (Máximo)</label>
-                                <input type="number" class="form-control" id="diasMaximo" placeholder="Ex: 90">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Valor Mínimo</label>
-                                <input type="number" class="form-control" id="valorMinimo" placeholder="Ex: 50.00" step="0.01">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Valor Máximo</label>
-                                <input type="number" class="form-control" id="valorMaximo" placeholder="Ex: 500.00" step="0.01">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status do Contato</label>
-                        <select class="form-select" id="statusContato">
-                            <option value="">Todos</option>
-                            <option value="pendente">Pendente</option>
-                            <option value="contatado">Contatado</option>
-                            <option value="negociacao">Em Negociação</option>
-                            <option value="promessa">Promessa de Pagamento</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="aplicarFiltros">Aplicar Filtros</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Message Modal -->
-    <div class="modal fade" id="messageModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Enviar Mensagem</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Destinatários</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="destinatarios" id="selecionados" value="selecionados" checked>
-                            <label class="form-check-label" for="selecionados">
-                                Contratos selecionados (<span id="countSelecionados">0</span>)
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="destinatarios" id="todos" value="todos">
-                            <label class="form-check-label" for="todos">
-                                Todos os contratos inadimplentes (0)
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tipo de Mensagem</label>
-                        <select class="form-select" id="tipoMensagem">
-                            <option value="whatsapp">WhatsApp</option>
-                            <option value="sms">SMS</option>
-                            <option value="email">E-mail</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Modelo de Mensagem</label>
-                        <select class="form-select" id="modeloMensagem">
-                            <option value="">Selecione um modelo</option>
-                            <option value="cobranca1">Cobrança Amigável - 1º Contato</option>
-                            <option value="cobranca2">Cobrança Amigável - 2º Contato</option>
-                            <option value="cobranca3">Cobrança Firme</option>
-                            <option value="negociacao">Proposta de Negociação</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mensagem</label>
-                        <textarea class="form-control" id="mensagemTexto" rows="5" placeholder="Digite sua mensagem aqui..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="agendarEnvio">
-                            <label class="form-check-label" for="agendarEnvio">
-                                Agendar envio
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mb-3" id="agendamentoContainer" style="display: none;">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">Data</label>
-                                <input type="date" class="form-control" id="dataAgendamento">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Horário</label>
-                                <input type="time" class="form-control" id="horarioAgendamento">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="enviarMensagem">Enviar Mensagem</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Advanced Filters Modal -->
-    <div class="modal fade" id="advancedFiltersModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Filtros Avançados - Contratos Inadimplentes</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" id="closeAdvancedFilters"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="modal-tabs">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item">
-                                <button class="nav-link active tab-button" data-tab="quickFilters" type="button">Filtros Rápidos</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link tab-button" data-tab="advancedFilters" type="button">Filtros Avançados</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link tab-button" data-tab="dateRange" type="button">Período</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link tab-button" data-tab="sorting" type="button">Ordenação</button>
-                            </li>
                         </ul>
-                    </div>
+                    </li>
 
-                    <div class="tab-content mt-3">
-                        <!-- Quick Filters Tab -->
-                        <div class="tab-pane active" id="quickFilters">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="filter-section">
-                                        <h6>Dias em Atraso</h6>
-                                        <div class="btn-group-vertical d-grid gap-2" role="group">
-                                            <input type="radio" class="btn-check" name="diasAtraso" id="ate30dias" value="30">
-                                            <label class="btn btn-outline-primary" for="ate30dias">Até 30 dias</label>
+                    <!-- Contratos -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-contract"></i>
+                            <span class="menu-text">Contratos</span>
+                            <i class="arrow-icon">▼</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="contratos.html">Ativos</a></li>
+                            <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                            <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                            <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
+                            <li><a href="cancelados.html">Cancelados</a></li>
+                        </ul>
+                    </li>
 
-                                            <input type="radio" class="btn-check" name="diasAtraso" id="ate60dias" value="60">
-                                            <label class="btn btn-outline-primary" for="ate60dias">31 a 60 dias</label>
+                    <!-- Financeiro -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-money"></i>
+                            <span class="menu-text">Financeiro</span>
+                            <i class="arrow-icon">▼</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="contas-pagar.html">Contas a pagar</a></li>
+                            <li><a href="resumo-dia.html">Resumo do dia</a></li>
+                            <li><a href="comissionamento.html">Comissionamento</a></li>
+                            <li><a href="metas.html">Metas</a></li>
+                        </ul>
+                    </li>
 
-                                            <input type="radio" class="btn-check" name="diasAtraso" id="ate90dias" value="90">
-                                            <label class="btn btn-outline-primary" for="ate90dias">61 a 90 dias</label>
+                    <!-- Famílias -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-family"></i>
+                            <span class="menu-text">Famílias</span>
+                            <i class="arrow-icon">▼</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="nova-familia.html">Nova família</a></li>
+                            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                            <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
+                            <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
+                            <li><a href="aniversariantes.html">Aniversariantes</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-                                            <input type="radio" class="btn-check" name="diasAtraso" id="mais90dias" value="90+">
-                                            <label class="btn btn-outline-primary" for="mais90dias">Mais de 90 dias</label>
-                                        </div>
-                                    </div>
+        <!-- Overlay para fechar o menu em dispositivos móveis -->
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <!-- Top Action Bar -->
+                <div class="top-action-bar">
+                    <div class="row align-items-center">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="search-box">
+                                    <input type="text" class="form-control" placeholder="Buscar contratos..."
+                                        id="searchInput">
+                                    <i class="fas fa-search search-icon"></i>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="filter-section">
-                                        <h6>Valor em Atraso</h6>
-                                        <div class="btn-group-vertical d-grid gap-2" role="group">
-                                            <input type="radio" class="btn-check" name="valorAtraso" id="ate100" value="100">
-                                            <label class="btn btn-outline-success" for="ate100">Até R$ 100</label>
-
-                                            <input type="radio" class="btn-check" name="valorAtraso" id="ate500" value="500">
-                                            <label class="btn btn-outline-success" for="ate500">R$ 101 a R$ 500</label>
-
-                                            <input type="radio" class="btn-check" name="valorAtraso" id="ate1000" value="1000">
-                                            <label class="btn btn-outline-success" for="ate1000">R$ 501 a R$ 1.000</label>
-
-                                            <input type="radio" class="btn-check" name="valorAtraso" id="mais1000" value="1000+">
-                                            <label class="btn btn-outline-success" for="mais1000">Mais de R$ 1.000</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Advanced Filters Tab -->
-                        <div class="tab-pane" id="advancedFilters">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Número do Contrato</label>
-                                        <input type="text" class="form-control" id="numeroContrato" placeholder="Digite o número">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Nome do Titular</label>
-                                        <input type="text" class="form-control" id="nomeTitular" placeholder="Digite o nome">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Celular</label>
-                                        <input type="text" class="form-control" id="celularTitular" placeholder="[Telefone]">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Status do Contato</label>
-                                        <select class="form-select" id="statusContatoAdv">
-                                            <option value="">Todos</option>
-                                            <option value="pendente">Pendente</option>
-                                            <option value="contatado">Contatado</option>
-                                            <option value="negociacao">Em Negociação</option>
-                                            <option value="promessa">Promessa de Pagamento</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Plano</label>
-                                        <select class="form-select" id="planoContrato">
-                                            <option value="">Todos os planos</option>
-                                            <option value="basico">Básico</option>
-                                            <option value="intermediario">Intermediário</option>
-                                            <option value="premium">Premium</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Região</label>
-                                        <select class="form-select" id="regiaoContrato">
-                                            <option value="">Todas as regiões</option>
-                                            <option value="norte">Norte</option>
-                                            <option value="nordeste">Nordeste</option>
-                                            <option value="centro-oeste">Centro-Oeste</option>
-                                            <option value="sudeste">Sudeste</option>
-                                            <option value="sul">Sul</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Valor Mínimo</label>
-                                        <input type="number" class="form-control" id="valorMinimo" placeholder="0,00" step="0.01">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Valor Máximo</label>
-                                        <input type="number" class="form-control" id="valorMaximo" placeholder="0,00" step="0.01">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Dias em Atraso</label>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <input type="number" class="form-control" id="diasMinimoAtraso" placeholder="Mín.">
-                                            </div>
-                                            <div class="col-6">
-                                                <input type="number" class="form-control" id="diasMaximoAtraso" placeholder="Máx.">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Date Range Tab -->
-                        <div class="tab-pane" id="dateRange">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="filter-section">
-                                        <h6>Período do Contrato</h6>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <label class="form-label">Data Inicial</label>
-                                                <input type="date" class="form-control" id="dataInicialContrato">
-                                            </div>
-                                            <div class="col-6">
-                                                <label class="form-label">Data Final</label>
-                                                <input type="date" class="form-control" id="dataFinalContrato">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="filter-section">
-                                        <h6>Período de Vencimento</h6>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <label class="form-label">Vencimento Inicial</label>
-                                                <input type="date" class="form-control" id="vencimentoInicial">
-                                            </div>
-                                            <div class="col-6">
-                                                <label class="form-label">Vencimento Final</label>
-                                                <input type="date" class="form-control" id="vencimentoFinal">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Sorting Tab -->
-                        <div class="tab-pane" id="sorting">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="filter-section">
-                                        <h6>Ordenar por</h6>
-                                        <select class="form-select mb-3" id="sortBy">
-                                            <option value="dias">Dias em Atraso</option>
-                                            <option value="valor">Valor</option>
-                                            <option value="contrato">Número do Contrato</option>
-                                            <option value="titular">Nome do Titular</option>
-                                            <option value="data">Data do Contrato</option>
-                                        </select>
-
-                                        <div class="btn-group d-grid" role="group">
-                                            <input type="radio" class="btn-check" name="sortOrder" id="sortAsc" value="asc" checked>
-                                            <label class="btn btn-outline-primary" for="sortAsc">Crescente</label>
-
-                                            <input type="radio" class="btn-check" name="sortOrder" id="sortDesc" value="desc">
-                                            <label class="btn btn-outline-primary" for="sortDesc">Decrescente</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="filter-section">
-                                        <h6>Colunas Visíveis</h6>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showContrato" checked>
-                                            <label class="form-check-label" for="showContrato">Número do Contrato</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showData" checked>
-                                            <label class="form-check-label" for="showData">Data do Contrato</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showTitular" checked>
-                                            <label class="form-check-label" for="showTitular">Titular</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showCelular" checked>
-                                            <label class="form-check-label" for="showCelular">Celular</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showDias" checked>
-                                            <label class="form-check-label" for="showDias">Dias em Atraso</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showValor" checked>
-                                            <label class="form-check-label" for="showValor">Valor</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showObservacao" checked>
-                                            <label class="form-check-label" for="showObservacao">Observação</label>
-                                        </div>
-                                    </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-success dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown">
+                                        <i class="fas fa-download"></i> Exportar
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" id="exportExcel"><i
+                                                    class="fas fa-file-excel"></i> Excel</a></li>
+                                        <li><a class="dropdown-item" href="#" id="exportPDF"><i
+                                                    class="fas fa-file-pdf"></i> PDF</a></li>
+                                        <li><a class="dropdown-item" href="#" id="exportCSV"><i
+                                                    class="fas fa-file-csv"></i> CSV</a></li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="resetAdvancedFilters">Limpar Filtros</button>
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="applyAdvancedFilters">Aplicar Filtros</button>
+
+
+                <!-- Filter Info removido -->
+
+                <!-- Summary Cards -->
+                <div class="summary-cards">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="summary-card text-center">
+                                <h3 class="summary-title">Total em Atraso</h3>
+                                <p class="summary-value text-danger">R$ 0,00</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-card text-center">
+                                <h3 class="summary-title">N° de Contratos</h3>
+                                <p class="summary-value">0</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-card text-center">
+                                <h3 class="summary-title">N° de Parcelas</h3>
+                                <p class="summary-value">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="inadimplentesTable">
+                            <thead>
+                                <tr>
+                                    <th width="50">
+                                        <input type="checkbox" id="selectAll" class="form-check-input">
+                                    </th>
+                                    <th>N° do Contrato</th>
+                                    <th>Data do Contrato</th>
+                                    <th>Titular</th>
+                                    <th>Celular</th>
+                                    <th>Dias</th>
+                                    <th>Qtd.</th>
+                                    <th>Valor</th>
+                                    <th>Última observação</th>
+                                    <th width="100">Opções</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <nav aria-label="Navegação da tabela">
+                        <ul class="pagination justify-content-center"></ul>
+                    </nav>
                 </div>
             </div>
-        </div>
-    </div>
+        </main>
 
-    <!-- Bulk Actions Modal -->
-    <div class="modal fade" id="bulkActionsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Ações em Massa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" id="closeBulkActions"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        <span id="selectedItemsCount">0</span> contratos selecionados
+        <!-- Filter Modal -->
+        <div class="modal fade" id="filterModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Filtros Avançados</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
-                    <div class="action-grid">
+                    <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="action-card" data-action="export">
-                                    <div class="action-icon">
-                                        <i class="fas fa-download"></i>
+                                <div class="mb-3">
+                                    <label class="form-label">Data Inicial</label>
+                                    <input type="date" class="form-control" id="dataInicial">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Data Final</label>
+                                    <input type="date" class="form-control" id="dataFinal">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Dias em Atraso (Mínimo)</label>
+                                    <input type="number" class="form-control" id="diasMinimo" placeholder="Ex: 30">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Dias em Atraso (Máximo)</label>
+                                    <input type="number" class="form-control" id="diasMaximo" placeholder="Ex: 90">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Mínimo</label>
+                                    <input type="number" class="form-control" id="valorMinimo" placeholder="Ex: 50.00"
+                                        step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Máximo</label>
+                                    <input type="number" class="form-control" id="valorMaximo" placeholder="Ex: 500.00"
+                                        step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status do Contato</label>
+                            <select class="form-select" id="statusContato">
+                                <option value="">Todos</option>
+                                <option value="pendente">Pendente</option>
+                                <option value="contatado">Contatado</option>
+                                <option value="negociacao">Em Negociação</option>
+                                <option value="promessa">Promessa de Pagamento</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="aplicarFiltros">Aplicar Filtros</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Modal -->
+        <div class="modal fade" id="messageModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Enviar Mensagem</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Destinatários</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="destinatarios" id="selecionados"
+                                    value="selecionados" checked>
+                                <label class="form-check-label" for="selecionados">
+                                    Contratos selecionados (<span id="countSelecionados">0</span>)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="destinatarios" id="todos"
+                                    value="todos">
+                                <label class="form-check-label" for="todos">
+                                    Todos os contratos inadimplentes (0)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Mensagem</label>
+                            <select class="form-select" id="tipoMensagem">
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="sms">SMS</option>
+                                <option value="email">E-mail</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Modelo de Mensagem</label>
+                            <select class="form-select" id="modeloMensagem">
+                                <option value="">Selecione um modelo</option>
+                                <option value="cobranca1">Cobrança Amigável - 1º Contato</option>
+                                <option value="cobranca2">Cobrança Amigável - 2º Contato</option>
+                                <option value="cobranca3">Cobrança Firme</option>
+                                <option value="negociacao">Proposta de Negociação</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mensagem</label>
+                            <textarea class="form-control" id="mensagemTexto" rows="5"
+                                placeholder="Digite sua mensagem aqui..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agendarEnvio">
+                                <label class="form-check-label" for="agendarEnvio">
+                                    Agendar envio
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="agendamentoContainer" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Data</label>
+                                    <input type="date" class="form-control" id="dataAgendamento">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Horário</label>
+                                    <input type="time" class="form-control" id="horarioAgendamento">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="enviarMensagem">Enviar Mensagem</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Filters Modal -->
+        <div class="modal fade" id="advancedFiltersModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Filtros Avançados - Contratos Inadimplentes</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            id="closeAdvancedFilters"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-tabs">
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active tab-button" data-tab="quickFilters"
+                                        type="button">Filtros Rápidos</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link tab-button" data-tab="advancedFilters" type="button">Filtros
+                                        Avançados</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link tab-button" data-tab="dateRange"
+                                        type="button">Período</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link tab-button" data-tab="sorting"
+                                        type="button">Ordenação</button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="tab-content mt-3">
+                            <!-- Quick Filters Tab -->
+                            <div class="tab-pane active" id="quickFilters">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="filter-section">
+                                            <h6>Dias em Atraso</h6>
+                                            <div class="btn-group-vertical d-grid gap-2" role="group">
+                                                <input type="radio" class="btn-check" name="diasAtraso" id="ate30dias"
+                                                    value="30">
+                                                <label class="btn btn-outline-primary" for="ate30dias">Até 30
+                                                    dias</label>
+
+                                                <input type="radio" class="btn-check" name="diasAtraso" id="ate60dias"
+                                                    value="60">
+                                                <label class="btn btn-outline-primary" for="ate60dias">31 a 60
+                                                    dias</label>
+
+                                                <input type="radio" class="btn-check" name="diasAtraso" id="ate90dias"
+                                                    value="90">
+                                                <label class="btn btn-outline-primary" for="ate90dias">61 a 90
+                                                    dias</label>
+
+                                                <input type="radio" class="btn-check" name="diasAtraso" id="mais90dias"
+                                                    value="90+">
+                                                <label class="btn btn-outline-primary" for="mais90dias">Mais de 90
+                                                    dias</label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="action-content">
-                                        <h6>Exportar Selecionados</h6>
-                                        <p>Exportar contratos selecionados para Excel, PDF ou CSV</p>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-success" data-export="excel">Excel</button>
-                                            <button class="btn btn-outline-danger" data-export="pdf">PDF</button>
-                                            <button class="btn btn-outline-info" data-export="csv">CSV</button>
+                                    <div class="col-md-6">
+                                        <div class="filter-section">
+                                            <h6>Valor em Atraso</h6>
+                                            <div class="btn-group-vertical d-grid gap-2" role="group">
+                                                <input type="radio" class="btn-check" name="valorAtraso" id="ate100"
+                                                    value="100">
+                                                <label class="btn btn-outline-success" for="ate100">Até R$ 100</label>
+
+                                                <input type="radio" class="btn-check" name="valorAtraso" id="ate500"
+                                                    value="500">
+                                                <label class="btn btn-outline-success" for="ate500">R$ 101 a R$
+                                                    500</label>
+
+                                                <input type="radio" class="btn-check" name="valorAtraso" id="ate1000"
+                                                    value="1000">
+                                                <label class="btn btn-outline-success" for="ate1000">R$ 501 a R$
+                                                    1.000</label>
+
+                                                <input type="radio" class="btn-check" name="valorAtraso" id="mais1000"
+                                                    value="1000+">
+                                                <label class="btn btn-outline-success" for="mais1000">Mais de R$
+                                                    1.000</label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="action-card" data-action="message">
-                                    <div class="action-icon">
-                                        <i class="fas fa-envelope"></i>
+
+                            <!-- Advanced Filters Tab -->
+                            <div class="tab-pane" id="advancedFilters">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Número do Contrato</label>
+                                            <input type="text" class="form-control" id="numeroContrato"
+                                                placeholder="Digite o número">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Nome do Titular</label>
+                                            <input type="text" class="form-control" id="nomeTitular"
+                                                placeholder="Digite o nome">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Celular</label>
+                                            <input type="text" class="form-control" id="celularTitular"
+                                                placeholder="[Telefone]">
+                                        </div>
                                     </div>
-                                    <div class="action-content">
-                                        <h6>Enviar Mensagens</h6>
-                                        <p>Enviar mensagem em massa via WhatsApp, SMS ou E-mail</p>
-                                        <button class="btn btn-outline-primary btn-sm" id="bulkSendMessage">Configurar Envio</button>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Status do Contato</label>
+                                            <select class="form-select" id="statusContatoAdv">
+                                                <option value="">Todos</option>
+                                                <option value="pendente">Pendente</option>
+                                                <option value="contatado">Contatado</option>
+                                                <option value="negociacao">Em Negociação</option>
+                                                <option value="promessa">Promessa de Pagamento</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Plano</label>
+                                            <select class="form-select" id="planoContrato">
+                                                <option value="">Todos os planos</option>
+                                                <option value="basico">Básico</option>
+                                                <option value="intermediario">Intermediário</option>
+                                                <option value="premium">Premium</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Região</label>
+                                            <select class="form-select" id="regiaoContrato">
+                                                <option value="">Todas as regiões</option>
+                                                <option value="norte">Norte</option>
+                                                <option value="nordeste">Nordeste</option>
+                                                <option value="centro-oeste">Centro-Oeste</option>
+                                                <option value="sudeste">Sudeste</option>
+                                                <option value="sul">Sul</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Valor Mínimo</label>
+                                            <input type="number" class="form-control" id="valorMinimo"
+                                                placeholder="0,00" step="0.01">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Valor Máximo</label>
+                                            <input type="number" class="form-control" id="valorMaximo"
+                                                placeholder="0,00" step="0.01">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Dias em Atraso</label>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <input type="number" class="form-control" id="diasMinimoAtraso"
+                                                        placeholder="Mín.">
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="number" class="form-control" id="diasMaximoAtraso"
+                                                        placeholder="Máx.">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="action-card" data-action="status">
-                                    <div class="action-icon">
-                                        <i class="fas fa-edit"></i>
+
+                            <!-- Date Range Tab -->
+                            <div class="tab-pane" id="dateRange">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="filter-section">
+                                            <h6>Período do Contrato</h6>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <label class="form-label">Data Inicial</label>
+                                                    <input type="date" class="form-control" id="dataInicialContrato">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label">Data Final</label>
+                                                    <input type="date" class="form-control" id="dataFinalContrato">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="action-content">
-                                        <h6>Atualizar Status</h6>
-                                        <p>Alterar status de contato dos contratos selecionados</p>
-                                        <select class="form-select form-select-sm" id="bulkStatusUpdate">
-                                            <option value="">Selecionar status</option>
-                                            <option value="pendente">Pendente</option>
-                                            <option value="contatado">Contatado</option>
-                                            <option value="negociacao">Em Negociação</option>
-                                            <option value="promessa">Promessa de Pagamento</option>
-                                        </select>
-                                        <button class="btn btn-outline-warning btn-sm mt-2" id="applyBulkStatus">Aplicar</button>
+                                    <div class="col-md-6">
+                                        <div class="filter-section">
+                                            <h6>Período de Vencimento</h6>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <label class="form-label">Vencimento Inicial</label>
+                                                    <input type="date" class="form-control" id="vencimentoInicial">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label">Vencimento Final</label>
+                                                    <input type="date" class="form-control" id="vencimentoFinal">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="action-card" data-action="delete">
-                                    <div class="action-icon">
-                                        <i class="fas fa-trash"></i>
+
+                            <!-- Sorting Tab -->
+                            <div class="tab-pane" id="sorting">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="filter-section">
+                                            <h6>Ordenar por</h6>
+                                            <select class="form-select mb-3" id="sortBy">
+                                                <option value="dias">Dias em Atraso</option>
+                                                <option value="valor">Valor</option>
+                                                <option value="contrato">Número do Contrato</option>
+                                                <option value="titular">Nome do Titular</option>
+                                                <option value="data">Data do Contrato</option>
+                                            </select>
+
+                                            <div class="btn-group d-grid" role="group">
+                                                <input type="radio" class="btn-check" name="sortOrder" id="sortAsc"
+                                                    value="asc" checked>
+                                                <label class="btn btn-outline-primary" for="sortAsc">Crescente</label>
+
+                                                <input type="radio" class="btn-check" name="sortOrder" id="sortDesc"
+                                                    value="desc">
+                                                <label class="btn btn-outline-primary"
+                                                    for="sortDesc">Decrescente</label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="action-content">
-                                        <h6>Remover da Lista</h6>
-                                        <p>Remover contratos selecionados da lista de inadimplentes</p>
-                                        <button class="btn btn-outline-danger btn-sm" id="bulkRemove">Remover Selecionados</button>
+                                    <div class="col-md-6">
+                                        <div class="filter-section">
+                                            <h6>Colunas Visíveis</h6>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="showContrato"
+                                                    checked>
+                                                <label class="form-check-label" for="showContrato">Número do
+                                                    Contrato</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="showData" checked>
+                                                <label class="form-check-label" for="showData">Data do Contrato</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="showTitular"
+                                                    checked>
+                                                <label class="form-check-label" for="showTitular">Titular</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="showCelular"
+                                                    checked>
+                                                <label class="form-check-label" for="showCelular">Celular</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="showDias" checked>
+                                                <label class="form-check-label" for="showDias">Dias em Atraso</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="showValor" checked>
+                                                <label class="form-check-label" for="showValor">Valor</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="showObservacao"
+                                                    checked>
+                                                <label class="form-check-label" for="showObservacao">Observação</label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="resetAdvancedFilters">Limpar
+                            Filtros</button>
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="applyAdvancedFilters">Aplicar Filtros</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Container de Importação -->
+        <!-- Bulk Actions Modal -->
+        <div class="modal fade" id="bulkActionsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Ações em Massa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" id="closeBulkActions"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="selectedItemsCount">0</span> contratos selecionados
+                        </div>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003"></script>
-    
-    <!-- Firebase Configuration -->
-<script src="../firebase-config.js?v=20250127003"></script>
-    
-    <!-- Authentication Guard -->
-    <script src="../assets/js/auth-guard.js?v=20250127003"></script>
-    
-    <!-- Multi-tenant Configuration -->
-    <script src="../assets/js/multitenant-config.js?v=20250127003"></script>
-    
-    <!-- User Data Manager -->
-    <script src="../assets/js/user-data-manager.js?v=20250127003"></script>
-    
-    <!-- Inadimplentes Script -->
-    <script src="../assets/js/inadimplentes.js?v=20250127003" defer></script>
+                        <div class="action-grid">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="action-card" data-action="export">
+                                        <div class="action-icon">
+                                            <i class="fas fa-download"></i>
+                                        </div>
+                                        <div class="action-content">
+                                            <h6>Exportar Selecionados</h6>
+                                            <p>Exportar contratos selecionados para Excel, PDF ou CSV</p>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-success"
+                                                    data-export="excel">Excel</button>
+                                                <button class="btn btn-outline-danger" data-export="pdf">PDF</button>
+                                                <button class="btn btn-outline-info" data-export="csv">CSV</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="action-card" data-action="message">
+                                        <div class="action-icon">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div class="action-content">
+                                            <h6>Enviar Mensagens</h6>
+                                            <p>Enviar mensagem em massa via WhatsApp, SMS ou E-mail</p>
+                                            <button class="btn btn-outline-primary btn-sm"
+                                                id="bulkSendMessage">Configurar Envio</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="action-card" data-action="status">
+                                        <div class="action-icon">
+                                            <i class="fas fa-edit"></i>
+                                        </div>
+                                        <div class="action-content">
+                                            <h6>Atualizar Status</h6>
+                                            <p>Alterar status de contato dos contratos selecionados</p>
+                                            <select class="form-select form-select-sm" id="bulkStatusUpdate">
+                                                <option value="">Selecionar status</option>
+                                                <option value="pendente">Pendente</option>
+                                                <option value="contatado">Contatado</option>
+                                                <option value="negociacao">Em Negociação</option>
+                                                <option value="promessa">Promessa de Pagamento</option>
+                                            </select>
+                                            <button class="btn btn-outline-warning btn-sm mt-2"
+                                                id="applyBulkStatus">Aplicar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="action-card" data-action="delete">
+                                        <div class="action-icon">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                        <div class="action-content">
+                                            <h6>Remover da Lista</h6>
+                                            <p>Remover contratos selecionados da lista de inadimplentes</p>
+                                            <button class="btn btn-outline-danger btn-sm" id="bulkRemove">Remover
+                                                Selecionados</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
-    <script src="../assets/js/excel-import-manager.js?v=20250127003" defer></script>
-<script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+        <!-- Container de Importação -->
 
-    <!-- Script Melhorado do Accordion -->
-    <script>
-    // Fun��o melhorada para inicializar o accordion
-    function initializeImprovedAccordion() {
-        console.log('?? Inicializando accordion melhorado...');
-        
-        // Aguarda um pouco para garantir que todos os elementos estejam prontos
-        setTimeout(() => {
-            // Seleciona todos os itens de submenu
-            const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
-            console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
-            
-            submenuItems.forEach((menuItem, index) => {
-                // Encontra o link clic�vel dentro do item
-                const menuLink = menuItem.querySelector('.menu-link, a');
-                const submenu = menuItem.querySelector('.submenu');
-                const arrowIcon = menuItem.querySelector('.arrow-icon');
-                
-                if (menuLink && submenu) {
-                    // Remove event listeners existentes clonando o elemento
-                    const newMenuLink = menuLink.cloneNode(true);
-                    menuLink.parentNode.replaceChild(newMenuLink, menuLink);
-                    
-                    // Adiciona novo event listener melhorado
-                    newMenuLink.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        console.log(`??? Clique no item ${index + 1}`);
-                        
-                        // Fecha todos os outros submenus
-                        const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
-                        allMenuItems.forEach(item => {
-                            if (item !== menuItem) {
-                                item.classList.remove('expanded');
-                            }
-                        });
-                        
-                        // Toggle do item atual
-                        menuItem.classList.toggle('expanded');
-                        
-                        const isExpanded = menuItem.classList.contains('expanded');
-                        console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra�do'}`);
-                        
-                        // Atualiza o �cone da seta se existir
-                        if (arrowIcon) {
-                            arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
-                        }
-                    });
-                    
-                    console.log(`? Evento vinculado ao item ${index + 1}`);
-                } else {
-                    console.warn(`?? Item ${index + 1} n�o tem link ou submenu v�lido`);
-                }
-            });
-            
-            console.log('? Accordion melhorado inicializado com sucesso!');
-        }, 100);
-    }
-    
-    // Inicializa quando o DOM estiver pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
-    } else {
-        initializeImprovedAccordion();
-    }
-    
-    // Tamb�m disponibiliza globalmente para re-inicializa��o manual
-    window.reinitializeAccordion = initializeImprovedAccordion;
-    </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003" defer></script>
-<script src="../assets/js/inadimplentes.js?v=20250127003" defer></script>
-<script>
-        // Configurar estado ativo do menu baseado na p�gina atual
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentPage = 'pages/inadimplentes.html';
-            const sidebarLinks = document.querySelectorAll('#sidebar .submenu a');
+        <!-- Supabase SDK e Cliente -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
 
-            sidebarLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href === currentPage) {
-                    link.classList.add('active');
-                    // Expandir o submenu pai se necess�rio
-                    const parentSubmenu = link.closest('.submenu');
-                    if (parentSubmenu) {
-                        const parentMenuItem = parentSubmenu.closest('.menu-item');
-                        if (parentMenuItem) {
-                            parentMenuItem.classList.add('expanded');
-                        }
-                    }
-                } else {
-                    link.classList.remove('active');
-                }
-            });
-        });
-    </script>
+        <!-- Authentication Guard -->
+        <script src="../assets/js/core/auth-guard.js?v=20250127003"></script>
 
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        <!-- Multi-tenant Configuration -->
+        <script src="../assets/js/core/multitenant-config.js?v=20250127003"></script>
 
-    
+        <!-- User Data Manager -->
+        <script src="../assets/js/core/user-data-manager.js?v=20250127003"></script>
 
-    
+        <!-- Inadimplentes Script -->
+        <script src="../assets/js/features/inadimplentes.js?v=20250127003" defer></script>
 
-    <!-- Corre��o Completa do Sidebar com Accordion -->
-    <script>
-    (function() {
-        'use strict';
-        
-        // Aguardar que todos os scripts sejam carregados
-        function initializeSidebar() {
-            console.log('?? Inicializando corre��o completa do sidebar...');
-            
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            
-            if (!menuToggle) {
-                console.error('? Bot�o do menu n�o encontrado!');
-                return;
-            }
-            
-            if (!sidebar) {
-                console.error('? Sidebar n�o encontrado!');
-                return;
-            }
-            
-            console.log('? Elementos encontrados - aplicando corre��o...');
-            
-            // Limpar todos os event listeners existentes
-            const newMenuToggle = menuToggle.cloneNode(true);
-            menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
-            
-            // Fun��o para abrir o sidebar
-            function openSidebar() {
-                sidebar.classList.add('open', 'menu-aberto');
-                sidebar.style.transform = 'translateX(0)';
-                sidebar.style.left = '0';
-                if (overlay) {
-                    overlay.classList.add('active');
-                    overlay.style.display = 'block';
-                }
-                document.body.style.overflow = 'hidden';
-                console.log('?? Sidebar aberto');
-            }
-            
-            // Fun��o para fechar o sidebar
-            function closeSidebar() {
-                sidebar.classList.remove('open', 'menu-aberto');
-                sidebar.style.transform = 'translateX(-100%)';
-                sidebar.style.left = '-280px';
-                if (overlay) {
-                    overlay.classList.remove('active');
-                    overlay.style.display = 'none';
-                }
-                document.body.style.overflow = '';
-                console.log('?? Sidebar fechado');
-            }
-            
-            // Event listener para o bot�o do menu
-            newMenuToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('??? Clique no menu detectado');
-                
-                const isOpen = sidebar.classList.contains('open') || 
-                              sidebar.classList.contains('menu-aberto') ||
-                              sidebar.style.transform === 'translateX(0px)' ||
-                              sidebar.style.left === '0px';
-                
-                if (isOpen) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
-                }
-            });
-            
-            // Event listener para o overlay
-            if (overlay) {
-                overlay.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    closeSidebar();
-                    console.log('?? Sidebar fechado via overlay');
-                });
-            }
-            
-            // Event listener para a tecla ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    const isOpen = sidebar.classList.contains('open') || 
-                                  sidebar.classList.contains('menu-aberto');
-                    if (isOpen) {
-                        closeSidebar();
-                        console.log('?? Sidebar fechado via ESC');
-                    }
-                }
-            });
-            
-            // Event listener para bot�o de fechar (se existir)
-            const closeButton = document.getElementById('sidebar-close') || 
-                               document.querySelector('.sidebar-close') ||
-                               document.querySelector('#sidebar .close-btn');
-            if (closeButton) {
-                closeButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    closeSidebar();
-                    console.log('?? Sidebar fechado via bot�o fechar');
-                });
-            }
-            
-            // Implementar funcionalidade de accordion
-            const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
-            console.log('?? Itens do menu encontrados:', menuItems.length);
-            
-            menuItems.forEach(function(item) {
-                const link = item.querySelector('.menu-link');
-                const submenu = item.querySelector('.submenu');
-                
-                if (link && submenu) {
-                    // Remover event listeners existentes
-                    const newLink = link.cloneNode(true);
-                    link.parentNode.replaceChild(newLink, link);
-                    
-                    newLink.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        console.log('??? Clique no menu:', newLink.textContent.trim());
-                        
-                        // Fechar outros submenus
-                        menuItems.forEach(function(otherItem) {
-                            if (otherItem !== item) {
-                                otherItem.classList.remove('expanded');
-                                const otherSubmenu = otherItem.querySelector('.submenu');
-                                if (otherSubmenu) {
-                                    otherSubmenu.style.display = 'none';
+        <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
+        <script src="../assets/js/utils/excel-import-manager.js?v=20250127003" defer></script>
+        <script src="../assets/js/core/sidebar-menu.js?v=20250127003" defer></script>
+
+        <!-- Script Melhorado do Accordion -->
+        <script>
+            // Fun��o melhorada para inicializar o accordion
+            function initializeImprovedAccordion() {
+                console.log('?? Inicializando accordion melhorado...');
+
+                // Aguarda um pouco para garantir que todos os elementos estejam prontos
+                setTimeout(() => {
+                    // Seleciona todos os itens de submenu
+                    const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                    console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
+
+                    submenuItems.forEach((menuItem, index) => {
+                        // Encontra o link clic�vel dentro do item
+                        const menuLink = menuItem.querySelector('.menu-link, a');
+                        const submenu = menuItem.querySelector('.submenu');
+                        const arrowIcon = menuItem.querySelector('.arrow-icon');
+
+                        if (menuLink && submenu) {
+                            // Remove event listeners existentes clonando o elemento
+                            const newMenuLink = menuLink.cloneNode(true);
+                            menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+
+                            // Adiciona novo event listener melhorado
+                            newMenuLink.addEventListener('click', function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                console.log(`??? Clique no item ${index + 1}`);
+
+                                // Fecha todos os outros submenus
+                                const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                                allMenuItems.forEach(item => {
+                                    if (item !== menuItem) {
+                                        item.classList.remove('expanded');
+                                    }
+                                });
+
+                                // Toggle do item atual
+                                menuItem.classList.toggle('expanded');
+
+                                const isExpanded = menuItem.classList.contains('expanded');
+                                console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra�do'}`);
+
+                                // Atualiza o �cone da seta se existir
+                                if (arrowIcon) {
+                                    arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
                                 }
-                            }
-                        });
-                        
-                        // Alternar o submenu atual
-                        const isExpanded = item.classList.contains('expanded');
-                        if (isExpanded) {
-                            item.classList.remove('expanded');
-                            submenu.style.display = 'none';
-                            console.log('?? Submenu fechado:', newLink.textContent.trim());
+                            });
+
+                            console.log(`? Evento vinculado ao item ${index + 1}`);
                         } else {
-                            item.classList.add('expanded');
-                            submenu.style.display = 'block';
-                            console.log('?? Submenu aberto:', newLink.textContent.trim());
+                            console.warn(`?? Item ${index + 1} n�o tem link ou submenu v�lido`);
                         }
                     });
-                    
-                    console.log('? Event listener adicionado para:', link.textContent.trim());
+
+                    console.log('? Accordion melhorado inicializado com sucesso!');
+                }, 100);
+            }
+
+            // Inicializa quando o DOM estiver pronto
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+            } else {
+                initializeImprovedAccordion();
+            }
+
+            // Tamb�m disponibiliza globalmente para re-inicializa��o manual
+            window.reinitializeAccordion = initializeImprovedAccordion;
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003"
+            defer></script>
+        <script src="../assets/js/features/inadimplentes.js?v=20250127003" defer></script>
+        <script>
+            // Configurar estado ativo do menu baseado na p�gina atual
+            document.addEventListener('DOMContentLoaded', function () {
+                const currentPage = 'pages/inadimplentes.html';
+                const sidebarLinks = document.querySelectorAll('#sidebar .submenu a');
+
+                sidebarLinks.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === currentPage) {
+                        link.classList.add('active');
+                        // Expandir o submenu pai se necess�rio
+                        const parentSubmenu = link.closest('.submenu');
+                        if (parentSubmenu) {
+                            const parentMenuItem = parentSubmenu.closest('.menu-item');
+                            if (parentMenuItem) {
+                                parentMenuItem.classList.add('expanded');
+                            }
+                        }
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            });
+        </script>
+
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+
+
+
+
+        <!-- Corre��o Completa do Sidebar com Accordion -->
+        <script>
+            (function () {
+                'use strict';
+
+                // Aguardar que todos os scripts sejam carregados
+                function initializeSidebar() {
+                    console.log('?? Inicializando corre��o completa do sidebar...');
+
+                    const menuToggle = document.getElementById('menu-toggle');
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('sidebar-overlay');
+
+                    if (!menuToggle) {
+                        console.error('? Bot�o do menu n�o encontrado!');
+                        return;
+                    }
+
+                    if (!sidebar) {
+                        console.error('? Sidebar n�o encontrado!');
+                        return;
+                    }
+
+                    console.log('? Elementos encontrados - aplicando corre��o...');
+
+                    // Limpar todos os event listeners existentes
+                    const newMenuToggle = menuToggle.cloneNode(true);
+                    menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+
+                    // Fun��o para abrir o sidebar
+                    function openSidebar() {
+                        sidebar.classList.add('open', 'menu-aberto');
+                        sidebar.style.transform = 'translateX(0)';
+                        sidebar.style.left = '0';
+                        if (overlay) {
+                            overlay.classList.add('active');
+                            overlay.style.display = 'block';
+                        }
+                        document.body.style.overflow = 'hidden';
+                        console.log('?? Sidebar aberto');
+                    }
+
+                    // Fun��o para fechar o sidebar
+                    function closeSidebar() {
+                        sidebar.classList.remove('open', 'menu-aberto');
+                        sidebar.style.transform = 'translateX(-100%)';
+                        sidebar.style.left = '-280px';
+                        if (overlay) {
+                            overlay.classList.remove('active');
+                            overlay.style.display = 'none';
+                        }
+                        document.body.style.overflow = '';
+                        console.log('?? Sidebar fechado');
+                    }
+
+                    // Event listener para o bot�o do menu
+                    newMenuToggle.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        console.log('??? Clique no menu detectado');
+
+                        const isOpen = sidebar.classList.contains('open') ||
+                            sidebar.classList.contains('menu-aberto') ||
+                            sidebar.style.transform === 'translateX(0px)' ||
+                            sidebar.style.left === '0px';
+
+                        if (isOpen) {
+                            closeSidebar();
+                        } else {
+                            openSidebar();
+                        }
+                    });
+
+                    // Event listener para o overlay
+                    if (overlay) {
+                        overlay.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            closeSidebar();
+                            console.log('?? Sidebar fechado via overlay');
+                        });
+                    }
+
+                    // Event listener para a tecla ESC
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape') {
+                            const isOpen = sidebar.classList.contains('open') ||
+                                sidebar.classList.contains('menu-aberto');
+                            if (isOpen) {
+                                closeSidebar();
+                                console.log('?? Sidebar fechado via ESC');
+                            }
+                        }
+                    });
+
+                    // Event listener para bot�o de fechar (se existir)
+                    const closeButton = document.getElementById('sidebar-close') ||
+                        document.querySelector('.sidebar-close') ||
+                        document.querySelector('#sidebar .close-btn');
+                    if (closeButton) {
+                        closeButton.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            closeSidebar();
+                            console.log('?? Sidebar fechado via bot�o fechar');
+                        });
+                    }
+
+                    // Implementar funcionalidade de accordion
+                    const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+                    console.log('?? Itens do menu encontrados:', menuItems.length);
+
+                    menuItems.forEach(function (item) {
+                        const link = item.querySelector('.menu-link');
+                        const submenu = item.querySelector('.submenu');
+
+                        if (link && submenu) {
+                            // Remover event listeners existentes
+                            const newLink = link.cloneNode(true);
+                            link.parentNode.replaceChild(newLink, link);
+
+                            newLink.addEventListener('click', function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                console.log('??? Clique no menu:', newLink.textContent.trim());
+
+                                // Fechar outros submenus
+                                menuItems.forEach(function (otherItem) {
+                                    if (otherItem !== item) {
+                                        otherItem.classList.remove('expanded');
+                                        const otherSubmenu = otherItem.querySelector('.submenu');
+                                        if (otherSubmenu) {
+                                            otherSubmenu.style.display = 'none';
+                                        }
+                                    }
+                                });
+
+                                // Alternar o submenu atual
+                                const isExpanded = item.classList.contains('expanded');
+                                if (isExpanded) {
+                                    item.classList.remove('expanded');
+                                    submenu.style.display = 'none';
+                                    console.log('?? Submenu fechado:', newLink.textContent.trim());
+                                } else {
+                                    item.classList.add('expanded');
+                                    submenu.style.display = 'block';
+                                    console.log('?? Submenu aberto:', newLink.textContent.trim());
+                                }
+                            });
+
+                            console.log('? Event listener adicionado para:', link.textContent.trim());
+                        }
+                    });
+
+
+                    // Garantir que o sidebar inicie fechado
+                    closeSidebar();
+
+                    console.log('? Corre��o completa do sidebar aplicada com sucesso!');
                 }
-            });
-                
-            
-            // Garantir que o sidebar inicie fechado
-            closeSidebar();
-            
-            console.log('? Corre��o completa do sidebar aplicada com sucesso!');
-        }
-        
-        // Inicializar quando o DOM estiver pronto
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(initializeSidebar, 1000);
-            });
-        } else {
-            setTimeout(initializeSidebar, 1000);
-        }
-        
-    })();
-    </script>
+
+                // Inicializar quando o DOM estiver pronto
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function () {
+                        setTimeout(initializeSidebar, 1000);
+                    });
+                } else {
+                    setTimeout(initializeSidebar, 1000);
+                }
+
+            })();
+        </script>
 </body>
+
 </html>
-
-
-
 

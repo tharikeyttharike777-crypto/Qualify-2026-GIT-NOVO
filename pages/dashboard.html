@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +13,14 @@
     <link rel="stylesheet" href="../assets/css/sidebar-fix.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/dashboard.css?v=20250127003">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003" rel="stylesheet">
-    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003"
+        rel="stylesheet">
+
     <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js?v=20250127003"></script>
-    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
 </head>
+
 <body>
     <div class="container">
         <!-- Header -->
@@ -27,9 +30,10 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="logo">
-                     <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24" style="margin-right: 8px;">
-                     <span class="logo-text">QUALIFY - Sistema de gestão</span>
-                 </div>
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
+                        style="margin-right: 8px;">
+                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                </div>
             </div>
             <div class="header-center">
                 <div class="search-container">
@@ -46,13 +50,14 @@
                 <div class="user-info">
                     <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
                 </div>
-                
+
                 <!-- Menu de Usuário -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário" aria-expanded="false">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                        aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
-                    
+
                     <!-- Dropdown Menu -->
                     <div class="user-dropdown" id="userDropdown" role="menu" aria-hidden="true">
                         <div class="dropdown-content">
@@ -61,25 +66,26 @@
                                 <i class="fas fa-user"></i>
                                 <span>Perfil</span>
                             </a>
-                            
+
                             <!-- Item 2: Trocar de Empresa -->
-                            <a href="trocar-empresa.html" class="dropdown-item" role="menuitem" data-action="switch-company">
+                            <a href="trocar-empresa.html" class="dropdown-item" role="menuitem"
+                                data-action="switch-company">
                                 <i class="fas fa-building"></i>
                                 <span>Trocar de Empresa</span>
                             </a>
-                            
+
                             <!-- Item 3: Configurações -->
                             <a href="configuracoes.html" class="dropdown-item" role="menuitem" data-action="settings">
                                 <i class="fas fa-cog"></i>
                                 <span>Configurações</span>
                             </a>
-                            
+
                             <!-- Item 4: Minha Conta (com submenu) -->
                             <div class="dropdown-item has-submenu" role="menuitem" tabindex="0" data-action="account">
                                 <i class="fas fa-wallet"></i>
                                 <span>Minha Conta</span>
                                 <i class="fas fa-chevron-right submenu-arrow"></i>
-                                
+
                                 <!-- Submenu -->
                                 <div class="submenu" role="menu">
                                     <a href="extrato.html" class="submenu-item" role="menuitem">
@@ -96,22 +102,23 @@
                                     </a>
                                 </div>
                             </div>
-                            
+
                             <!-- Item 5: Área do Associado -->
-                            <a href="area-associado-login.html" class="dropdown-item" role="menuitem" data-action="associate-area" target="_blank">
+                            <a href="area-associado-login.html" class="dropdown-item" role="menuitem"
+                                data-action="associate-area" target="_blank">
                                 <i class="fas fa-external-link-alt"></i>
                                 <span>Área do Associado</span>
                             </a>
-                            
+
                             <!-- Item 6: Catálogo de Planos -->
                             <a href="catalogo-planos.html" class="dropdown-item" role="menuitem" data-action="catalog">
                                 <i class="fas fa-book"></i>
                                 <span>Catálogo de Planos</span>
                             </a>
-                            
+
                             <!-- Separador -->
                             <div class="dropdown-separator"></div>
-                            
+
                             <!-- Item 7: Sair -->
                             <button class="dropdown-item logout-item" id="logoutBtn" role="menuitem">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -120,96 +127,96 @@
                         </div>
                     </div>
                 </div>
-            
-            <div class="logout-container">
-                <!-- Botão de logout será inserido aqui pelo auth-manager -->
-            </div>
-        </div>
-    </header>
 
-    <!-- Menu Lateral Fixo -->
-    <nav id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h3>Menu</h3>
-            <button id="sidebar-close" class="sidebar-close">&times;</button>
-        </div>
-        
-        <div class="sidebar-content">
-            <ul class="sidebar-menu">
-                <!-- Mais usados -->
-                <li class="menu-item has-submenu expanded">
-                    <a href="#" class="menu-link">
-                        <i class="icon-star"></i>
-                        <span class="menu-text">Mais usados</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="../pages/pesquisa-simplificada.html">Pesquisa simplificada</a></li>
-                        <li><a href="../pages/pesquisa-planos.html">Pesquisa de Planos</a></li>
-                        <li><a href="../pages/dashboard.html" class="active">Dashboard</a></li>
-                        <li><a href="../pages/inadimplentes.html">Inadimplentes</a></li>
-                        <li><a href="../pages/dre-gerencial.html">DRE Gerencial</a></li>
-                        <li><a href="../pages/metricas-estrategicas.html">Métricas Estratégicas</a></li>
-                        <li><a href="../pages/controle-caixas.html">Controle de caixas</a></li>
-                        <li><a href="../pages/contas-receber.html">Contas a receber</a></li>
-                        
-                    </ul>
-                </li>
-                
-                <!-- Contratos -->
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">
-                        <i class="icon-contract"></i>
-                        <span class="menu-text">Contratos</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="contratos.html">Ativos</a></li>
-                        <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
-                        <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
-                        <li><a href="cancelados.html">Cancelados</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Financeiro -->
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">
-                        <i class="icon-money"></i>
-                        <span class="menu-text">Financeiro</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
-                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
-                        <li><a href="contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="resumo-dia.html">Resumo do dia</a></li>
-                        <li><a href="comissionamento.html">Comissionamento</a></li>
-                        <li><a href="metas.html">Metas</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Famílias -->
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">
-                        <i class="icon-family"></i>
-                        <span class="menu-text">Famílias</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
-                        <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
-                <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
-                        <li><a href="aniversariantes.html">Aniversariantes</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </nav>
-    
-    <!-- Overlay para fechar o menu em dispositivos móveis -->
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+                <div class="logout-container">
+                    <!-- Botão de logout será inserido aqui pelo auth-manager -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Menu Lateral Fixo -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+                <button id="sidebar-close" class="sidebar-close">&times;</button>
+            </div>
+
+            <div class="sidebar-content">
+                <ul class="sidebar-menu">
+                    <!-- Mais usados -->
+                    <li class="menu-item has-submenu expanded">
+                        <a href="#" class="menu-link">
+                            <i class="icon-star"></i>
+                            <span class="menu-text">Mais usados</span>
+                            <i class="arrow-icon">▼</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="../pages/pesquisa-simplificada.html">Pesquisa simplificada</a></li>
+                            <li><a href="../pages/pesquisa-planos.html">Pesquisa de Planos</a></li>
+                            <li><a href="../pages/dashboard.html" class="active">Dashboard</a></li>
+                            <li><a href="../pages/inadimplentes.html">Inadimplentes</a></li>
+                            <li><a href="../pages/dre-gerencial.html">DRE Gerencial</a></li>
+                            <li><a href="../pages/metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="../pages/controle-caixas.html">Controle de caixas</a></li>
+                            <li><a href="../pages/contas-receber.html">Contas a receber</a></li>
+
+                        </ul>
+                    </li>
+
+                    <!-- Contratos -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-contract"></i>
+                            <span class="menu-text">Contratos</span>
+                            <i class="arrow-icon">▼</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="contratos.html">Ativos</a></li>
+                            <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                            <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                            <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
+                            <li><a href="cancelados.html">Cancelados</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Financeiro -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-money"></i>
+                            <span class="menu-text">Financeiro</span>
+                            <i class="arrow-icon">▼</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="contas-pagar.html">Contas a pagar</a></li>
+                            <li><a href="resumo-dia.html">Resumo do dia</a></li>
+                            <li><a href="comissionamento.html">Comissionamento</a></li>
+                            <li><a href="metas.html">Metas</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Famílias -->
+                    <li class="menu-item has-submenu">
+                        <a href="#" class="menu-link">
+                            <i class="icon-family"></i>
+                            <span class="menu-text">Famílias</span>
+                            <i class="arrow-icon">▼</i>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                            <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
+                            <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
+                            <li><a href="aniversariantes.html">Aniversariantes</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Overlay para fechar o menu em dispositivos móveis -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -223,9 +230,9 @@
             <!-- Page Header -->
             <div class="page-header">
                 <h1>Dashboard</h1>
-                
+
                 <!-- Top Action Bar removida conforme solicitação -->
-                
+
                 <div class="dashboard-filters">
                     <div class="filter-group">
                         <label>Período de referência:</label>
@@ -442,7 +449,7 @@
                     <button class="tab-button" data-tab="date-range">Período</button>
                     <button class="tab-button" data-tab="comparison">Comparação</button>
                 </div>
-                
+
                 <div class="tab-content active" id="quick-filters">
                     <div class="filter-section">
                         <h4>Filtros Rápidos</h4>
@@ -468,7 +475,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tab-content" id="advanced-filters">
                     <div class="filter-section">
                         <h4>Filtros Avançados</h4>
@@ -501,7 +508,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tab-content" id="date-range">
                     <div class="filter-section">
                         <h4>Configuração de Período</h4>
@@ -526,7 +533,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tab-content" id="comparison">
                     <div class="filter-section">
                         <h4>Comparação de Períodos</h4>
@@ -556,7 +563,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Dashboard Options Modal -->
     <div id="optionsModal" class="modal">
         <div class="modal-content">
@@ -571,7 +578,7 @@
                     <button class="tab-button" data-tab="export-options">Exportação</button>
                     <button class="tab-button" data-tab="notifications">Notificações</button>
                 </div>
-                
+
                 <div class="tab-content active" id="display-options">
                     <div class="options-section">
                         <h4>Configurações de Visualização</h4>
@@ -607,7 +614,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tab-content" id="chart-options">
                     <div class="options-section">
                         <h4>Configurações dos Gráficos</h4>
@@ -643,7 +650,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tab-content" id="export-options">
                     <div class="options-section">
                         <h4>Opções de Exportação</h4>
@@ -685,7 +692,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tab-content" id="notifications">
                     <div class="options-section">
                         <h4>Configurações de Notificações</h4>
@@ -720,285 +727,273 @@
         </div>
     </div>
 
-    <!-- Scripts de Autenticação -->
-    <!-- ORDEM CORRETA: firebase-config.js PRIMEIRO -->
-<script src="../firebase-config.js?v=20250127003"></script>
+    <!-- Supabase SDK e Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
 
-<!-- Firestore Error Suppressor - DEVE ser carregado ANTES dos scripts do Firebase -->
-<script src="../assets/js/firestore-error-suppressor.js?v=20250127003"></script>
+    <!-- Utilitário de retry de rede -->
+    <script src="../assets/js/utils/network-retry.js"></script>
 
-<!-- Scripts do Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003"></script>
+    <!-- Scripts de compatibilidade para hospedagem -->
+    <script src="../assets/js/utils/resource-preloader.js?v=20250127003"></script>
+    <script src="../assets/js/utils/hosting-compatibility.js?v=20250127003"></script>
 
-<!-- Utilitário de retry de rede -->
-<script src="../assets/js/network-retry.js"></script>
-
-<!-- Scripts de compatibilidade para hospedagem -->
-<script src="../assets/js/resource-preloader.js?v=20250127003"></script>
-<script src="../assets/js/hosting-compatibility.js?v=20250127003"></script>
-
-<!-- Scripts locais -->
-<script src="../assets/js/auth-guard.js?v=20250127003" defer></script>
-<script src="../assets/js/multitenant-config.js?v=20250127003" defer></script>
-<script src="../assets/js/user-data-manager.js?v=20250127003" defer></script>
-<script src="../assets/js/auth-manager.js?v=20250127003" defer></script>
-<script src="../assets/js/firestore-utils.js?v=20250127003" defer></script>
-<script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+    <!-- Scripts locais -->
+    <script src="../assets/js/core/auth-guard.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/multitenant-config.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/user-data-manager.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/auth-manager.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/sidebar-menu.js?v=20250127003" defer></script>
 
     <!-- Script Melhorado do Accordion -->
     <script>
-    // Função melhorada para inicializar o accordion
-    function initializeImprovedAccordion() {
-        console.log('🔄 Inicializando accordion melhorado...');
-        
-        // Aguarda um pouco para garantir que todos os elementos estejam prontos
-        setTimeout(() => {
-            // Seleciona todos os itens de submenu
-            const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
-            console.log(`📊 Encontrados ${submenuItems.length} itens de submenu`);
-            
-            submenuItems.forEach((menuItem, index) => {
-                // Encontra o link clicável dentro do item
-                const menuLink = menuItem.querySelector('.menu-link, a');
-                const submenu = menuItem.querySelector('.submenu');
-                const arrowIcon = menuItem.querySelector('.arrow-icon');
-                
-                if (menuLink && submenu) {
-                    // Remove event listeners existentes clonando o elemento
-                    const newMenuLink = menuLink.cloneNode(true);
-                    menuLink.parentNode.replaceChild(newMenuLink, menuLink);
-                    
-                    // Adiciona novo event listener melhorado
-                    newMenuLink.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        console.log(`🖱️ Clique no item ${index + 1}`);
-                        
-                        // Fecha todos os outros submenus
-                        const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
-                        allMenuItems.forEach(item => {
-                            if (item !== menuItem) {
-                                item.classList.remove('expanded');
+        // Função melhorada para inicializar o accordion
+        function initializeImprovedAccordion() {
+            console.log('🔄 Inicializando accordion melhorado...');
+
+            // Aguarda um pouco para garantir que todos os elementos estejam prontos
+            setTimeout(() => {
+                // Seleciona todos os itens de submenu
+                const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                console.log(`📊 Encontrados ${submenuItems.length} itens de submenu`);
+
+                submenuItems.forEach((menuItem, index) => {
+                    // Encontra o link clicável dentro do item
+                    const menuLink = menuItem.querySelector('.menu-link, a');
+                    const submenu = menuItem.querySelector('.submenu');
+                    const arrowIcon = menuItem.querySelector('.arrow-icon');
+
+                    if (menuLink && submenu) {
+                        // Remove event listeners existentes clonando o elemento
+                        const newMenuLink = menuLink.cloneNode(true);
+                        menuLink.parentNode.replaceChild(newMenuLink, menuLink);
+
+                        // Adiciona novo event listener melhorado
+                        newMenuLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log(`🖱️ Clique no item ${index + 1}`);
+
+                            // Fecha todos os outros submenus
+                            const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                            allMenuItems.forEach(item => {
+                                if (item !== menuItem) {
+                                    item.classList.remove('expanded');
+                                }
+                            });
+
+                            // Toggle do item atual
+                            menuItem.classList.toggle('expanded');
+
+                            const isExpanded = menuItem.classList.contains('expanded');
+                            console.log(`${isExpanded ? '📂' : '📁'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+
+                            // Atualiza o ícone da seta se existir
+                            if (arrowIcon) {
+                                arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
                             }
                         });
-                        
-                        // Toggle do item atual
-                        menuItem.classList.toggle('expanded');
-                        
-                        const isExpanded = menuItem.classList.contains('expanded');
-                        console.log(`${isExpanded ? '📂' : '📁'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
-                        
-                        // Atualiza o ícone da seta se existir
-                        if (arrowIcon) {
-                            arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
-                        }
-                    });
-                    
-                    console.log(`✅ Evento vinculado ao item ${index + 1}`);
-                } else {
-                    console.warn(`⚠️ Item ${index + 1} não tem link ou submenu válido`);
-                }
-            });
-            
-            console.log('✅ Accordion melhorado inicializado com sucesso!');
-        }, 100);
-    }
-    
-    // Inicializa quando o DOM estiver pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
-    } else {
-        initializeImprovedAccordion();
-    }
-    
-    // Também disponibiliza globalmente para re-inicialização manual
-    window.reinitializeAccordion = initializeImprovedAccordion;
+
+                        console.log(`✅ Evento vinculado ao item ${index + 1}`);
+                    } else {
+                        console.warn(`⚠️ Item ${index + 1} não tem link ou submenu válido`);
+                    }
+                });
+
+                console.log('✅ Accordion melhorado inicializado com sucesso!');
+            }, 100);
+        }
+
+        // Inicializa quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+        } else {
+            initializeImprovedAccordion();
+        }
+
+        // Também disponibiliza globalmente para re-inicialização manual
+        window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
-<script src="../assets/js/user-menu.js?v=20250127003" defer></script>
-<script src="../assets/js/dashboard-new.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/features/dashboard-new.js?v=20250127003" defer></script>
 
-    
 
-    
+
+
 
     <!-- Correção Completa do Sidebar com Accordion -->
     <script>
-    (function() {
-        'use strict';
-        
-        // Aguardar que todos os scripts sejam carregados
-        function initializeSidebar() {
-            console.log('🔧 Inicializando correção completa do sidebar...');
-            
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            
-            if (!menuToggle) {
-                console.error('❌ Botão do menu não encontrado!');
-                return;
-            }
-            
-            if (!sidebar) {
-                console.error('❌ Sidebar não encontrado!');
-                return;
-            }
-            
-            console.log('✅ Elementos encontrados - aplicando correção...');
-            
-            // Limpar todos os event listeners existentes
-            const newMenuToggle = menuToggle.cloneNode(true);
-            menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
-            
-            // Função para abrir o sidebar
-            function openSidebar() {
-                sidebar.classList.add('open', 'menu-aberto');
-                sidebar.style.transform = 'translateX(0)';
-                sidebar.style.left = '0';
-                if (overlay) {
-                    overlay.classList.add('active');
-                    overlay.style.display = 'block';
+        (function () {
+            'use strict';
+
+            // Aguardar que todos os scripts sejam carregados
+            function initializeSidebar() {
+                console.log('🔧 Inicializando correção completa do sidebar...');
+
+                const menuToggle = document.getElementById('menu-toggle');
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+
+                if (!menuToggle) {
+                    console.error('❌ Botão do menu não encontrado!');
+                    return;
                 }
-                document.body.style.overflow = 'hidden';
-                console.log('🔓 Sidebar aberto');
-            }
-            
-            // Função para fechar o sidebar
-            function closeSidebar() {
-                sidebar.classList.remove('open', 'menu-aberto');
-                sidebar.style.transform = 'translateX(-100%)';
-                sidebar.style.left = '-280px';
-                if (overlay) {
-                    overlay.classList.remove('active');
-                    overlay.style.display = 'none';
+
+                if (!sidebar) {
+                    console.error('❌ Sidebar não encontrado!');
+                    return;
                 }
-                document.body.style.overflow = '';
-                console.log('🔒 Sidebar fechado');
-            }
-            
-            // Event listener para o botão do menu
-            newMenuToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('🖱️ Clique no menu detectado');
-                
-                const isOpen = sidebar.classList.contains('open') || 
-                              sidebar.classList.contains('menu-aberto') ||
-                              sidebar.style.transform === 'translateX(0px)' ||
-                              sidebar.style.left === '0px';
-                
-                if (isOpen) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
+
+                console.log('✅ Elementos encontrados - aplicando correção...');
+
+                // Limpar todos os event listeners existentes
+                const newMenuToggle = menuToggle.cloneNode(true);
+                menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+
+                // Função para abrir o sidebar
+                function openSidebar() {
+                    sidebar.classList.add('open', 'menu-aberto');
+                    sidebar.style.transform = 'translateX(0)';
+                    sidebar.style.left = '0';
+                    if (overlay) {
+                        overlay.classList.add('active');
+                        overlay.style.display = 'block';
+                    }
+                    document.body.style.overflow = 'hidden';
+                    console.log('🔓 Sidebar aberto');
                 }
-            });
-            
-            // Event listener para o overlay
-            if (overlay) {
-                overlay.addEventListener('click', function(e) {
+
+                // Função para fechar o sidebar
+                function closeSidebar() {
+                    sidebar.classList.remove('open', 'menu-aberto');
+                    sidebar.style.transform = 'translateX(-100%)';
+                    sidebar.style.left = '-280px';
+                    if (overlay) {
+                        overlay.classList.remove('active');
+                        overlay.style.display = 'none';
+                    }
+                    document.body.style.overflow = '';
+                    console.log('🔒 Sidebar fechado');
+                }
+
+                // Event listener para o botão do menu
+                newMenuToggle.addEventListener('click', function (e) {
                     e.preventDefault();
-                    closeSidebar();
-                    console.log('🔒 Sidebar fechado via overlay');
-                });
-            }
-            
-            // Event listener para a tecla ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    const isOpen = sidebar.classList.contains('open') || 
-                                  sidebar.classList.contains('menu-aberto');
+                    e.stopPropagation();
+
+                    console.log('🖱️ Clique no menu detectado');
+
+                    const isOpen = sidebar.classList.contains('open') ||
+                        sidebar.classList.contains('menu-aberto') ||
+                        sidebar.style.transform === 'translateX(0px)' ||
+                        sidebar.style.left === '0px';
+
                     if (isOpen) {
                         closeSidebar();
-                        console.log('🔒 Sidebar fechado via ESC');
+                    } else {
+                        openSidebar();
                     }
-                }
-            });
-            
-            // Event listener para botão de fechar (se existir)
-            const closeButton = document.getElementById('sidebar-close') || 
-                               document.querySelector('.sidebar-close') ||
-                               document.querySelector('#sidebar .close-btn');
-            if (closeButton) {
-                closeButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    closeSidebar();
-                    console.log('🔒 Sidebar fechado via botão fechar');
                 });
-            }
-            
-            // Implementar funcionalidade de accordion
-            const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
-            console.log('🔍 Itens do menu encontrados:', menuItems.length);
-            
-            menuItems.forEach(function(item) {
-                const link = item.querySelector('.menu-link');
-                const submenu = item.querySelector('.submenu');
-                
-                if (link && submenu) {
-                    // Remover event listeners existentes
-                    const newLink = link.cloneNode(true);
-                    link.parentNode.replaceChild(newLink, link);
-                    
-                    newLink.addEventListener('click', function(e) {
+
+                // Event listener para o overlay
+                if (overlay) {
+                    overlay.addEventListener('click', function (e) {
                         e.preventDefault();
-                        e.stopPropagation();
-                        
-                        console.log('🖱️ Clique no menu:', newLink.textContent.trim());
-                        
-                        // Fechar outros submenus
-                        menuItems.forEach(function(otherItem) {
-                            if (otherItem !== item) {
-                                otherItem.classList.remove('expanded');
-                                const otherSubmenu = otherItem.querySelector('.submenu');
-                                if (otherSubmenu) {
-                                    otherSubmenu.style.display = 'none';
+                        closeSidebar();
+                        console.log('🔒 Sidebar fechado via overlay');
+                    });
+                }
+
+                // Event listener para a tecla ESC
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        const isOpen = sidebar.classList.contains('open') ||
+                            sidebar.classList.contains('menu-aberto');
+                        if (isOpen) {
+                            closeSidebar();
+                            console.log('🔒 Sidebar fechado via ESC');
+                        }
+                    }
+                });
+
+                // Event listener para botão de fechar (se existir)
+                const closeButton = document.getElementById('sidebar-close') ||
+                    document.querySelector('.sidebar-close') ||
+                    document.querySelector('#sidebar .close-btn');
+                if (closeButton) {
+                    closeButton.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        closeSidebar();
+                        console.log('🔒 Sidebar fechado via botão fechar');
+                    });
+                }
+
+                // Implementar funcionalidade de accordion
+                const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+                console.log('🔍 Itens do menu encontrados:', menuItems.length);
+
+                menuItems.forEach(function (item) {
+                    const link = item.querySelector('.menu-link');
+                    const submenu = item.querySelector('.submenu');
+
+                    if (link && submenu) {
+                        // Remover event listeners existentes
+                        const newLink = link.cloneNode(true);
+                        link.parentNode.replaceChild(newLink, link);
+
+                        newLink.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            console.log('🖱️ Clique no menu:', newLink.textContent.trim());
+
+                            // Fechar outros submenus
+                            menuItems.forEach(function (otherItem) {
+                                if (otherItem !== item) {
+                                    otherItem.classList.remove('expanded');
+                                    const otherSubmenu = otherItem.querySelector('.submenu');
+                                    if (otherSubmenu) {
+                                        otherSubmenu.style.display = 'none';
+                                    }
                                 }
+                            });
+
+                            // Alternar o submenu atual
+                            const isExpanded = item.classList.contains('expanded');
+                            if (isExpanded) {
+                                item.classList.remove('expanded');
+                                submenu.style.display = 'none';
+                                console.log('📁 Submenu fechado:', newLink.textContent.trim());
+                            } else {
+                                item.classList.add('expanded');
+                                submenu.style.display = 'block';
+                                console.log('📂 Submenu aberto:', newLink.textContent.trim());
                             }
                         });
-                        
-                        // Alternar o submenu atual
-                        const isExpanded = item.classList.contains('expanded');
-                        if (isExpanded) {
-                            item.classList.remove('expanded');
-                            submenu.style.display = 'none';
-                            console.log('📁 Submenu fechado:', newLink.textContent.trim());
-                        } else {
-                            item.classList.add('expanded');
-                            submenu.style.display = 'block';
-                            console.log('📂 Submenu aberto:', newLink.textContent.trim());
-                        }
-                    });
-                    
-                    console.log('✅ Event listener adicionado para:', link.textContent.trim());
-                }
-            });
-                
-            
-            // Garantir que o sidebar inicie fechado
-            closeSidebar();
-            
-            console.log('✅ Correção completa do sidebar aplicada com sucesso!');
-        }
-        
-        // Inicializar quando o DOM estiver pronto
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
+
+                        console.log('✅ Event listener adicionado para:', link.textContent.trim());
+                    }
+                });
+
+
+                // Garantir que o sidebar inicie fechado
+                closeSidebar();
+
+                console.log('✅ Correção completa do sidebar aplicada com sucesso!');
+            }
+
+            // Inicializar quando o DOM estiver pronto
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(initializeSidebar, 1000);
+                });
+            } else {
                 setTimeout(initializeSidebar, 1000);
-            });
-        } else {
-            setTimeout(initializeSidebar, 1000);
-        }
-        
-    })();
+            }
+
+        })();
     </script>
 </body>
+
 </html>
-
-
-
-

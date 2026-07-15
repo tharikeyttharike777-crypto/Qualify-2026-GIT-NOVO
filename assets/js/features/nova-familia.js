@@ -8,17 +8,16 @@ let editingDependenteId = null;
 let currentContractParticipants = [];
 let contractParticipantsPool = [];
 
-function waitForFirebaseReady(timeoutMs = 5000) {
+async function waitForSupabaseReady(timeoutMs = 5000) {
     return new Promise((resolve) => {
-        if (window.firebase && window.db) { resolve(true); return; }
+        if (window.supabase) { resolve(true); return; }
         let elapsed = 0;
         const interval = 100;
         const check = () => {
-            if (window.firebase && window.db) resolve(true);
+            if (window.supabase) resolve(true);
             else if (elapsed >= timeoutMs) resolve(false);
             else { elapsed += interval; setTimeout(check, interval); }
         };
-        window.addEventListener('firebaseReady', () => resolve(true), { once: true });
         check();
     });
 }
@@ -125,25 +124,35 @@ async function prefillIfEditing() {
         let familias = JSON.parse(localStorage.getItem('familias') || '[]');
         let familia = familias.find(f => String(f.id) === String(editId));
 
-        // Se não encontrou localmente, tenta buscar do Firestore
+        // Se não encontrou localmente, tenta buscar do Supabase
         if (!familia) {
             try {
-                const activeCompanyStr = localStorage.getItem('activeCompany');
-                let activeCompany = null;
-                try { activeCompany = activeCompanyStr ? JSON.parse(activeCompanyStr) : null; } catch (e) { activeCompany = null; }
-                const companyId = activeCompany?.id || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
-                if (companyId && typeof window !== 'undefined' && window.db) {
-                    const db = window.db;
-                    const famDoc = await db.collection(`empresas/${companyId}/familias`).doc(String(editId)).get();
-                    if (famDoc && famDoc.exists) {
-                        familia = { id: String(editId), ...famDoc.data() };
+                const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+                if (companyId && window.supabase) {
+                    const { data, error } = await window.supabase
+                        .from('familias')
+                        .select('*')
+                        .eq('id', editId)
+                        .eq('company_id', companyId)
+                        .single();
+
+                    if (data && !error) {
+                        familia = {
+                            id: data.id,
+                            ...data.metadata,
+                            titular: data.titular,
+                            dependentes: data.dependentes,
+                            endereco: data.endereco,
+                            status: data.status,
+                            companyId: data.company_id
+                        };
                         // cache local para futuras edições
                         familias.push(familia);
                         try { localStorage.setItem('familias', JSON.stringify(familias)); } catch (e) { }
                     }
                 }
-            } catch (fsErr) {
-                console.warn('Falha ao buscar família no Firestore para prefill:', fsErr);
+            } catch (sbErr) {
+                console.warn('Falha ao buscar família no Supabase para prefill:', sbErr);
             }
         }
         if (!familia) {
@@ -153,28 +162,28 @@ async function prefillIfEditing() {
 
         let associados = JSON.parse(localStorage.getItem('associados') || '[]');
         let titularAssoc = associados.find(a => String(a.familiaId) === String(editId) && a.tipo === 'titular');
-        // Busca titular no Firestore caso não exista localmente
+        // Busca titular no Supabase caso não exista localmente
         if (!titularAssoc) {
             try {
-                const activeCompanyStr = localStorage.getItem('activeCompany');
-                let activeCompany = null;
-                try { activeCompany = activeCompanyStr ? JSON.parse(activeCompanyStr) : null; } catch (e) { activeCompany = null; }
-                const companyId = activeCompany?.id || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
-                if (companyId && typeof window !== 'undefined' && window.db) {
-                    const db = window.db;
-                    const titularesSnap = await db.collection(`empresas/${companyId}/associados`)
-                        .where('familiaId', '==', String(editId))
-                        .where('tipo', '==', 'titular')
-                        .limit(1).get();
-                    const doc = titularesSnap?.docs?.[0];
-                    if (doc) {
-                        titularAssoc = { id: doc.id, ...doc.data() };
+                const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+                if (companyId && window.supabase) {
+                    const { data, error } = await window.supabase
+                        .from('associados')
+                        .select('*')
+                        .eq('familiaId', String(editId))
+                        .eq('tipo', 'titular')
+                        .eq('company_id', companyId)
+                        .limit(1)
+                        .maybeSingle();
+
+                    if (data && !error) {
+                        titularAssoc = { ...data, id: data.id };
                         associados.push(titularAssoc);
                         try { localStorage.setItem('associados', JSON.stringify(associados)); } catch (e) { }
                     }
                 }
-            } catch (fsErr) {
-                console.warn('Falha ao buscar titular no Firestore para prefill:', fsErr);
+            } catch (sbErr) {
+                console.warn('Falha ao buscar titular no Supabase para prefill:', sbErr);
             }
         }
 
@@ -2046,9 +2055,13 @@ async function saveFamilyInternal() {
         }
         try { localStorage.setItem('familias', JSON.stringify(familias)); } catch (_) { }
         try {
-            if (typeof window !== 'undefined' && window.db) {
-                const db = window.db;
-                await db.collection(`empresas/${companyId}/familias`).doc(String(editId)).set({ contratos: Array.isArray(familiaData.contratos) ? familiaData.contratos : [] }, { merge: true });
+            if (window.supabase) {
+                const { error } = await window.supabase
+                    .from('familias')
+                    .update({ dependentes: Array.isArray(familiaData.dependentes) ? familiaData.dependentes : [] })
+                    .eq('id', editId)
+                    .eq('company_id', companyId);
+                if (error) throw error;
             }
         } catch (e) { /* silencioso */ }
         return true;
@@ -2255,7 +2268,7 @@ async function salvarFamilia(evt) {
 
     try {
         // Verificar empresa ativa
-        await waitForFirebaseReady(3000);
+        await waitForSupabaseReady(3000);
         const activeCompanyStr = localStorage.getItem('activeCompany');
         let activeCompany = null;
         try {
@@ -2399,15 +2412,30 @@ async function salvarFamilia(evt) {
             familias[idx] = familia;
             localStorage.setItem('familias', JSON.stringify(familias));
 
-            // Atualiza família no Firestore (modo edição)
+            // Atualiza família no Supabase (modo edição)
             try {
-                const ready = await waitForFirebaseReady(3000);
-                if (ready && typeof window !== 'undefined' && window.db) {
-                    const db = window.db;
-                    await db.collection(`empresas/${companyId}/familias`).doc(String(editId)).set(familia, { merge: true });
+                const ready = await waitForSupabaseReady(3000);
+                if (ready && window.supabase) {
+                    const { error } = await window.supabase
+                        .from('familias')
+                        .upsert({
+                            id: String(editId),
+                            company_id: companyId,
+                            titular: familia.titular,
+                            dependentes: familia.dependentes,
+                            endereco: familia.endereco,
+                            status: familia.status,
+                            metadata: {
+                                pais: familia.pais,
+                                contratos: familia.contratos,
+                                pets: familia.pets,
+                                dataCriacao: familia.dataCriacao
+                            }
+                        });
+                    if (error) throw error;
                 }
             } catch (e) {
-                console.warn('Falha ao atualizar família no Firestore:', e);
+                console.warn('Falha ao atualizar família no Supabase:', e);
             }
 
             // Atualiza associados (titular e dependentes)
@@ -2494,57 +2522,55 @@ async function salvarFamilia(evt) {
             });
             localStorage.setItem('associados', JSON.stringify(associados));
 
-            // Persistir titular e dependentes no Firestore (modo edição)
+            // Persistir titular e dependentes no Supabase (modo edição)
             try {
-                if (typeof window !== 'undefined' && window.db) {
-                    const db = window.db;
+                if (window.supabase) {
                     // Atualiza titular (upsert)
                     const titularPersist = associados.find(a => String(a.familiaId) === String(editId) && a.tipo === 'titular');
                     if (titularPersist) {
-                        await db.collection(`empresas/${companyId}/associados`).doc(String(titularPersist.id)).set(titularPersist, { merge: true });
-                    }
-                    // Sincroniza dependentes no Firestore preservando IDs
-                    const depSnap = await db.collection(`empresas/${companyId}/associados`).where('familiaId', '==', String(editId)).where('tipo', '==', 'dependente').get();
-                    const existentesIds = new Set();
-                    depSnap.forEach(doc => existentesIds.add(String(doc.id)));
-
-                    const desejadosIds = new Set(dependentesAtualizados.map(d => String(d.id)));
-
-                    // Remove os que não estão mais presentes
-                    const batchDelete = db.batch();
-                    depSnap.forEach(doc => { if (!desejadosIds.has(String(doc.id))) { batchDelete.delete(doc.ref); } });
-                    await batchDelete.commit();
-
-                    // Upsert dos dependentes atuais
-                    for (const dep of dependentesAtualizados) {
-                        await db.collection(`empresas/${companyId}/associados`).doc(String(dep.id)).set(dep, { merge: true });
+                        await window.supabase
+                            .from('associados')
+                            .upsert({ ...titularPersist, company_id: companyId });
                     }
 
-                    // Upsert dos contratos da família na coleção 'contratos' da empresa
+                    // Supabase não tem Batch nativo como o Firestore, mas podemos fazer upsert de array
+                    if (dependentesAtualizados.length > 0) {
+                        await window.supabase
+                            .from('associados')
+                            .upsert(dependentesAtualizados.map(d => ({ ...d, company_id: companyId })));
+                    }
+
+                    // Upsert dos contratos
                     const contratosLista = Array.isArray(familia.contratos) ? familia.contratos : [];
-                    for (const contrato of contratosLista) {
-                        const numeroRaw = contrato.numero || contrato.id || '';
-                        const numeroLimpo = String(numeroRaw).replace(/\D/g, '');
-                        const numeroNumerico = numeroLimpo ? parseInt(numeroLimpo, 10) : Date.now();
-                        const contratoDoc = {
-                            id: numeroNumerico,
-                            numero: String(numeroRaw || numeroNumerico),
-                            date: contrato.dataInicio || new Date().toLocaleDateString('pt-BR'),
-                            titular: titularData.nome,
-                            cpf: titularData.cpf || '',
-                            plano: contrato.plano || '',
-                            status: 'ativo',
-                            vendedor: 'nenhum',
-                            valorTotal: 'R$ 0,00',
-                            parcelas: contrato.parcelas || 0,
-                            familyId: String(editId),
-                            participants: Array.isArray(contrato.participants) ? contrato.participants : []
-                        };
-                        await db.collection(`empresas/${companyId}/contratos`).doc(String(contrato.id || numeroNumerico)).set(contratoDoc, { merge: true });
+                    if (contratosLista.length > 0) {
+                        for (const contrato of contratosLista) {
+                            const numeroRaw = contrato.numero || contrato.id || '';
+                            const numeroLimpo = String(numeroRaw).replace(/\D/g, '');
+                            const numeroNumerico = numeroLimpo ? parseInt(numeroLimpo, 10) : Date.now();
+                            const contratoDoc = {
+                                numero: String(numeroRaw || numeroNumerico),
+                                plano: contrato.plano || '',
+                                status: 'ativo',
+                                company_id: company_id,
+                                familia_id: String(editId),
+                                metadata: {
+                                    date: contrato.dataInicio || new Date().toLocaleDateString('pt-BR'),
+                                    titular: titularData.nome,
+                                    cpf: titularData.cpf || '',
+                                    vendedor: 'nenhum',
+                                    valorTotal: 'R$ 0,00',
+                                    parcelas: contrato.parcelas || 0,
+                                    participants: Array.isArray(contrato.participants) ? contrato.participants : []
+                                }
+                            };
+                            await window.supabase
+                                .from('contratos')
+                                .upsert(contratoDoc);
+                        }
                     }
                 }
             } catch (e) {
-                console.warn('Falha ao persistir associados/contratos no Firestore (edição):', e);
+                console.warn('Falha ao persistir associados/contratos no Supabase (edição):', e);
             }
 
             if (button) {
@@ -2622,39 +2648,62 @@ async function salvarFamilia(evt) {
             status: 'ativo'
         };
 
-        // Persistir em Firestore (criação)
+        // Persistir em Supabase (criação)
         try {
-            const ready = await waitForFirebaseReady(3000);
-            if (ready && typeof window !== 'undefined' && window.db) {
-                const db = window.db;
-                await db.collection(`empresas/${companyId}/familias`).doc(String(familiaId)).set(familia);
-                await db.collection(`empresas/${companyId}/associados`).doc(String(associadoId)).set(associado);
+            const ready = await waitForSupabaseReady(3000);
+            if (ready && window.supabase) {
+                // Criar família
+                await window.supabase
+                    .from('familias')
+                    .insert({
+                        id: String(familiaId),
+                        company_id: companyId,
+                        titular: familia.titular,
+                        dependentes: familia.dependentes,
+                        endereco: familia.endereco,
+                        status: familia.status,
+                        metadata: {
+                            pais: familia.pais,
+                            contratos: familia.contratos,
+                            pets: familia.pets,
+                            dataCriacao: familia.dataCriacao
+                        }
+                    });
 
-                // Upsert dos contratos da família na coleção 'contratos' da empresa
+                // Criar associado (titular)
+                await window.supabase
+                    .from('associados')
+                    .insert({ ...associado, company_id: companyId });
+
+                // Criar contratos
                 const contratosLista = Array.isArray(familiaData.contratos) ? familiaData.contratos : [];
                 for (const contrato of contratosLista) {
                     const numeroRaw = contrato.numero || contrato.id || '';
                     const numeroLimpo = String(numeroRaw).replace(/\D/g, '');
                     const numeroNumerico = numeroLimpo ? parseInt(numeroLimpo, 10) : Date.now();
                     const contratoDoc = {
-                        id: numeroNumerico,
                         numero: String(numeroRaw || numeroNumerico),
-                        date: contrato.dataInicio || new Date().toLocaleDateString('pt-BR'),
-                        titular: titularData.nome,
-                        cpf: titularData.cpf || '',
                         plano: contrato.plano || '',
                         status: 'ativo',
-                        vendedor: 'nenhum',
-                        valorTotal: 'R$ 0,00',
-                        parcelas: contrato.parcelas || 0,
-                        familyId: String(familiaId),
-                        participants: Array.isArray(contrato.participants) ? contrato.participants : []
+                        company_id: companyId,
+                        familia_id: String(familiaId),
+                        metadata: {
+                            date: contrato.dataInicio || new Date().toLocaleDateString('pt-BR'),
+                            titular: titularData.nome,
+                            cpf: titularData.cpf || '',
+                            vendedor: 'nenhum',
+                            valorTotal: 'R$ 0,00',
+                            parcelas: contrato.parcelas || 0,
+                            participants: Array.isArray(contrato.participants) ? contrato.participants : []
+                        }
                     };
-                    await db.collection(`empresas/${companyId}/contratos`).doc(String(contrato.id || numeroNumerico)).set(contratoDoc, { merge: true });
+                    await window.supabase
+                        .from('contratos')
+                        .insert(contratoDoc);
                 }
             }
         } catch (e) {
-            console.warn('Falha ao salvar família/titular/contratos no Firestore:', e);
+            console.warn('Falha ao salvar família/titular/contratos no Supabase:', e);
         }
 
         // Salvar nos localStorage (simulando banco de dados)
@@ -2681,14 +2730,15 @@ async function salvarFamilia(evt) {
                 status: 'ativo'
             };
             salvarAssociadoLocalStorage(dependenteAssociado);
-            // Também persiste no Firestore
+            // Também persiste no Supabase
             try {
-                if (typeof window !== 'undefined' && window.db) {
-                    const db = window.db;
-                    await db.collection(`empresas/${companyId}/associados`).doc(String(dependenteAssociado.id)).set(dependenteAssociado);
+                if (window.supabase) {
+                    await window.supabase
+                        .from('associados')
+                        .insert({ ...dependenteAssociado, company_id: companyId });
                 }
             } catch (e) {
-                console.warn('Falha ao salvar dependente no Firestore:', e);
+                console.warn('Falha ao salvar dependente no Supabase:', e);
             }
         }
 

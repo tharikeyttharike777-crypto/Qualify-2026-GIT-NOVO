@@ -90,19 +90,13 @@
         console.log('🛑 Auto-renderização global DESATIVADA para esta página.');
     </script>
 
-    <!-- Scripts do Firebase: carregue compat libs ANTES do firebase-config -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-    <script src="../firebase-config.js"></script>
-
-    <script src="../assets/js/auth-guard.js"></script>
-
-    <script src="../assets/js/multitenant-config.js"></script>
-
-    <script src="../assets/js/trocar-empresa.js"></script>
-    <script src="../assets/js/user-menu.js"></script>
+    <!-- Supabase SDK e Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/auth-guard.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/multitenant-config.js?v=20250127003" defer></script>
+    <script src="../assets/js/features/trocar-empresa.js?v=20250127003"></script>
+    <script src="../assets/js/core/user-menu.js?v=20250127003"></script>
 </body>
 
 </html>

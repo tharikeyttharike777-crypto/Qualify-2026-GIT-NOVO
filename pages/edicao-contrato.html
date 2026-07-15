@@ -67,26 +67,23 @@
         })();
     </script>
     <!-- Storage Safe + Cache Buster -->
-    <script src="../assets/js/storage-safe.js?v=20251216001"></script>
-    <script src="../assets/js/cache-buster.js?v=20251216001"></script>
+    <script src="../assets/js/utils/storage-safe.js?v=20251216001"></script>
+    <script src="../assets/js/utils/cache-buster.js?v=20251216001"></script>
     <!-- PDF & ZIP libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- Firebase (v8.10.1) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <script src="../firebase-config.js?v=clean_final"></script>
-    <script src="../assets/js/multitenant-config.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/core/supabase-client.js?v=clean_final"></script>
+    <script src="../assets/js/core/multitenant-config.js"></script>
 
     <!-- Scripts do header (funcionalidades de busca e menu do usuário) -->
-    <script src="../assets/js/user-menu.js" defer></script>
-    <script src="../assets/js/header-search.js" defer></script>
-    <script src="../assets/js/sidebar-menu.js" defer></script>
-    <script src="../assets/js/sidebar.js" defer></script>
-    <script src="../assets/js/navigation-fix.js" defer></script>
+    <script src="../assets/js/core/user-menu.js" defer></script>
+    <script src="../assets/js/utils/header-search.js" defer></script>
+    <script src="../assets/js/core/sidebar-menu.js" defer></script>
+    <script src="../assets/js/features/sidebar.js" defer></script>
+    <script src="../assets/js/utils/navigation-fix.js" defer></script>
 </head>
 
 <body>
@@ -407,7 +404,7 @@
             <div class="tab" data-tab="eventos">Eventos</div>
             <div class="tab" data-tab="lembretes">Lembretes</div>
             <div class="tab" data-tab="arquivos">Arquivos</div>
-            <div class="tab" data-tab="renovacoes">Renovações</div>
+
         </div>
         <div class="tab-content" id="tabsContent">
             <!-- Conteúdo: Cobranças -->
@@ -536,67 +533,82 @@
             </div>
 
             <div id="tab-eventos" style="display:none;">
-                <h3>Eventos</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h3 style="margin:0">Eventos</h3>
+                    <span style="font-size:12px; color:#94a3b8;"><i class="fas fa-info-circle"></i> Log imutável de
+                        ações automáticas</span>
+                </div>
                 <table id="tblEventos" class="simple-table table-fixed">
                     <thead>
                         <tr>
                             <th class="col-20 text-center">Data/Hora</th>
-                            <th class="col-20 text-center">Tipo</th>
+                            <th class="col-15 text-center">Tipo</th>
                             <th class="col-30 text-left">Descrição</th>
                             <th class="col-15 text-center">Valor</th>
-                            <th class="col-15 text-center">Método</th>
+                            <th class="col-20 text-center">Método</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody id="tbodyEventos">
+                        <tr class="empty-state-row">
+                            <td colspan="5" style="text-align:center; padding:40px 20px; color:#94a3b8;">
+                                <i class="fas fa-stream"
+                                    style="font-size:28px; margin-bottom:8px; display:block; color:#cbd5e1;"></i>
+                                Nenhum evento registrado para este contrato.
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
             <div id="tab-lembretes" style="display:none;">
-                <h3>Lembretes</h3>
-                <div class="form-row">
-                    <div class="form-group"><label>Título</label><input id="remTitle" type="text" /></div>
+                <h3 style="margin-bottom:12px;">Lembretes</h3>
+                <div class="form-row" style="margin-bottom:16px;">
+                    <div class="form-group"><label>Título</label><input id="remTitle" type="text"
+                            placeholder="Ex: Ligar para o cliente" /></div>
                     <div class="form-group" style="grid-column:1 / -1"><label>Descrição</label><textarea id="remDesc"
-                            rows="2"></textarea></div>
-                    <div class="form-group"><button id="btnAddReminder" class="btn btn-primary">Adicionar</button></div>
+                            rows="2" placeholder="Detalhes do lembrete..."></textarea></div>
+                    <div class="form-group"><button id="btnAddReminder" class="btn btn-primary"><i
+                                class="fas fa-plus"></i> Adicionar</button></div>
                 </div>
                 <table id="tblReminders" class="simple-table table-fixed">
                     <thead>
                         <tr>
                             <th class="col-25 text-left">Título</th>
-                            <th class="col-40 text-left">Descrição</th>
+                            <th class="col-35 text-left">Descrição</th>
                             <th class="col-20 text-center">Criado em</th>
-                            <th class="col-15 text-center">Ações</th>
+                            <th class="col-20 text-center">Ações</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody id="tbodyLembretes">
+                        <tr class="empty-state-row">
+                            <td colspan="4" style="text-align:center; padding:40px 20px; color:#94a3b8;">
+                                <i class="fas fa-sticky-note"
+                                    style="font-size:28px; margin-bottom:8px; display:block; color:#cbd5e1;"></i>
+                                Nenhum lembrete criado. Use o formulário acima para adicionar.
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
             <div id="tab-arquivos" style="display:none;">
-                <h3>Arquivos</h3>
+                <h3 style="margin-bottom:12px;">Arquivos</h3>
                 <table id="tblArquivos" class="simple-table table-fixed">
                     <thead>
                         <tr>
-                            <th class="col-50 text-left">Nome</th>
-                            <th class="col-20 text-center">Tipo</th>
-                            <th class="col-30 text-center">Gerado em</th>
+                            <th class="col-35 text-left">Nome do Arquivo</th>
+                            <th class="col-15 text-center">Tipo</th>
+                            <th class="col-25 text-center">Gerado em</th>
+                            <th class="col-25 text-center">Ação</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div id="tab-renovacoes" style="display:none;">
-                <h3>Renovações</h3>
-                <div class="form-row">
-                    <div class="form-group"><label>Próxima renovação</label><input id="rvDate" type="date" /></div>
-                    <div class="form-group"><button id="rvAgendar" class="btn btn-primary">Agendar</button></div>
-                </div>
-                <table id="tblRenov" class="simple-table table-fixed">
-                    <thead>
-                        <tr>
-                            <th class="col-50 text-center">Data</th>
-                            <th class="col-50 text-center">Status</th>
+                    <tbody id="tbodyArquivos">
+                        <tr class="empty-state-row">
+                            <td colspan="4" style="text-align:center; padding:40px 20px; color:#94a3b8;">
+                                <i class="fas fa-folder-open"
+                                    style="font-size:28px; margin-bottom:8px; display:block; color:#cbd5e1;"></i>
+                                Nenhum arquivo vinculado a este contrato.
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody></tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -944,11 +956,12 @@
         }
     </style>
 
-    <script src="../assets/js/edicao-contrato.js?v=FAMILIA_FIX_V13"></script>
-    <script src="../assets/js/cobrancas-manager.js?v=PIX_SAFETY_LOCK_V7"></script>
+    <script src="../assets/js/features/edicao-contrato.js?v=FAMILIA_FIX_V13"></script>
+    <script src="../assets/js/features/cobrancas-manager.js?v=PIX_SAFETY_LOCK_V7"></script>
 
     <!-- Script SAFE MODE removido - estava destruindo sessão do Firebase Auth ao deletar IndexedDB -->
     <!-- A autenticação do Firebase agora persiste corretamente entre recarregamentos de página -->
 </body>
 
 </html>
+

@@ -378,14 +378,9 @@
     <script src="assets/js/cache-cleaner.js?v=20250127003"></script>
 
     <!-- ORDEM CORRETA DOS SCRIPTS PARA FIREBASE -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-    <script src="firebase-config.js?v=20250127003"></script>
-
-    <!-- Firestore Error Suppressor - DEVE ser carregado ANTES dos scripts do Firebase -->
-    <script src="assets/js/firestore-error-suppressor.js?v=20250127003"></script>
+    <!-- Supabase SDK e Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js?v=20250127003"></script>
 
     <!-- Utilitário de retry de rede -->
     <script src="assets/js/network-retry.js?v=20250127003"></script>
@@ -393,52 +388,28 @@
     <!-- Monitor de conexão -->
     <script src="assets/js/connection-monitor.js?v=20250127003"></script>
 
-    <!-- Auth Guard REVERSO para login - AGUARDA FIREBASE ESTAR PRONTO -->
+    <!-- Auth Guard REVERSO para login - AGUARDA SUPABASE ESTAR PRONTO -->
     <script>
         // Auth Guard REVERSO - redireciona usuários logados
-        function checkReverseAuth() {
+        async function checkReverseAuth() {
             console.log('Verificando Auth Guard Reverso...');
 
-            if (typeof firebase === 'undefined' || !firebase.auth || !firebase.apps.length) {
-                console.log('Login Auth Guard: Firebase não está pronto, aguardando...');
-                return;
+            const { data: { session } } = await window.supabase.auth.getSession();
+            const user = session?.user;
+
+            if (user) {
+                console.log("Login Auth Guard REVERSO: Usuário já logado, redirecionando...");
+
+                // Limpar empresa selecionada para forçar nova seleção
+                localStorage.removeItem('empresaSelecionadaId');
+                console.log("Redirecionando para seleção de empresa...");
+
+                window.location.href = './pages/trocar-empresa.html';
             }
-
-            firebase.auth().onAuthStateChanged(user => {
-                if (user) {
-                    console.log("Login Auth Guard REVERSO: Usuário já logado, redirecionando...");
-
-                    // Verificar se já está na página de trocar empresa para evitar redirecionamento desnecessário
-                    const currentPath = window.location.pathname.toLowerCase();
-                    const isTrocarEmpresaPage = currentPath.includes('trocar-empresa.html') ||
-                        currentPath.endsWith('/trocar-empresa.html') ||
-                        currentPath === '/pages/trocar-empresa.html';
-
-                    // Redirecionar para a página de seleção de empresa
-                    // Limpar empresa selecionada para forçar nova seleção
-                    localStorage.removeItem('empresaSelecionadaId');
-                    console.log("Redirecionando para seleção de empresa...");
-
-                    // Usar setTimeout para evitar ERR_ABORTED
-                    setTimeout(() => {
-                        window.location.href = './pages/trocar-empresa.html';
-                    }, 100);
-                }
-            });
         }
 
-        // Aguardar Firebase estar pronto via evento
-        window.addEventListener('firebaseReady', () => {
-            console.log('Firebase Ready event recebido, executando Auth Guard Reverso...');
-            checkReverseAuth();
-        });
-
-        // Fallback: tentar executar após um delay
-        setTimeout(() => {
-            if (typeof firebase !== 'undefined' && firebase.auth && firebase.apps.length) {
-                checkReverseAuth();
-            }
-        }, 1000);
+        // Executar verificação
+        document.addEventListener('DOMContentLoaded', checkReverseAuth);
     </script>
 
     <!-- PAGE INITIALIZATION - Password Toggle, Animations, Logout -->
@@ -469,8 +440,8 @@
         async function handleLogout() {
             console.log('*** INICIANDO LOGOUT COMPLETO E SEGURO ***');
             try {
-                await firebase.auth().signOut();
-                console.log('Firebase signOut() SUCESSO.');
+                await window.supabase.auth.signOut();
+                console.log('Supabase signOut() SUCESSO.');
                 // LIMPEZA TOTAL E ABSOLUTA DO ESTADO LOCAL:
                 localStorage.clear();
                 sessionStorage.clear();
@@ -479,7 +450,9 @@
                 window.location.href = '/login.html';
             } catch (error) {
                 console.error('*** ERRO CRÍTICO DURANTE LOGOUT:', error);
-                alert('Erro crítico ao tentar sair.');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/login.html';
             }
         }
         // Garanta que o botão 'Sair' CHAMA handleLogout()
@@ -487,7 +460,7 @@
     </script>
 
     <!-- LOGIN SYSTEM - Carrega o sistema de login estruturado -->
-    <script src="assets/js/login.js?v=20250127003"></script>
+    <script src="assets/js/features/login.js?v=20250127003"></script>
     <script>
         (function () {
             try {

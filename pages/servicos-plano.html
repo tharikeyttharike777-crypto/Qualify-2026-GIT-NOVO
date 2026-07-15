@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Serviços do Plano - PROGEM 10.0</title>
+    <title>ServiÃ§os do Plano - PROGEM 10.0</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250127003" rel="stylesheet">
@@ -19,38 +19,7 @@
     <link href="assets/css/sidebar.css?v=20250127003" rel="stylesheet">
     <link href="assets/css/header.css?v=20250127003" rel="stylesheet">
     
-    <!-- ====================================================================== 
-         SCRIPT DE AUTH GUARD (O CORRETO, QUE NÃO DÁ LOOP) 
-         ====================================================================== -->
-    <script>
-        // Este script deve rodar no <head> de CADA página que precisa de login 
-        // (EXCETO login.html). 
-        
-        firebase.auth().onAuthStateChanged(user => { 
-          
-          // onAuthStateChanged ESPERA o Firebase inicializar. 
-          
-          if (user) { 
-            // ---- USUÁRIO ESTÁ LOGADO ---- 
-            // Ele tem permissão para estar aqui. 
-            console.log("Auth Guard (Corrigido): Usuário verificado:", user.uid); 
-            
-            // (Se você tiver um 'loading' na página, esconda-o agora) 
-            // document.getElementById('pagina-loading').style.display = 'none'; 
-        
-          } else { 
-            // ---- USUÁRIO NÃO ESTÁ LOGADO ---- 
-            // Ele não tem permissão. Chute-o para o login. 
-            console.warn("Auth Guard (Corrigido): Nenhum usuário encontrado. Redirecionando para login."); 
-            
-            // Salva a página atual para que possamos voltar aqui depois 
-            localStorage.setItem('redirectAfterLogin', window.location.pathname); 
-            
-            // Redireciona 
-            window.location.href = '/login.html'; // (Use o caminho correto para seu login.html) 
-          } 
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
     
     <style>
         .service-card {
@@ -118,8 +87,8 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#">Nova mensagem</a></li>
-                            <li><a class="dropdown-item" href="#">Atualização disponível</a></li>
-                            <li><a class="dropdown-item" href="#">Backup concluído</a></li>
+                            <li><a class="dropdown-item" href="#">AtualizaÃ§Ã£o disponÃ­vel</a></li>
+                            <li><a class="dropdown-item" href="#">Backup concluÃ­do</a></li>
                         </ul>
                     </div>
                     
@@ -131,7 +100,7 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configurações</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>ConfiguraÃ§Ãµes</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
                                 <i class="fas fa-sign-out-alt me-2"></i>Sair
@@ -154,7 +123,7 @@
                 </a>
                 <a href="nova-familia.html" class="sidebar-item">
                     <i class="fas fa-users"></i>
-                    <span>Nova Família</span>
+                    <span>Nova FamÃ­lia</span>
                 </a>
                 <a href="pesquisa-simplificada.html" class="sidebar-item">
                     <i class="fas fa-search"></i>
@@ -174,7 +143,7 @@
                 </a>
                 <a href="renegociacao-cobrancas.html" class="sidebar-item">
                     <i class="fas fa-handshake"></i>
-                    <span>Renegociação e Cobranças</span>
+                    <span>RenegociaÃ§Ã£o e CobranÃ§as</span>
                 </a>
             </div>
         </div>
@@ -188,14 +157,14 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="pesquisa-planos.html">Pesquisa de Planos</a></li>
-                    <li class="breadcrumb-item active">Serviços do Plano</li>
+                    <li class="breadcrumb-item active">ServiÃ§os do Plano</li>
                 </ol>
             </nav>
 
             <!-- Page Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3 mb-1">Serviços do Plano</h1>
+                    <h1 class="h3 mb-1">ServiÃ§os do Plano</h1>
                     <p class="text-muted mb-0" id="plan-name">Carregando...</p>
                 </div>
                 <div>
@@ -205,7 +174,7 @@
                     </button>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
                         <i class="fas fa-plus me-2"></i>
-                        Adicionar Serviço
+                        Adicionar ServiÃ§o
                     </button>
                 </div>
             </div>
@@ -224,7 +193,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="fas fa-plus me-2"></i>
-                        Adicionar Serviço
+                        Adicionar ServiÃ§o
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -232,17 +201,17 @@
                     <form id="service-form">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="service-name" class="form-label">Nome do Serviço *</label>
+                                <label for="service-name" class="form-label">Nome do ServiÃ§o *</label>
                                 <input type="text" class="form-control" id="service-name" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="service-category" class="form-label">Categoria</label>
                                 <select class="form-select" id="service-category">
                                     <option value="">Selecione uma categoria</option>
-                                    <option value="saude">Saúde</option>
+                                    <option value="saude">SaÃºde</option>
                                     <option value="odontologia">Odontologia</option>
-                                    <option value="laboratorio">Laboratório</option>
-                                    <option value="emergencia">Emergência</option>
+                                    <option value="laboratorio">LaboratÃ³rio</option>
+                                    <option value="emergencia">EmergÃªncia</option>
                                     <option value="especialidades">Especialidades</option>
                                     <option value="outros">Outros</option>
                                 </select>
@@ -251,14 +220,14 @@
                         
                         <div class="row mt-3">
                             <div class="col-md-12">
-                                <label for="service-description" class="form-label">Descrição</label>
+                                <label for="service-description" class="form-label">DescriÃ§Ã£o</label>
                                 <textarea class="form-control" id="service-description" rows="3"></textarea>
                             </div>
                         </div>
                         
                         <div class="row mt-3">
                             <div class="col-md-4">
-                                <label for="service-price" class="form-label">Preço</label>
+                                <label for="service-price" class="form-label">PreÃ§o</label>
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
                                     <input type="text" class="form-control money-mask" id="service-price">
@@ -282,7 +251,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="save-service-btn">
                         <i class="fas fa-save me-2"></i>
-                        Salvar Serviço
+                        Salvar ServiÃ§o
                     </button>
                 </div>
             </div>
@@ -294,7 +263,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title">Confirmar Saída</h5>
+                    <h5 class="modal-title">Confirmar SaÃ­da</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -311,10 +280,11 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003"></script>
     
-    <!-- Custom JS -->
-    <script src="assets/js/sidebar.js?v=20250127003"></script>
-    <script src="assets/js/servicos-plano.js?v=20250127003"></script>
+    <!-- Custom JS --><script src="../assets/js/core/auth-guard.js?v=20250127003" defer></script>
+    <script src="../assets/js/features/sidebar.js?v=20250127003"></script>
+    <script src="../assets/js/features/servicos-plano.js?v=20250127003"></script>
 </body>
 </html>
+
 
 

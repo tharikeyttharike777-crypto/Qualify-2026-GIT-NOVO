@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,15 +13,50 @@
   <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003" rel="stylesheet">
   <style>
-    .report-container { background:#fff; border-radius:8px; padding:1rem; box-shadow:0 2px 4px rgba(0,0,0,0.08); }
-    .filters { display:grid; grid-template-columns:1fr 1fr auto auto; gap:0.75rem; align-items:end; }
-    .filters label { font-weight:600; color:#495057; }
-    .actions .btn { padding:0.6rem 1rem; border-radius:6px; font-weight:600; }
-    .btn-primary { background:#0d6efd; color:#fff; border:none; }
-    .btn-secondary { background:#6c757d; color:#fff; border:none; }
-    .status { margin-top:0.75rem; color:#555; }
+    .report-container {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto auto;
+      gap: 0.75rem;
+      align-items: end;
+    }
+
+    .filters label {
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .actions .btn {
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: #fff;
+      border: none;
+    }
+
+    .status {
+      margin-top: 0.75rem;
+      color: #555;
+    }
   </style>
 </head>
+
 <body>
   <header class="header">
     <div class="header-left">
@@ -28,16 +64,20 @@
       <div class="logo"><span class="logo-text">QUALIFY - Sistema de gestão</span></div>
     </div>
     <div class="header-right">
-      <div class="user-menu-container"><button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"><i class="fas fa-user-circle"></i></button></div>
+      <div class="user-menu-container"><button class="user-menu-trigger" id="userMenuTrigger"
+          aria-label="Menu do Usuário"><i class="fas fa-user-circle"></i></button></div>
     </div>
   </header>
 
   <nav id="sidebar" class="sidebar">
-    <div class="sidebar-header"><h3>Menu</h3><button id="sidebar-close" class="sidebar-close">&times;</button></div>
+    <div class="sidebar-header">
+      <h3>Menu</h3><button id="sidebar-close" class="sidebar-close">&times;</button>
+    </div>
     <div class="sidebar-content">
       <ul class="sidebar-menu">
         <li class="menu-item has-submenu expanded">
-          <a href="#" class="menu-link"><i class="icon-star"></i><span class="menu-text">Mais usados</span><i class="arrow-icon">▼</i></a>
+          <a href="#" class="menu-link"><i class="icon-star"></i><span class="menu-text">Mais usados</span><i
+              class="arrow-icon">▼</i></a>
           <ul class="submenu">
             <li><a href="dashboard.html">Dashboard</a></li>
             <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
@@ -80,26 +120,27 @@
     </div>
   </main>
 
-  <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
-  <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
-  <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+  <script src="../assets/js/core/sidebar-menu.js?v=20250127003" defer></script>
+  <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
+  <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
   <script>
-    (function(){
-      function fmt(d){ try{ const p = String(d||'').split('-'); if(p.length===3) return `${p[2]}/${p[1]}/${p[0]}`; }catch(_){} return d||''; }
+    (function () {
+      function fmt(d) { try { const p = String(d || '').split('-'); if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`; } catch (_) { } return d || ''; }
       var start = document.getElementById('startDate');
       var end = document.getElementById('endDate');
       var status = document.getElementById('statusText');
       var confirmBtn = document.getElementById('confirmDatesBtn');
       var pdfBtn = document.getElementById('emitPdfBtn');
-      function validate(){
+      function validate() {
         var s = start.value, e = end.value;
-        if(!s || !e){ status.textContent = 'Selecione as duas datas.'; return false; }
-        if(new Date(s) > new Date(e)){ status.textContent = 'A data inicial deve ser anterior à final.'; return false; }
+        if (!s || !e) { status.textContent = 'Selecione as duas datas.'; return false; }
+        if (new Date(s) > new Date(e)) { status.textContent = 'A data inicial deve ser anterior à final.'; return false; }
         status.textContent = `Período selecionado: ${fmt(s)} a ${fmt(e)}.`; return true;
       }
-      confirmBtn.addEventListener('click', function(){ validate(); });
-      pdfBtn.addEventListener('click', function(){ if (validate()) { window.print(); } });
+      confirmBtn.addEventListener('click', function () { validate(); });
+      pdfBtn.addEventListener('click', function () { if (validate()) { window.print(); } });
     })();
   </script>
 </body>
+
 </html>

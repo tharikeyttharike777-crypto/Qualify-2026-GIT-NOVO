@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,15 +13,18 @@
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/sidebar-fix.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/cobrancas.css?v=20250127003">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/visual-fix.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/contrast-fix.css?v=20250127003">
 
-    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
 </head>
+
 <body>
 
-    <div class="container">        <style>
+    <div class="container">
+        <style>
             html {
                 scroll-behavior: smooth;
             }
@@ -32,14 +36,15 @@
             }
         </style>
 
-                <!-- Header -->
+        <!-- Header -->
         <header class="header">
             <div class="header-left">
                 <button class="hamburger-menu" id="menu-toggle" aria-label="Abrir menu">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="logo">
-                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24" style="margin-right: 8px;">
+                    <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
+                        style="margin-right: 8px;">
                     <span class="logo-text">QUALIFY - Sistema de gestão</span>
                 </div>
             </div>
@@ -58,13 +63,14 @@
                 <div class="user-info">
                     <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
                 </div>
-                
+
                 <!-- Menu de Usuário -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário" aria-expanded="false">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                        aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
-                    
+
                     <!-- Dropdown Menu -->
                     <div class="user-dropdown" id="userDropdown" role="menu" aria-hidden="true">
                         <div class="dropdown-content">
@@ -78,7 +84,7 @@
                                     <span class="dropdown-item-subtitle">Configurações pessoais</span>
                                 </div>
                             </a>
-                            
+
                             <!-- Item 2: Configurações -->
                             <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
                                 <div class="dropdown-item-icon">
@@ -89,10 +95,10 @@
                                     <span class="dropdown-item-subtitle">Ajustes do sistema</span>
                                 </div>
                             </a>
-                            
+
                             <!-- Divider -->
                             <div class="dropdown-divider"></div>
-                            
+
                             <!-- Item 3: Ajuda -->
                             <a href="#" class="dropdown-item" role="menuitem" data-action="help">
                                 <div class="dropdown-item-icon">
@@ -103,12 +109,13 @@
                                     <span class="dropdown-item-subtitle">Suporte e documentação</span>
                                 </div>
                             </a>
-                            
+
                             <!-- Divider -->
                             <div class="dropdown-divider"></div>
-                            
+
                             <!-- Item 4: Logout -->
-                            <a href="#" class="dropdown-item logout-item" role="menuitem" data-action="logout" id="logoutBtn">
+                            <a href="#" class="dropdown-item logout-item" role="menuitem" data-action="logout"
+                                id="logoutBtn">
                                 <div class="dropdown-item-icon">
                                     <i class="fas fa-sign-out-alt"></i>
                                 </div>
@@ -122,89 +129,89 @@
                 </div>
             </div>
         </header>
-    <!-- SIDEBAR MODERNO -->
-    <nav id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h3>QUALIFY</h3>
-            <button type="button" id="sidebar-close" class="sidebar-close">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <ul class="sidebar-menu">
-            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="area-associado-login.html" class="menu-item">Área do Associado</a></li>
-            
-            <li><a href="vendas.html"><i class="fas fa-chart-line"></i> Vendas</a></li>
-            <li><a href="dre-gerencial.html"><i class="fas fa-chart-bar"></i> DRE Gerencial</a></li>
-            <li><a href="metas.html"><i class="fas fa-bullseye"></i> Metas</a></li>
-            <li><a href="ordens-servico.html"><i class="fas fa-tools"></i> Ordens de Serviço</a></li>
-        </ul>
-    </nav>
-                                    <small>2 minutos atrás</small>
-                                </div>
-                            </div>
-                            <div class="notification-item">
-                                <i class="fas fa-user-plus text-success"></i>
-                                <div class="notification-content">
-                                    <p>Novo usuário cadastrado</p>
-                                    <small>1 hora atrás</small>
-                                </div>
-                            </div>
-                            <div class="notification-item">
-                                <i class="fas fa-exclamation-triangle text-warning"></i>
-                                <div class="notification-content">
-                                    <p>Backup agendado para hoje</p>
-                                    <small>3 horas atrás</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="notification-footer">
-                            <a href="#" class="btn btn-sm btn-outline-primary">Ver todas</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Menu do Usuário -->
-                <div class="user-menu-container">
-                    <button class="user-menu-btn" id="userMenuBtn">
-                        <img src="../assets/images/user-avatar.png" alt="Avatar" class="user-avatar">
-                        <span class="user-name">Adriana</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="user-menu-dropdown" id="userMenuDropdown">
-                        <div class="user-info">
-                            <img src="../assets/images/user-avatar.png" alt="Avatar" class="user-avatar-large">
-                            <div class="user-details">
-                                <h6>Adriana</h6>
-                                <p>Administrador</p>
-                            </div>
-                        </div>
-
-                        <a href="#" class="user-menu-item">
-                            <i class="fas fa-user"></i>
-                            <span>Meu Perfil</span>
-                        </a>
-                        <a href="#" class="user-menu-item">
-                            <i class="fas fa-cog"></i>
-                            <span>Configurações</span>
-                        </a>
-                        <a href="#" class="user-menu-item">
-                            <i class="fas fa-question-circle"></i>
-                            <span>Ajuda</span>
-                        </a>
-
-                        <a href="#" class="user-menu-item text-danger">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Sair</span>
-                        </a>
-                    </div>
-                </div>
-
-            <div class="logout-container">
-                <!-- Botão de logout será inserido aqui pelo auth-manager -->
+        <!-- SIDEBAR MODERNO -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>QUALIFY</h3>
+                <button type="button" id="sidebar-close" class="sidebar-close">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="area-associado-login.html" class="menu-item">Área do Associado</a></li>
+
+                <li><a href="vendas.html"><i class="fas fa-chart-line"></i> Vendas</a></li>
+                <li><a href="dre-gerencial.html"><i class="fas fa-chart-bar"></i> DRE Gerencial</a></li>
+                <li><a href="metas.html"><i class="fas fa-bullseye"></i> Metas</a></li>
+                <li><a href="ordens-servico.html"><i class="fas fa-tools"></i> Ordens de Serviço</a></li>
+            </ul>
+        </nav>
+        <small>2 minutos atrás</small>
+    </div>
+    </div>
+    <div class="notification-item">
+        <i class="fas fa-user-plus text-success"></i>
+        <div class="notification-content">
+            <p>Novo usuário cadastrado</p>
+            <small>1 hora atrás</small>
         </div>
+    </div>
+    <div class="notification-item">
+        <i class="fas fa-exclamation-triangle text-warning"></i>
+        <div class="notification-content">
+            <p>Backup agendado para hoje</p>
+            <small>3 horas atrás</small>
+        </div>
+    </div>
+    </div>
+    <div class="notification-footer">
+        <a href="#" class="btn btn-sm btn-outline-primary">Ver todas</a>
+    </div>
+    </div>
+    </div>
+
+    <!-- Menu do Usuário -->
+    <div class="user-menu-container">
+        <button class="user-menu-btn" id="userMenuBtn">
+            <img src="../assets/images/user-avatar.png" alt="Avatar" class="user-avatar">
+            <span class="user-name">Adriana</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="user-menu-dropdown" id="userMenuDropdown">
+            <div class="user-info">
+                <img src="../assets/images/user-avatar.png" alt="Avatar" class="user-avatar-large">
+                <div class="user-details">
+                    <h6>Adriana</h6>
+                    <p>Administrador</p>
+                </div>
+            </div>
+
+            <a href="#" class="user-menu-item">
+                <i class="fas fa-user"></i>
+                <span>Meu Perfil</span>
+            </a>
+            <a href="#" class="user-menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="#" class="user-menu-item">
+                <i class="fas fa-question-circle"></i>
+                <span>Ajuda</span>
+            </a>
+
+            <a href="#" class="user-menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="logout-container">
+        <!-- Botão de logout será inserido aqui pelo auth-manager -->
+    </div>
+    </div>
     </header>
 
     <!-- Menu Lateral -->
@@ -241,7 +248,7 @@
                     <i class="fas fa-credit-card"></i>
                     <span>Chargebacks</span>
                 </a>
-                
+
                 <a href="extrato.html" class="menu-item">
                     <i class="fas fa-receipt"></i>
                     <span>Extrato</span>
@@ -264,423 +271,411 @@
     <!-- Overlay para o menu -->
 
     <!-- Main Content -->
-                    <ul class="submenu">
-                        <li><a href="contratos.html">Ativos</a></li>
-                        <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
-                        <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
-                        <li><a href="cancelados.html">Cancelados</a></li>
-                    </ul>
-                </li>
+    <ul class="submenu">
+        <li><a href="contratos.html">Ativos</a></li>
+        <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
+        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+        <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
+        <li><a href="cancelados.html">Cancelados</a></li>
+    </ul>
+    </li>
 
-                <!-- Financeiro -->
-                <li class="menu-item has-submenu expanded">
-                    <a href="#" class="menu-link">
-                        <i class="icon-money"></i>
-                        <span class="menu-text">Financeiro</span>
-                        <i class="arrow-icon">?</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
-                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
-                        <li><a href="contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="resumo-dia.html">Resumo do dia</a></li>
-                        <li><a href="comissionamento.html">Comissionamento</a></li>
-                        <li><a href="metas.html">Metas</a></li>
-                    </ul>
-                </li>
+    <!-- Financeiro -->
+    <li class="menu-item has-submenu expanded">
+        <a href="#" class="menu-link">
+            <i class="icon-money"></i>
+            <span class="menu-text">Financeiro</span>
+            <i class="arrow-icon">?</i>
+        </a>
+        <ul class="submenu">
+            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+            <li><a href="contas-pagar.html">Contas a pagar</a></li>
+            <li><a href="resumo-dia.html">Resumo do dia</a></li>
+            <li><a href="comissionamento.html">Comissionamento</a></li>
+            <li><a href="metas.html">Metas</a></li>
+        </ul>
+    </li>
 
-                <!-- Famílias -->
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">
-                        <i class="icon-family"></i>
-                        <span class="menu-text">Famílias</span>
-                        <i class="arrow-icon">?</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
-                        <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
-                <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
-                        <li><a href="aniversariantes.html">Aniversariantes</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+    <!-- Famílias -->
+    <li class="menu-item has-submenu">
+        <a href="#" class="menu-link">
+            <i class="icon-family"></i>
+            <span class="menu-text">Famílias</span>
+            <i class="arrow-icon">?</i>
+        </a>
+        <ul class="submenu">
+            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+            <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
+            <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
+            <li><a href="aniversariantes.html">Aniversariantes</a></li>
+        </ul>
+    </li>
+    </ul>
+    </div>
     </nav>
 
     <div class="container">
 
-    <!-- Menu Lateral -->
+        <!-- Menu Lateral -->
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Breadcrumb -->
-        <div class="breadcrumb">
-            <span>Cobranças</span>
-        </div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <span>Cobranças</span>
+            </div>
 
-        <!-- Page Title -->
-        <h1 class="page-title">Acessar telas de cobranças</h1>
+            <!-- Page Title -->
+            <h1 class="page-title">Acessar telas de cobranças</h1>
 
-        <!-- Cobran�as Cards -->
-        <div class="cobrancas-container">
-            <div class="cobrancas-card" data-type="contratos">
-                <div class="card-icon">
-                    <i class="fas fa-file-contract"></i>
+            <!-- Cobran�as Cards -->
+            <div class="cobrancas-container">
+                <div class="cobrancas-card" data-type="contratos">
+                    <div class="card-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Contratos</h3>
+                        <p class="card-subtitle">Recebimentos de Mensalidades de Planos</p>
+                    </div>
                 </div>
-                <div class="card-content">
-                    <h3 class="card-title">Contratos</h3>
-                    <p class="card-subtitle">Recebimentos de Mensalidades de Planos</p>
+
+                <div class="cobrancas-card" data-type="ordens">
+                    <div class="card-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Ordens de Serviço</h3>
+                        <p class="card-subtitle">Recebimentos de Serviços Prestados</p>
+                    </div>
+                </div>
+
+                <div class="cobrancas-card" data-type="vendas">
+                    <div class="card-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Vendas</h3>
+                        <p class="card-subtitle">Recebimentos de Produtos Vendidos</p>
+                    </div>
+                </div>
+
+                <div class="cobrancas-card" data-type="lista-cobranca"
+                    onclick="window.location.href='lista-cobranca.html'">
+                    <div class="card-icon">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Lista de cobrança</h3>
+                        <p class="card-subtitle">Gerenciar e visualizar cobranças</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="cobrancas-card" data-type="ordens">
-                <div class="card-icon">
-                    <i class="fas fa-clipboard-list"></i>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">Ordens de Serviço</h3>
-                    <p class="card-subtitle">Recebimentos de Serviços Prestados</p>
-                </div>
-            </div>
-
-            <div class="cobrancas-card" data-type="vendas">
-                <div class="card-icon">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">Vendas</h3>
-                    <p class="card-subtitle">Recebimentos de Produtos Vendidos</p>
+            <!-- Additional Information -->
+            <div class="info-section">
+                <div class="info-card">
+                    <h4>Informações Importantes</h4>
+                    <ul>
+                        <li>Acesse cada seção para gerenciar os recebimentos específicos</li>
+                        <li>Utilize os filtros disponíveis para encontrar informações rapidamente</li>
+                        <li>Mantenha os dados sempre atualizados</li>
+                    </ul>
                 </div>
             </div>
+        </main>
 
-            <div class="cobrancas-card" data-type="lista-cobranca" onclick="window.location.href='lista-cobranca.html'">
-                <div class="card-icon">
-                    <i class="fas fa-list-alt"></i>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">Lista de cobrança</h3>
-                    <p class="card-subtitle">Gerenciar e visualizar cobranças</p>
-                </div>
-            </div>
-        </div>
+        <!-- Firebase Scripts -->
 
-        <!-- Additional Information -->
-        <div class="info-section">
-            <div class="info-card">
-                <h4>Informações Importantes</h4>
-                <ul>
-                    <li>Acesse cada seção para gerenciar os recebimentos específicos</li>
-                    <li>Utilize os filtros disponíveis para encontrar informações rapidamente</li>
-                    <li>Mantenha os dados sempre atualizados</li>
-                </ul>
-            </div>
-        </div>
-    </main>
+        <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
+        <script src="../assets/js/utils/resource-preloader.js?v=20250127003" defer></script>
+        <script src="../assets/js/utils/hosting-compatibility.js?v=20250127003" defer></script>
 
-    <!-- Firebase Scripts -->
+        <!-- App Scripts -->
+        <script src="../assets/js/core/auth-guard.js?v=20250127003" defer></script>
 
-    <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003" defer></script>
-    <!-- Scripts de compatibilidade para hospedagem -->
-    <script src="../assets/js/resource-preloader.js?v=20250127003" defer></script>
-    <script src="../assets/js/hosting-compatibility.js?v=20250127003" defer></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003" defer></script>
-    <!-- Scripts de compatibilidade para hospedagem -->
-    <script src="../assets/js/resource-preloader.js?v=20250127003" defer></script>
-    <script src="../assets/js/hosting-compatibility.js?v=20250127003" defer></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003" defer></script>
+        <!-- Header Scripts -->
+        <script src="../assets/js/core/sidebar-menu.js?v=20250127003" defer></script>
 
-    <!-- Scripts de compatibilidade para hospedagem -->
-    <script src="../assets/js/resource-preloader.js?v=20250127003" defer></script>
-    <script src="../assets/js/hosting-compatibility.js?v=20250127003" defer></script>
+        <!-- Script Melhorado do Accordion -->
+        <script>
+            // Fun��o melhorada para inicializar o accordion
+            function initializeImprovedAccordion() {
+                console.log('?? Inicializando accordion melhorado...');
 
-    <!-- App Scripts -->
-    <script src="../firebase-config.js?v=20250127003" defer></script>
-    <script src="../assets/js/auth-guard.js?v=20250127003" defer></script>
+                // Aguarda um pouco para garantir que todos os elementos estejam prontos
+                setTimeout(() => {
+                    // Seleciona todos os itens de submenu
+                    const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                    console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
 
-    <!-- Header Scripts -->
-    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+                    submenuItems.forEach((menuItem, index) => {
+                        // Encontra o link clic�vel dentro do item
+                        const menuLink = menuItem.querySelector('.menu-link, a');
+                        const submenu = menuItem.querySelector('.submenu');
+                        const arrowIcon = menuItem.querySelector('.arrow-icon');
 
-    <!-- Script Melhorado do Accordion -->
-    <script>
-    // Fun��o melhorada para inicializar o accordion
-    function initializeImprovedAccordion() {
-        console.log('?? Inicializando accordion melhorado...');
-        
-        // Aguarda um pouco para garantir que todos os elementos estejam prontos
-        setTimeout(() => {
-            // Seleciona todos os itens de submenu
-            const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
-            console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
-            
-            submenuItems.forEach((menuItem, index) => {
-                // Encontra o link clic�vel dentro do item
-                const menuLink = menuItem.querySelector('.menu-link, a');
-                const submenu = menuItem.querySelector('.submenu');
-                const arrowIcon = menuItem.querySelector('.arrow-icon');
-                
-                if (menuLink && submenu) {
-                    // Remove event listeners existentes clonando o elemento
-                    const newMenuLink = menuLink.cloneNode(true);
-                    menuLink.parentNode.replaceChild(newMenuLink, menuLink);
-                    
-                    // Adiciona novo event listener melhorado
-                    newMenuLink.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        console.log(`??? Clique no item ${index + 1}`);
-                        
-                        // Fecha todos os outros submenus
-                        const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
-                        allMenuItems.forEach(item => {
-                            if (item !== menuItem) {
-                                item.classList.remove('expanded');
-                            }
-                        });
-                        
-                        // Toggle do item atual
-                        menuItem.classList.toggle('expanded');
-                        
-                        const isExpanded = menuItem.classList.contains('expanded');
-                        console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra�do'}`);
-                        
-                        // Atualiza o �cone da seta se existir
-                        if (arrowIcon) {
-                            arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
-                        }
-                    });
-                    
-                    console.log(`? Evento vinculado ao item ${index + 1}`);
-                } else {
-                    console.warn(`?? Item ${index + 1} n�o tem link ou submenu v�lido`);
-                }
-            });
-            
-            console.log('? Accordion melhorado inicializado com sucesso!');
-        }, 100);
-    }
-    
-    // Inicializa quando o DOM estiver pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
-    } else {
-        initializeImprovedAccordion();
-    }
-    
-    // Tamb�m disponibiliza globalmente para re-inicializa��o manual
-    window.reinitializeAccordion = initializeImprovedAccordion;
-    </script>
-    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
-    <script src="../assets/js/cobrancas.js?v=20250127003" defer></script>
-    <script>
-        // Configurar estado ativo do menu baseado na p�gina atual
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentPage = 'pages/cobrancas.html';
-            const sidebarLinks = document.querySelectorAll('#sidebar .submenu a');
+                        if (menuLink && submenu) {
+                            // Remove event listeners existentes clonando o elemento
+                            const newMenuLink = menuLink.cloneNode(true);
+                            menuLink.parentNode.replaceChild(newMenuLink, menuLink);
 
-            sidebarLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href === currentPage) {
-                    link.classList.add('active');
-                    // Expandir o submenu pai se necess�rio
-                    const parentSubmenu = link.closest('.submenu');
-                    if (parentSubmenu) {
-                        const parentMenuItem = parentSubmenu.closest('.menu-item');
-                        if (parentMenuItem) {
-                            parentMenuItem.classList.add('expanded');
-                        }
-                    }
-                } else {
-                    link.classList.remove('active');
-                }
-            });
-        });
-    </script>
+                            // Adiciona novo event listener melhorado
+                            newMenuLink.addEventListener('click', function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
 
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+                                console.log(`??? Clique no item ${index + 1}`);
 
-    
+                                // Fecha todos os outros submenus
+                                const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+                                allMenuItems.forEach(item => {
+                                    if (item !== menuItem) {
+                                        item.classList.remove('expanded');
+                                    }
+                                });
 
-    
+                                // Toggle do item atual
+                                menuItem.classList.toggle('expanded');
 
-    <!-- Corre��o Completa do Sidebar com Accordion -->
-    <script>
-    (function() {
-        'use strict';
-        
-        // Aguardar que todos os scripts sejam carregados
-        function initializeSidebar() {
-            console.log('?? Inicializando corre��o completa do sidebar...');
-            
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            
-            if (!menuToggle) {
-                console.error('? Bot�o do menu n�o encontrado!');
-                return;
-            }
-            
-            if (!sidebar) {
-                console.error('? Sidebar n�o encontrado!');
-                return;
-            }
-            
-            console.log('? Elementos encontrados - aplicando corre��o...');
-            
-            // Limpar todos os event listeners existentes
-            const newMenuToggle = menuToggle.cloneNode(true);
-            menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
-            
-            // Fun��o para abrir o sidebar
-            function openSidebar() {
-                sidebar.classList.add('open', 'menu-aberto');
-                sidebar.style.transform = 'translateX(0)';
-                sidebar.style.left = '0';
-                if (overlay) {
-                    overlay.classList.add('active');
-                    overlay.style.display = 'block';
-                }
-                document.body.style.overflow = 'hidden';
-                console.log('?? Sidebar aberto');
-            }
-            
-            // Fun��o para fechar o sidebar
-            function closeSidebar() {
-                sidebar.classList.remove('open', 'menu-aberto');
-                sidebar.style.transform = 'translateX(-100%)';
-                sidebar.style.left = '-280px';
-                if (overlay) {
-                    overlay.classList.remove('active');
-                    overlay.style.display = 'none';
-                }
-                document.body.style.overflow = '';
-                console.log('?? Sidebar fechado');
-            }
-            
-            // Event listener para o bot�o do menu
-            newMenuToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('??? Clique no menu detectado');
-                
-                const isOpen = sidebar.classList.contains('open') || 
-                              sidebar.classList.contains('menu-aberto') ||
-                              sidebar.style.transform === 'translateX(0px)' ||
-                              sidebar.style.left === '0px';
-                
-                if (isOpen) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
-                }
-            });
-            
-            // Event listener para o overlay
-            if (overlay) {
-                overlay.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    closeSidebar();
-                    console.log('?? Sidebar fechado via overlay');
-                });
-            }
-            
-            // Event listener para a tecla ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    const isOpen = sidebar.classList.contains('open') || 
-                                  sidebar.classList.contains('menu-aberto');
-                    if (isOpen) {
-                        closeSidebar();
-                        console.log('?? Sidebar fechado via ESC');
-                    }
-                }
-            });
-            
-            // Event listener para bot�o de fechar (se existir)
-            const closeButton = document.getElementById('sidebar-close') || 
-                               document.querySelector('.sidebar-close') ||
-                               document.querySelector('#sidebar .close-btn');
-            if (closeButton) {
-                closeButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    closeSidebar();
-                    console.log('?? Sidebar fechado via bot�o fechar');
-                });
-            }
-            
-            // Implementar funcionalidade de accordion
-            const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
-            console.log('?? Itens do menu encontrados:', menuItems.length);
-            
-            menuItems.forEach(function(item) {
-                const link = item.querySelector('.menu-link');
-                const submenu = item.querySelector('.submenu');
-                
-                if (link && submenu) {
-                    // Remover event listeners existentes
-                    const newLink = link.cloneNode(true);
-                    link.parentNode.replaceChild(newLink, link);
-                    
-                    newLink.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        console.log('??? Clique no menu:', newLink.textContent.trim());
-                        
-                        // Fechar outros submenus
-                        menuItems.forEach(function(otherItem) {
-                            if (otherItem !== item) {
-                                otherItem.classList.remove('expanded');
-                                const otherSubmenu = otherItem.querySelector('.submenu');
-                                if (otherSubmenu) {
-                                    otherSubmenu.style.display = 'none';
+                                const isExpanded = menuItem.classList.contains('expanded');
+                                console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra�do'}`);
+
+                                // Atualiza o �cone da seta se existir
+                                if (arrowIcon) {
+                                    arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
                                 }
-                            }
-                        });
-                        
-                        // Alternar o submenu atual
-                        const isExpanded = item.classList.contains('expanded');
-                        if (isExpanded) {
-                            item.classList.remove('expanded');
-                            submenu.style.display = 'none';
-                            console.log('?? Submenu fechado:', newLink.textContent.trim());
+                            });
+
+                            console.log(`? Evento vinculado ao item ${index + 1}`);
                         } else {
-                            item.classList.add('expanded');
-                            submenu.style.display = 'block';
-                            console.log('?? Submenu aberto:', newLink.textContent.trim());
+                            console.warn(`?? Item ${index + 1} n�o tem link ou submenu v�lido`);
                         }
                     });
-                    
-                    console.log('? Event listener adicionado para:', link.textContent.trim());
+
+                    console.log('? Accordion melhorado inicializado com sucesso!');
+                }, 100);
+            }
+
+            // Inicializa quando o DOM estiver pronto
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeImprovedAccordion);
+            } else {
+                initializeImprovedAccordion();
+            }
+
+            // Tamb�m disponibiliza globalmente para re-inicializa��o manual
+            window.reinitializeAccordion = initializeImprovedAccordion;
+        </script>
+        <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
+        <script src="../assets/js/features/cobrancas.js?v=20250127003" defer></script>
+        <script>
+            // Configurar estado ativo do menu baseado na p�gina atual
+            document.addEventListener('DOMContentLoaded', function () {
+                const currentPage = 'pages/cobrancas.html';
+                const sidebarLinks = document.querySelectorAll('#sidebar .submenu a');
+
+                sidebarLinks.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === currentPage) {
+                        link.classList.add('active');
+                        // Expandir o submenu pai se necess�rio
+                        const parentSubmenu = link.closest('.submenu');
+                        if (parentSubmenu) {
+                            const parentMenuItem = parentSubmenu.closest('.menu-item');
+                            if (parentMenuItem) {
+                                parentMenuItem.classList.add('expanded');
+                            }
+                        }
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            });
+        </script>
+
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+
+
+
+
+        <!-- Corre��o Completa do Sidebar com Accordion -->
+        <script>
+            (function () {
+                'use strict';
+
+                // Aguardar que todos os scripts sejam carregados
+                function initializeSidebar() {
+                    console.log('?? Inicializando corre��o completa do sidebar...');
+
+                    const menuToggle = document.getElementById('menu-toggle');
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('sidebar-overlay');
+
+                    if (!menuToggle) {
+                        console.error('? Bot�o do menu n�o encontrado!');
+                        return;
+                    }
+
+                    if (!sidebar) {
+                        console.error('? Sidebar n�o encontrado!');
+                        return;
+                    }
+
+                    console.log('? Elementos encontrados - aplicando corre��o...');
+
+                    // Limpar todos os event listeners existentes
+                    const newMenuToggle = menuToggle.cloneNode(true);
+                    menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+
+                    // Fun��o para abrir o sidebar
+                    function openSidebar() {
+                        sidebar.classList.add('open', 'menu-aberto');
+                        sidebar.style.transform = 'translateX(0)';
+                        sidebar.style.left = '0';
+                        if (overlay) {
+                            overlay.classList.add('active');
+                            overlay.style.display = 'block';
+                        }
+                        document.body.style.overflow = 'hidden';
+                        console.log('?? Sidebar aberto');
+                    }
+
+                    // Fun��o para fechar o sidebar
+                    function closeSidebar() {
+                        sidebar.classList.remove('open', 'menu-aberto');
+                        sidebar.style.transform = 'translateX(-100%)';
+                        sidebar.style.left = '-280px';
+                        if (overlay) {
+                            overlay.classList.remove('active');
+                            overlay.style.display = 'none';
+                        }
+                        document.body.style.overflow = '';
+                        console.log('?? Sidebar fechado');
+                    }
+
+                    // Event listener para o bot�o do menu
+                    newMenuToggle.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        console.log('??? Clique no menu detectado');
+
+                        const isOpen = sidebar.classList.contains('open') ||
+                            sidebar.classList.contains('menu-aberto') ||
+                            sidebar.style.transform === 'translateX(0px)' ||
+                            sidebar.style.left === '0px';
+
+                        if (isOpen) {
+                            closeSidebar();
+                        } else {
+                            openSidebar();
+                        }
+                    });
+
+                    // Event listener para o overlay
+                    if (overlay) {
+                        overlay.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            closeSidebar();
+                            console.log('?? Sidebar fechado via overlay');
+                        });
+                    }
+
+                    // Event listener para a tecla ESC
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape') {
+                            const isOpen = sidebar.classList.contains('open') ||
+                                sidebar.classList.contains('menu-aberto');
+                            if (isOpen) {
+                                closeSidebar();
+                                console.log('?? Sidebar fechado via ESC');
+                            }
+                        }
+                    });
+
+                    // Event listener para bot�o de fechar (se existir)
+                    const closeButton = document.getElementById('sidebar-close') ||
+                        document.querySelector('.sidebar-close') ||
+                        document.querySelector('#sidebar .close-btn');
+                    if (closeButton) {
+                        closeButton.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            closeSidebar();
+                            console.log('?? Sidebar fechado via bot�o fechar');
+                        });
+                    }
+
+                    // Implementar funcionalidade de accordion
+                    const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
+                    console.log('?? Itens do menu encontrados:', menuItems.length);
+
+                    menuItems.forEach(function (item) {
+                        const link = item.querySelector('.menu-link');
+                        const submenu = item.querySelector('.submenu');
+
+                        if (link && submenu) {
+                            // Remover event listeners existentes
+                            const newLink = link.cloneNode(true);
+                            link.parentNode.replaceChild(newLink, link);
+
+                            newLink.addEventListener('click', function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                console.log('??? Clique no menu:', newLink.textContent.trim());
+
+                                // Fechar outros submenus
+                                menuItems.forEach(function (otherItem) {
+                                    if (otherItem !== item) {
+                                        otherItem.classList.remove('expanded');
+                                        const otherSubmenu = otherItem.querySelector('.submenu');
+                                        if (otherSubmenu) {
+                                            otherSubmenu.style.display = 'none';
+                                        }
+                                    }
+                                });
+
+                                // Alternar o submenu atual
+                                const isExpanded = item.classList.contains('expanded');
+                                if (isExpanded) {
+                                    item.classList.remove('expanded');
+                                    submenu.style.display = 'none';
+                                    console.log('?? Submenu fechado:', newLink.textContent.trim());
+                                } else {
+                                    item.classList.add('expanded');
+                                    submenu.style.display = 'block';
+                                    console.log('?? Submenu aberto:', newLink.textContent.trim());
+                                }
+                            });
+
+                            console.log('? Event listener adicionado para:', link.textContent.trim());
+                        }
+                    });
+
+
+                    // Garantir que o sidebar inicie fechado
+                    closeSidebar();
+
+                    console.log('? Corre��o completa do sidebar aplicada com sucesso!');
                 }
-            });
-                
-            
-            // Garantir que o sidebar inicie fechado
-            closeSidebar();
-            
-            console.log('? Corre��o completa do sidebar aplicada com sucesso!');
-        }
-        
-        // Inicializar quando o DOM estiver pronto
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(initializeSidebar, 1000);
-            });
-        } else {
-            setTimeout(initializeSidebar, 1000);
-        }
-        
-    })();
-    </script>
+
+                // Inicializar quando o DOM estiver pronto
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function () {
+                        setTimeout(initializeSidebar, 1000);
+                    });
+                } else {
+                    setTimeout(initializeSidebar, 1000);
+                }
+
+            })();
+        </script>
 </body>
+
 </html>
-
-
-
-

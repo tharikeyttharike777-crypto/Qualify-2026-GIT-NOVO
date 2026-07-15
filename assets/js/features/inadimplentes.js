@@ -59,62 +59,62 @@ function initializeModals() {
     const closeAdvancedFilters = document.getElementById('closeAdvancedFilters');
     const applyAdvancedFilters = document.getElementById('applyAdvancedFilters');
     const resetAdvancedFilters = document.getElementById('resetAdvancedFilters');
-    
+
     // Bulk Actions Modal
     const bulkActionsBtn = document.getElementById('bulkActionsBtn');
     const bulkActionsModal = document.getElementById('bulkActionsModal');
     const closeBulkActions = document.getElementById('closeBulkActions');
-    
+
     // Tab switching functionality
     const tabButtons = document.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             switchTab(this.dataset.tab);
         });
     });
-    
+
     // Advanced filters event listeners
     if (advancedFiltersBtn) {
         advancedFiltersBtn.addEventListener('click', () => openModal('advancedFiltersModal'));
     }
-    
+
     if (applyAdvancedFilters) {
         applyAdvancedFilters.addEventListener('click', applyAdvancedFiltersAction);
     }
-    
+
     if (resetAdvancedFilters) {
         resetAdvancedFilters.addEventListener('click', resetAdvancedFiltersAction);
     }
-    
+
     // Bulk actions event listeners
     if (bulkActionsBtn) {
         bulkActionsBtn.addEventListener('click', () => openModal('bulkActionsModal'));
     }
-    
+
     // Clear all filters
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', clearAllFilters);
     }
-    
+
     // Refresh button
     const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', refreshData);
     }
-    
+
     // Export button
     const exportBtn = document.getElementById('exportBtn');
     if (exportBtn) {
         exportBtn.addEventListener('click', () => exportData('excel'));
     }
-    
+
     // Import button
     const importarBtn = document.getElementById('importarBtn');
     if (importarBtn) {
         importarBtn.addEventListener('click', initializeImport);
     }
-    
+
     // Bulk actions functionality
     setupBulkActions();
 }
@@ -125,7 +125,7 @@ function openModal(modalId) {
     if (modal) {
         const bsModal = new bootstrap.Modal(modal);
         bsModal.show();
-        
+
         if (modalId === 'bulkActionsModal') {
             updateSelectedItemsCount();
         }
@@ -148,7 +148,7 @@ function switchTab(tabId) {
     // Remove active class from all tabs and tab panes
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-    
+
     // Add active class to clicked tab and corresponding pane
     document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
     document.getElementById(tabId).classList.add('active');
@@ -175,13 +175,13 @@ function applyAdvancedFiltersAction() {
         vencimentoInicial: document.getElementById('vencimentoInicial')?.value || '',
         vencimentoFinal: document.getElementById('vencimentoFinal')?.value || ''
     };
-    
+
     // Collect sorting options
     const sorting = {
         sortBy: document.getElementById('sortBy')?.value || 'dias',
         sortOrder: document.querySelector('input[name="sortOrder"]:checked')?.value || 'desc'
     };
-    
+
     // Collect visible columns
     const visibleColumns = {
         showContrato: document.getElementById('showContrato')?.checked || false,
@@ -192,16 +192,16 @@ function applyAdvancedFiltersAction() {
         showValor: document.getElementById('showValor')?.checked || false,
         showObservacao: document.getElementById('showObservacao')?.checked || false
     };
-    
+
     // Update state
     Object.assign(inadimplentesState.filters, filters);
     Object.assign(inadimplentesState.sorting, sorting);
     Object.assign(inadimplentesState.visibleColumns, visibleColumns);
-    
+
     // Apply filters and close modal
     applyFiltersToData();
     closeModal('advancedFiltersModal');
-    
+
     showNotification('Filtros aplicados com sucesso!', 'success');
 }
 
@@ -212,12 +212,12 @@ function resetAdvancedFiltersAction() {
     document.querySelectorAll('#advancedFiltersModal input[type="text"], #advancedFiltersModal input[type="number"], #advancedFiltersModal input[type="date"]').forEach(input => input.value = '');
     document.querySelectorAll('#advancedFiltersModal select').forEach(select => select.selectedIndex = 0);
     document.querySelectorAll('#advancedFiltersModal input[type="checkbox"]').forEach(checkbox => checkbox.checked = true);
-    
+
     // Reset sorting to default
     document.getElementById('sortBy').value = 'dias';
     document.getElementById('sortAsc').checked = false;
     document.getElementById('sortDesc').checked = true;
-    
+
     showNotification('Filtros resetados!', 'info');
 }
 
@@ -244,15 +244,15 @@ function clearAllFilters() {
         vencimentoInicial: '',
         vencimentoFinal: ''
     };
-    
+
     // Clear UI elements
     document.getElementById('searchInput').value = '';
     document.getElementById('statusFilter').selectedIndex = 0;
-    
+
     // Reload data
     loadData();
     updateFilterInfo();
-    
+
     showNotification('Todos os filtros foram limpos!', 'success');
 }
 
@@ -262,7 +262,7 @@ function refreshData() {
     loadData();
     updateSummaryCards();
     updateFilterInfo();
-    
+
     setTimeout(() => {
         showNotification('Dados atualizados com sucesso!', 'success');
     }, 1000);
@@ -272,26 +272,26 @@ function refreshData() {
 function setupBulkActions() {
     // Export actions
     document.querySelectorAll('[data-export]').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const format = this.dataset.export;
             exportData(format);
             closeModal('bulkActionsModal');
         });
     });
-    
+
     // Bulk send message
     const bulkSendMessage = document.getElementById('bulkSendMessage');
     if (bulkSendMessage) {
-        bulkSendMessage.addEventListener('click', function() {
+        bulkSendMessage.addEventListener('click', function () {
             closeModal('bulkActionsModal');
             openModal('messageModal');
         });
     }
-    
+
     // Bulk status update
     const applyBulkStatus = document.getElementById('applyBulkStatus');
     if (applyBulkStatus) {
-        applyBulkStatus.addEventListener('click', function() {
+        applyBulkStatus.addEventListener('click', function () {
             const status = document.getElementById('bulkStatusUpdate').value;
             if (status) {
                 updateBulkStatus(status);
@@ -299,11 +299,11 @@ function setupBulkActions() {
             }
         });
     }
-    
+
     // Bulk remove
     const bulkRemove = document.getElementById('bulkRemove');
     if (bulkRemove) {
-        bulkRemove.addEventListener('click', function() {
+        bulkRemove.addEventListener('click', function () {
             if (confirm('Tem certeza que deseja remover os contratos selecionados da lista?')) {
                 removeBulkItems();
                 closeModal('bulkActionsModal');
@@ -355,9 +355,9 @@ function showNotification(message, type = 'info') {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Auto remove after 3 seconds
     setTimeout(() => {
         if (notification.parentNode) {
@@ -373,7 +373,7 @@ function updateFilterInfo() {
 }
 
 // Initialize page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeEventListeners();
     initializeModals();
     // Aguarda sistema multitenant e empresa ativa antes de carregar
@@ -496,15 +496,15 @@ async function loadData() {
     try {
         // Mostra loading
         showLoadingState();
-        
+
         // Busca dados do usuário logado
         const userData = await window.userDataManager.getUserData('inadimplentes', {
             orderBy: { field: 'dataVencimento', direction: 'desc' }
         });
-        
+
         allData = userData || [];
         filteredData = [...allData];
-        
+
         if (allData.length === 0) {
             showEmptyState('Nenhum contrato inadimplente encontrado');
         } else {
@@ -558,13 +558,13 @@ function showEmptyState(message) {
     if (tableBody) {
         tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">${message}</td></tr>`;
     }
-    
+
     // Limpa paginação
     const pagination = document.querySelector('.pagination');
     if (pagination) {
         pagination.innerHTML = '';
     }
-    
+
     // Zera cards de resumo
     updateSummaryCards(true);
 }
@@ -572,18 +572,18 @@ function showEmptyState(message) {
 // Search functionality
 function handleSearch() {
     const searchTerm = searchInput.value.toLowerCase().trim();
-    
+
     if (searchTerm === '') {
         filteredData = [...allData];
     } else {
-        filteredData = allData.filter(item => 
+        filteredData = allData.filter(item =>
             item.contrato.toLowerCase().includes(searchTerm) ||
             item.titular.toLowerCase().includes(searchTerm) ||
             item.celular.includes(searchTerm) ||
             item.observacao.toLowerCase().includes(searchTerm)
         );
     }
-    
+
     currentPage = 1;
     renderTable();
     updatePagination();
@@ -594,12 +594,12 @@ function handleSearch() {
 function handleSelectAll() {
     const isChecked = selectAllCheckbox.checked;
     const checkboxes = document.querySelectorAll('.row-checkbox');
-    
+
     checkboxes.forEach(checkbox => {
         checkbox.checked = isChecked;
         const row = checkbox.closest('tr');
         const contractId = parseInt(row.cells[1].textContent);
-        
+
         if (isChecked) {
             selectedRows.add(contractId);
             row.classList.add('table-active');
@@ -608,7 +608,7 @@ function handleSelectAll() {
             row.classList.remove('table-active');
         }
     });
-    
+
     updateSelectedCount();
 }
 
@@ -616,7 +616,7 @@ function handleSelectAll() {
 function handleRowSelection(checkbox) {
     const row = checkbox.closest('tr');
     const contractId = parseInt(row.cells[1].textContent);
-    
+
     if (checkbox.checked) {
         selectedRows.add(contractId);
         row.classList.add('table-active');
@@ -624,14 +624,14 @@ function handleRowSelection(checkbox) {
         selectedRows.delete(contractId);
         row.classList.remove('table-active');
     }
-    
+
     // Update select all checkbox
     const totalCheckboxes = document.querySelectorAll('.row-checkbox').length;
     const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked').length;
-    
+
     selectAllCheckbox.checked = totalCheckboxes === checkedCheckboxes;
     selectAllCheckbox.indeterminate = checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes;
-    
+
     updateSelectedCount();
 }
 
@@ -645,21 +645,21 @@ function updateSelectedCount() {
 // Render table
 function renderTable() {
     if (!tableBody) return;
-    
+
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const pageData = filteredData.slice(startIndex, endIndex);
-    
+
     tableBody.innerHTML = '';
-    
+
     pageData.forEach(item => {
         const row = document.createElement('tr');
         const isSelected = selectedRows.has(item.id);
-        
+
         if (isSelected) {
             row.classList.add('table-active');
         }
-        
+
         row.innerHTML = `
             <td>
                 <input type="checkbox" class="form-check-input row-checkbox" ${isSelected ? 'checked' : ''}>
@@ -687,11 +687,11 @@ function renderTable() {
                 </div>
             </td>
         `;
-        
+
         // Add event listener to checkbox
         const checkbox = row.querySelector('.row-checkbox');
         checkbox.addEventListener('change', () => handleRowSelection(checkbox));
-        
+
         tableBody.appendChild(row);
     });
 }
@@ -700,11 +700,11 @@ function renderTable() {
 function updatePagination() {
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const pagination = document.querySelector('.pagination');
-    
+
     if (!pagination) return;
-    
+
     pagination.innerHTML = '';
-    
+
     // Previous buttons
     pagination.innerHTML += `
         <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
@@ -718,11 +718,11 @@ function updatePagination() {
             </a>
         </li>
     `;
-    
+
     // Page numbers
     const startPage = Math.max(1, currentPage - 4);
     const endPage = Math.min(totalPages, startPage + 9);
-    
+
     for (let i = startPage; i <= endPage; i++) {
         pagination.innerHTML += `
             <li class="page-item ${i === currentPage ? 'active' : ''}">
@@ -730,7 +730,7 @@ function updatePagination() {
             </li>
         `;
     }
-    
+
     if (endPage < totalPages) {
         pagination.innerHTML += `
             <li class="page-item">
@@ -740,7 +740,7 @@ function updatePagination() {
             </li>
         `;
     }
-    
+
     // Next buttons
     pagination.innerHTML += `
         <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
@@ -759,13 +759,13 @@ function updatePagination() {
 // Change page
 function changePage(page) {
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    
+
     if (page < 1 || page > totalPages) return;
-    
+
     currentPage = page;
     renderTable();
     updatePagination();
-    
+
     // Scroll to top of table
     document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth' });
 }
@@ -782,11 +782,11 @@ function updateSummaryCards(reset = false) {
         }
         return;
     }
-    
+
     const totalValue = filteredData.reduce((sum, item) => sum + item.valor, 0);
     const totalContracts = filteredData.length;
     const totalParcels = filteredData.reduce((sum, item) => sum + item.quantidade, 0);
-    
+
     // Update summary values
     const summaryValues = document.querySelectorAll('.summary-value');
     if (summaryValues.length >= 3) {
@@ -805,7 +805,7 @@ function applyFilters() {
     const valorMinimo = parseFloat(document.getElementById('valorMinimo').value) || 0;
     const valorMaximo = parseFloat(document.getElementById('valorMaximo').value) || Infinity;
     const statusContato = document.getElementById('statusContato').value;
-    
+
     filteredData = allData.filter(item => {
         // Date filter
         if (dataInicial && item.data) {
@@ -813,37 +813,37 @@ function applyFilters() {
             const startDate = new Date(dataInicial);
             if (itemDate < startDate) return false;
         }
-        
+
         if (dataFinal && item.data) {
             const itemDate = parseDate(item.data);
             const endDate = new Date(dataFinal);
             if (itemDate > endDate) return false;
         }
-        
+
         // Days filter
         if (item.dias < diasMinimo || item.dias > diasMaximo) return false;
-        
+
         // Value filter
         if (item.valor < valorMinimo || item.valor > valorMaximo) return false;
-        
+
         // Status filter (simplified)
         if (statusContato && statusContato !== '') {
             // This would need to be implemented based on actual status logic
             return true;
         }
-        
+
         return true;
     });
-    
+
     currentPage = 1;
     renderTable();
     updatePagination();
     updateSummaryCards();
-    
+
     // Close modal
     const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
     filterModal.hide();
-    
+
     showAlert('Filtros aplicados com sucesso!', 'success');
 }
 
@@ -856,11 +856,11 @@ function parseDate(dateString) {
 // Setup modals
 function setupModals() {
     // Reset forms when modals are hidden
-    document.getElementById('filterModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('filterModal').addEventListener('hidden.bs.modal', function () {
         this.querySelector('form')?.reset();
     });
-    
-    document.getElementById('messageModal').addEventListener('hidden.bs.modal', function() {
+
+    document.getElementById('messageModal').addEventListener('hidden.bs.modal', function () {
         this.querySelector('form')?.reset();
         document.getElementById('agendamentoContainer').style.display = 'none';
     });
@@ -870,7 +870,7 @@ function setupModals() {
 function toggleScheduleContainer() {
     const container = document.getElementById('agendamentoContainer');
     const checkbox = document.getElementById('agendarEnvio');
-    
+
     container.style.display = checkbox.checked ? 'block' : 'none';
 }
 
@@ -878,14 +878,14 @@ function toggleScheduleContainer() {
 function loadMessageTemplate() {
     const select = document.getElementById('modeloMensagem');
     const textarea = document.getElementById('mensagemTexto');
-    
+
     const templates = {
         'cobranca1': 'Olá {nome}, temos uma mensalidade em atraso no valor de R$ {valor}. Por favor, regularize sua situação. Obrigado!',
         'cobranca2': 'Prezado(a) {nome}, sua mensalidade no valor de R$ {valor} está em atraso há {dias} dias. Entre em contato conosco.',
         'cobranca3': 'URGENTE: {nome}, sua mensalidade de R$ {valor} está em atraso. Regularize imediatamente para evitar suspensão.',
         'negociacao': 'Olá {nome}, vamos negociar sua pendência de R$ {valor}? Temos condições especiais. Entre em contato!'
     };
-    
+
     if (templates[select.value]) {
         textarea.value = templates[select.value];
     }
@@ -897,12 +897,12 @@ function sendMessage() {
     const tipoMensagem = document.getElementById('tipoMensagem').value;
     const mensagem = document.getElementById('mensagemTexto').value;
     const agendarEnvio = document.getElementById('agendarEnvio').checked;
-    
+
     if (!mensagem.trim()) {
         showAlert('Por favor, digite uma mensagem.', 'warning');
         return;
     }
-    
+
     let recipientCount = 0;
     if (destinatarios === 'selecionados') {
         recipientCount = selectedRows.size;
@@ -913,34 +913,99 @@ function sendMessage() {
     } else {
         recipientCount = filteredData.length;
     }
-    
+
     // Simulate sending message
     setTimeout(() => {
         const messageModal = bootstrap.Modal.getInstance(document.getElementById('messageModal'));
         messageModal.hide();
-        
+
         const action = agendarEnvio ? 'agendadas' : 'enviadas';
         showAlert(`${recipientCount} mensagens ${action} com sucesso!`, 'success');
     }, 1000);
 }
 
-// Export data
+// Export data — IMPLEMENTAÇÃO REAL (antes era stub)
 function exportData(format) {
-    const selectedData = Array.from(inadimplentesState.selectedItems).length > 0 
-        ? Array.from(inadimplentesState.selectedItems).map(id => allData.find(item => item.id === id))
+    const selectedData = (selectedRows && selectedRows.size > 0)
+        ? [...selectedRows].map(id => allData.find(item => item.id === id)).filter(Boolean)
         : filteredData;
-    
-    if (selectedData.length === 0) {
+
+    if (!selectedData || selectedData.length === 0) {
         showAlert('Nenhum dado para exportar.', 'warning');
         return;
     }
-    
-    // Simulate export
-    showAlert(`Exportando ${selectedData.length} registros em formato ${format.toUpperCase()}...`, 'info');
-    
-    setTimeout(() => {
-        showAlert(`Arquivo ${format.toUpperCase()} baixado com sucesso!`, 'success');
-    }, 2000);
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    const rows = selectedData.map(item => ({
+        'Contrato': item.contrato || '',
+        'Data': item.data || '',
+        'Titular': item.titular || '',
+        'Celular': item.celular || '',
+        'Dias Atraso': item.dias || 0,
+        'Parcelas': item.quantidade || 0,
+        'Valor (R$)': item.valor ? item.valor.toFixed(2) : '0.00',
+        'Observação': item.observacao || ''
+    }));
+
+    if (format.includes('csv')) {
+        // CSV nativo - sem dependência externa
+        const headers = Object.keys(rows[0]).join(';');
+        const csvContent = [headers, ...rows.map(r => Object.values(r).join(';'))].join('\n');
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `inadimplentes_${timestamp}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showAlert(`${selectedData.length} registros exportados para CSV!`, 'success');
+
+    } else if (format.includes('excel')) {
+        // SheetJS - carrega dinamicamente se necessário
+        const doExport = () => {
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Inadimplentes');
+            // Auto-width das colunas
+            const colWidths = Object.keys(rows[0]).map(key => ({ wch: Math.max(key.length, 15) }));
+            ws['!cols'] = colWidths;
+            XLSX.writeFile(wb, `inadimplentes_${timestamp}.xlsx`);
+            showAlert(`${selectedData.length} registros exportados para Excel!`, 'success');
+        };
+
+        if (typeof XLSX !== 'undefined') {
+            doExport();
+        } else {
+            showAlert('Carregando biblioteca de exportação...', 'info');
+            const script = document.createElement('script');
+            script.src = 'https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js';
+            script.onload = doExport;
+            script.onerror = () => showAlert('Erro ao carregar biblioteca de exportação. Tente CSV.', 'error');
+            document.head.appendChild(script);
+        }
+
+    } else if (format.includes('pdf')) {
+        // jsPDF - já deve estar carregado no projeto
+        if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
+            showAlert('Biblioteca jsPDF não encontrada. Tente exportar em Excel ou CSV.', 'error');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape' });
+        doc.setFontSize(16);
+        doc.text('Relatório de Inadimplentes', 14, 15);
+        doc.setFontSize(10);
+        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 22);
+
+        const headers = Object.keys(rows[0]);
+        const body = rows.map(r => Object.values(r));
+        doc.autoTable({ head: [headers], body: body, startY: 28, styles: { fontSize: 8 } });
+        doc.save(`inadimplentes_${timestamp}.pdf`);
+        showAlert(`${selectedData.length} registros exportados para PDF!`, 'success');
+
+    } else {
+        showAlert('Formato não suportado. Use Excel, PDF ou CSV.', 'warning');
+    }
 }
 
 // Contract actions
@@ -956,7 +1021,7 @@ function sendMessageToContract(id) {
     selectedRows.clear();
     selectedRows.add(id);
     updateSelectedCount();
-    
+
     const messageModal = new bootstrap.Modal(document.getElementById('messageModal'));
     messageModal.show();
 }
@@ -967,12 +1032,12 @@ function deleteContract(id) {
         allData = allData.filter(item => item.id !== id);
         filteredData = filteredData.filter(item => item.id !== id);
         selectedRows.delete(id);
-        
+
         renderTable();
         updatePagination();
         updateSummaryCards();
         updateSelectedCount();
-        
+
         showAlert('Contrato excluído com sucesso!', 'success');
     }
 }
@@ -1034,7 +1099,7 @@ function initializeImport() {
     }
 
     const importManager = new ExcelImportManager();
-    
+
     // Configurar mapeamentos de campos específicos para inadimplentes
     importManager.setFieldMappings({
         'nome': { required: true, type: 'text', description: 'Nome do cliente' },
@@ -1063,15 +1128,15 @@ function initializeImport() {
     importManager.createImportInterface('importContainer');
 }
 
-    pageData.forEach(item => {
-        const row = document.createElement('tr');
-        const isSelected = selectedRows.has(item.id);
-        
-        if (isSelected) {
-            row.classList.add('table-active');
-        }
-        
-        row.innerHTML = `
+pageData.forEach(item => {
+    const row = document.createElement('tr');
+    const isSelected = selectedRows.has(item.id);
+
+    if (isSelected) {
+        row.classList.add('table-active');
+    }
+
+    row.innerHTML = `
             <td>
                 <input type="checkbox" class="form-check-input row-checkbox" ${isSelected ? 'checked' : ''}>
             </td>
@@ -1097,12 +1162,12 @@ function initializeImport() {
                 </div>
             </td>
         `;
-        
-        const checkbox = row.querySelector('.row-checkbox');
-        checkbox.addEventListener('change', () => handleRowSelection(checkbox));
-        
-        tableBody.appendChild(row);
-    });
+
+    const checkbox = row.querySelector('.row-checkbox');
+    checkbox.addEventListener('change', () => handleRowSelection(checkbox));
+
+    tableBody.appendChild(row);
+});
 // Render table row with dropdown actions
 function renderTableRow(item, isSelected) {
     return `

@@ -8,6 +8,9 @@ let totalRecords = 0;
 let filteredData = [];
 let selectedRows = new Set();
 
+// ═══ FLAG DE SUPRESSÃO DURANTE EXCLUSÃO ═══
+let _deletionInProgress = false;
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
     initializePage();
@@ -49,7 +52,7 @@ async function loadData() {
                 const deduped = Array.from(byKey.values());
                 localStorage.setItem('familias', JSON.stringify(deduped));
             }
-        } catch (_) {}
+        } catch (_) { }
 
         // Validar empresa ativa
         const activeCompanyStr = localStorage.getItem('activeCompany');
@@ -68,63 +71,47 @@ async function loadData() {
         let familiasComTitulares = [];
         let carregadoDe = 'firestore';
 
-        // Tenta carregar do Firestore
+        // Tenta carregar do Supabase
         try {
-            if (typeof window !== 'undefined' && window.db) {
-                const db = window.db;
-                const familiasSnap = await db.collection(`empresas/${companyId}/familias`).get();
-                const familias = familiasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const { data: familias, error } = await window.supabase
+                .from('familias')
+                .select('*')
+                .eq('company_id', companyId);
 
-                // Buscar titulares
-                const titularesSnap = await db.collection(`empresas/${companyId}/associados`).where('tipo', '==', 'titular').get();
-                const titulares = titularesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if (error) throw error;
 
-                const titularesPorFamilia = new Map();
-                titulares.forEach(t => {
-                    if (t.familiaId) titularesPorFamilia.set(String(t.familiaId), t);
-                });
-
-                familiasComTitulares = familias.map(familia => {
-                    const titular = titularesPorFamilia.get(String(familia.id));
-                    return {
-                        id: familia.id,
-                        nome: (familia.titular && familia.titular.nome) || (titular && titular.nome) || '',
-                        cpf: (familia.titular && familia.titular.cpf) || (titular && titular.cpf) || '',
-                        endereco: familia.endereco,
-                        dependentes: familia.dependentes || [],
-                        dataCriacao: familia.dataCriacao,
-                        status: familia.status || 'ativo',
-                        telefone: (titular && titular.telefone) || '',
-                        email: (titular && titular.email) || '',
-                        rg: (titular && titular.rg) || '',
-                        dataNascimento: (titular && titular.dataNascimento) || ''
-                    };
-                });
-            } else {
-                throw new Error('Firebase não inicializado');
-            }
-        } catch (fsErr) {
-            console.warn('Falha ao carregar do Firestore, usando cache local:', fsErr);
+            familiasComTitulares = familias.map(f => ({
+                id: f.id,
+                nome: f.titular?.nome || '',
+                cpf: f.titular?.cpf || '',
+                endereco: f.endereco,
+                dependentes: f.dependentes || [],
+                dataCriacao: f.created_at,
+                status: f.status || 'Ativo',
+                telefone: f.titular?.telefone || f.titular?.celular || '',
+                email: f.titular?.email || '',
+                rg: f.titular?.rg || '',
+                dataNascimento: f.titular?.nascimento || f.titular?.dataNascimento || ''
+            }));
+        } catch (sbErr) {
+            console.warn('Falha ao carregar do Supabase, usando cache local:', sbErr);
             carregadoDe = 'localStorage';
             const familias = (JSON.parse(localStorage.getItem('familias') || '[]') || []).filter(f => f.companyId === companyId);
-            const associados = (JSON.parse(localStorage.getItem('associados') || '[]') || []).filter(a => a.companyId === companyId);
 
-            familiasComTitulares = familias.map(familia => {
-                const titular = associados.find(assoc => assoc.familiaId === familia.id && assoc.tipo === 'titular');
-                return {
-                    id: familia.id,
-                    nome: familia.titular?.nome || titular?.nome || '',
-                    cpf: familia.titular?.cpf || titular?.cpf || '',
-                    endereco: familia.endereco,
-                    dependentes: familia.dependentes || [],
-                    dataCriacao: familia.dataCriacao,
-                    status: familia.status,
-                    telefone: titular?.telefone || '',
-                    email: titular?.email || '',
-                    rg: titular?.rg || '',
-                    dataNascimento: titular?.dataNascimento || ''
-                };
-            });
+            // Fallback localStorage logic remains similar but simplified
+            familiasComTitulares = familias.map(f => ({
+                id: f.id,
+                nome: f.titular?.nome || '',
+                cpf: f.titular?.cpf || '',
+                endereco: f.endereco,
+                dependentes: f.dependentes || [],
+                dataCriacao: f.dataCriacao,
+                status: f.status,
+                telefone: f.titular?.telefone || '',
+                email: f.titular?.email || '',
+                rg: f.titular?.rg || '',
+                dataNascimento: f.titular?.dataNascimento || ''
+            }));
         }
 
         sampleFamilies.length = 0; // Limpa array
@@ -302,6 +289,7 @@ function handleSelectAll(event) {
         }
     });
 
+    updateBulkBar();
     console.log(`Selected rows: ${selectedRows.size}`);
 }
 
@@ -401,6 +389,7 @@ function handleTableChange(event) {
         }
 
         updateSelectAllCheckbox();
+        updateBulkBar();
     }
 }
 
@@ -583,6 +572,7 @@ function handleDeleteFamily(familyId) {
 }
 
 function renderTableData() {
+    if (_deletionInProgress) { console.log('⏸️ renderTableData suprimido — exclusão em andamento'); return; }
     const tableBody = document.getElementById('tableBody');
     if (!tableBody) return;
 
@@ -893,6 +883,117 @@ function formatPhone(phone) {
     return phone;
 }
 
+// ═══════════════════════════════════════════════════
+// BULK ACTION BAR
+// ═══════════════════════════════════════════════════
+function updateBulkBar() {
+    const bar = document.getElementById('bulkBarFamilias');
+    const countEl = document.getElementById('selectedCountFamilias');
+    if (!bar) return;
+    if (selectedRows.size > 0) {
+        bar.classList.add('visible');
+        if (countEl) countEl.textContent = selectedRows.size;
+    } else {
+        bar.classList.remove('visible');
+    }
+}
+window.updateBulkBar = updateBulkBar;
+
+function clearSelectionFamilias() {
+    selectedRows.clear();
+    document.querySelectorAll('.row-select').forEach(cb => { cb.checked = false; });
+    document.querySelectorAll('#tableBody tr.selected').forEach(r => r.classList.remove('selected'));
+    const master = document.getElementById('selectAll');
+    if (master) { master.checked = false; master.indeterminate = false; }
+    updateBulkBar();
+}
+window.clearSelectionFamilias = clearSelectionFamilias;
+
+// ═══════════════════════════════════════════════════
+// MODAL DE CONFIRMAÇÃO
+// ═══════════════════════════════════════════════════
+function openBulkDeleteModal() {
+    if (selectedRows.size === 0) { showToast('Selecione ao menos uma família.', 'warning'); return; }
+    const count = selectedRows.size;
+    const elCount = document.getElementById('deleteCountFamilias');
+    const elBtn = document.getElementById('deleteCountBtnFamilias');
+    if (elCount) elCount.textContent = count;
+    if (elBtn) elBtn.textContent = count;
+    const modal = document.getElementById('deleteFamiliasModal');
+    if (modal) modal.classList.add('open');
+}
+window.openBulkDeleteModal = openBulkDeleteModal;
+
+function closeBulkDeleteModal() {
+    const modal = document.getElementById('deleteFamiliasModal');
+    if (modal) modal.classList.remove('open');
+    const btn = document.getElementById('btnConfirmDeleteFamilias');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-trash"></i> Sim, excluir'; }
+}
+window.closeBulkDeleteModal = closeBulkDeleteModal;
+
+// ═══════════════════════════════════════════════════
+// EXCLUSÃO ATÔMICA EM LOTE COM CASCADING
+// ═══════════════════════════════════════════════════
+async function confirmBulkDeleteFamilias() {
+    const totalToDelete = selectedRows.size;
+    if (totalToDelete === 0) return;
+
+    if (!confirm(`TEM CERTEZA? Você está prestes a excluir ${totalToDelete} família(s) e TODOS os seus contratos e associados vinculados via Supabase Cascade. Esta ação é irreversível!`)) {
+        return;
+    }
+
+    showToast(`Iniciando exclusão de ${totalToDelete} famílias...`, 'info');
+    _deletionInProgress = true;
+
+    const frozenIds = Array.from(selectedRows);
+    const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId');
+
+    try {
+        // ─── PASSO ÚNICO: EXCLUSÃO NO SUPABASE (CASCADING ON DELETE NO BANCO) ───
+        const { error } = await window.supabase
+            .from('familias')
+            .delete()
+            .in('id', frozenIds);
+
+        if (error) throw error;
+
+        // Limpeza LocalStorage (Retrocompatibilidade)
+        frozenIds.forEach(famIdStr => {
+            try {
+                let localFamilias = JSON.parse(localStorage.getItem('familias') || '[]');
+                localStorage.setItem('familias', JSON.stringify(localFamilias.filter(f => String(f.id) !== famIdStr)));
+
+                let localAssoc = JSON.parse(localStorage.getItem('associados') || '[]');
+                localStorage.setItem('associados', JSON.stringify(localAssoc.filter(a => String(a.familiaId) !== famIdStr)));
+            } catch (_) { }
+        });
+
+        // Atualizar estado local
+        const frozenSet = new Set(frozenIds);
+        sampleFamilies.splice(0, sampleFamilies.length, ...sampleFamilies.filter(f => !frozenSet.has(String(f.id))));
+        filteredData = [...sampleFamilies];
+        totalRecords = sampleFamilies.length;
+        selectedRows.clear();
+
+        _deletionInProgress = false;
+        updateTable();
+        updateBulkBar();
+        updateSelectAllCheckbox();
+        if (typeof closeBulkDeleteModal === 'function') closeBulkDeleteModal();
+
+        showToast(`${totalToDelete} família(s) excluída(s) com sucesso.`, 'success');
+        console.log(`🏁 Exclusão concluída: ${totalToDelete} famílias.`);
+
+    } catch (error) {
+        console.error('❌ Erro na exclusão via Supabase:', error);
+        _deletionInProgress = false;
+        if (typeof closeBulkDeleteModal === 'function') closeBulkDeleteModal();
+        showToast('Erro ao excluir: ' + error.message, 'error');
+    }
+}
+window.confirmBulkDeleteFamilias = confirmBulkDeleteFamilias;
+
 // Export functions for debugging
 window.pesquisarFamilias = {
     goToPage,
@@ -900,7 +1001,9 @@ window.pesquisarFamilias = {
     updateTable,
     selectedRows,
     currentPage,
-    totalRecords
+    totalRecords,
+    updateBulkBar,
+    confirmBulkDeleteFamilias
 };
 
 console.log('Pesquisar Famílias JavaScript loaded successfully');

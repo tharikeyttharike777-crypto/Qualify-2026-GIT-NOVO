@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,63 +8,33 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Produtos do Plano - PROGEM 10.0</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250127003" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=20250127003" rel="stylesheet">
-    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=20250127003"
+        rel="stylesheet">
+
     <!-- Custom CSS -->
     <link href="assets/css/style.css?v=20250127003" rel="stylesheet">
     <link href="assets/css/sidebar.css?v=20250127003" rel="stylesheet">
     <link href="assets/css/header.css?v=20250127003" rel="stylesheet">
-    
-    <!-- ====================================================================== 
-         SCRIPT DE AUTH GUARD (O CORRETO, QUE N�O D� LOOP) 
-         ====================================================================== -->
-    <script>
-        // Este script deve rodar no <head> de CADA p�gina que precisa de login 
-        // (EXCETO login.html). 
-        
-        firebase.auth().onAuthStateChanged(user => { 
-          
-          // onAuthStateChanged ESPERA o Firebase inicializar. 
-          
-          if (user) { 
-            // ---- USU�RIO EST� LOGADO ---- 
-            // Ele tem permiss�o para estar aqui. 
-            console.log("Auth Guard (Corrigido): Usu�rio verificado:", user.uid); 
-            
-            // (Se voc� tiver um 'loading' na p�gina, esconda-o agora) 
-            // document.getElementById('pagina-loading').style.display = 'none'; 
-        
-          } else { 
-            // ---- USU�RIO N�O EST� LOGADO ---- 
-            // Ele n�o tem permiss�o. Chute-o para o login. 
-            console.warn("Auth Guard (Corrigido): Nenhum usu�rio encontrado. Redirecionando para login."); 
-            
-            // Salva a p�gina atual para que possamos voltar aqui depois 
-            localStorage.setItem('redirectAfterLogin', window.location.pathname); 
-            
-            // Redireciona 
-            window.location.href = '/login.html'; // (Use o caminho correto para seu login.html) 
-          } 
-        });
-    </script>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
+
     <style>
         .product-card {
             border: 1px solid #e0e0e0;
             border-radius: 8px;
             transition: all 0.3s ease;
         }
-        
+
         .product-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transform: translateY(-2px);
         }
-        
+
         .product-image {
             width: 80px;
             height: 80px;
@@ -75,37 +46,46 @@
             font-size: 24px;
             color: #6c757d;
         }
-        
+
         .product-status {
             position: absolute;
             top: 10px;
             right: 10px;
         }
-        
+
         .add-product-card {
             border: 2px dashed #28a745;
             background: rgba(40, 167, 69, 0.05);
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
+
         .add-product-card:hover {
             background: rgba(40, 167, 69, 0.1);
             border-color: #1e7e34;
         }
-        
+
         .stock-indicator {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             display: inline-block;
         }
-        
-        .stock-high { background-color: #28a745; }
-        .stock-medium { background-color: #ffc107; }
-        .stock-low { background-color: #dc3545; }
+
+        .stock-high {
+            background-color: #28a745;
+        }
+
+        .stock-medium {
+            background-color: #ffc107;
+        }
+
+        .stock-low {
+            background-color: #dc3545;
+        }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -121,22 +101,25 @@
                         <i class="fas fa-search search-icon"></i>
                     </div>
                 </div>
-                
+
                 <div class="d-flex align-items-center">
-                    
+
                     <div class="dropdown">
                         <button class="btn btn-link text-white d-flex align-items-center" data-bs-toggle="dropdown">
-                            <img src="assets/images/user-avatar.png" alt="User" class="rounded-circle me-2" width="32" height="32">
+                            <img src="assets/images/user-avatar.png" alt="User" class="rounded-circle me-2" width="32"
+                                height="32">
                             <span>Admin</span>
                             <i class="fas fa-chevron-down ms-2"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configura��es</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configuraï¿½ï¿½es</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                                <i class="fas fa-sign-out-alt me-2"></i>Sair
-                            </a></li>
+                                    <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                </a></li>
                         </ul>
                     </div>
                 </div>
@@ -155,14 +138,14 @@
                 </a>
                 <a href="nova-familia.html" class="sidebar-item">
                     <i class="fas fa-users"></i>
-                    <span>Nova Fam�lia</span>
+                    <span>Nova Famï¿½lia</span>
                 </a>
                 <a href="pesquisa-simplificada.html" class="sidebar-item">
                     <i class="fas fa-search"></i>
                     <span>Pesquisa Simplificada</span>
                 </a>
             </div>
-            
+
             <div class="sidebar-section">
                 <h6 class="sidebar-title">Contratos</h6>
                 <a href="pesquisa-planos.html" class="sidebar-item active">
@@ -175,7 +158,7 @@
                 </a>
                 <a href="renegociacao-cobrancas.html" class="sidebar-item">
                     <i class="fas fa-handshake"></i>
-                    <span>Renegocia��o e Cobran�as</span>
+                    <span>Renegociaï¿½ï¿½o e Cobranï¿½as</span>
                 </a>
             </div>
         </div>
@@ -243,23 +226,23 @@
                                     <option value="medicamentos">Medicamentos</option>
                                     <option value="equipamentos">Equipamentos</option>
                                     <option value="suplementos">Suplementos</option>
-                                    <option value="cosmeticos">Cosm�ticos</option>
+                                    <option value="cosmeticos">Cosmï¿½ticos</option>
                                     <option value="higiene">Higiene</option>
                                     <option value="outros">Outros</option>
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="row mt-3">
                             <div class="col-md-12">
-                                <label for="product-description" class="form-label">Descri��o</label>
+                                <label for="product-description" class="form-label">Descriï¿½ï¿½o</label>
                                 <textarea class="form-control" id="product-description" rows="3"></textarea>
                             </div>
                         </div>
-                        
+
                         <div class="row mt-3">
                             <div class="col-md-3">
-                                <label for="product-price" class="form-label">Pre�o</label>
+                                <label for="product-price" class="form-label">Preï¿½o</label>
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
                                     <input type="text" class="form-control money-mask" id="product-price">
@@ -281,7 +264,7 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="row mt-3">
                             <div class="col-md-6">
                                 <label for="product-brand" class="form-label">Marca</label>
@@ -310,7 +293,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title">Confirmar Sa�da</h5>
+                    <h5 class="modal-title">Confirmar Saï¿½da</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -326,11 +309,11 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003"></script>
-    
+
     <!-- Custom JS -->
-    <script src="assets/js/sidebar.js?v=20250127003"></script>
-    <script src="assets/js/produtos-plano.js?v=20250127003"></script>
+    <script src="../assets/js/core/auth-guard.js?v=20250127003" defer></script>
+    <script src="../assets/js/features/sidebar.js?v=20250127003"></script>
+    <script src="../assets/js/features/produtos-plano.js?v=20250127003"></script>
 </body>
+
 </html>
-
-

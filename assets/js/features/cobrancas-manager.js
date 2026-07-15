@@ -94,35 +94,33 @@
         tbodyPagas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr>';
 
         try {
-            if (typeof firebase === 'undefined' || !firebase.firestore) {
-                throw new Error('Firebase não disponível');
+            if (!window.supabase) {
+                throw new Error('Supabase não disponível');
             }
 
-            const db = firebase.firestore();
-            let cobrancasRef = db.collection('empresas').doc(empresaId).collection('cobrancas');
+            let query = window.supabase
+                .from('cobrancas')
+                .select('*')
+                .eq('company_id', empresaId);
 
             // FILTRO POR CONTRATO (CRÍTICO)
-            // Prioridade: Argumento > URL Param
             const params = new URLSearchParams(window.location.search);
             const numeroContrato = contratoNumeroOverride || params.get('numero');
 
             if (numeroContrato) {
                 console.log(`🔍 Filtrando cobranças pelo contrato: ${numeroContrato}`);
-                // Garante que é string para busca exata
-                cobrancasRef = cobrancasRef.where('contratoNumero', '==', String(numeroContrato));
+                query = query.eq('contrato_numero', String(numeroContrato));
             }
 
-            // Busca sem orderBy pois campos de data têm nomes diferentes (criadoEm vs criadaEm)
-            const snapshot = await cobrancasRef.get();
+            const { data: cobrancasData, error } = await query;
+
+            if (error) throw error;
 
             const cobrancasAbertas = [];
             const cobrancasPagas = [];
 
-
-            snapshot.forEach(doc => {
-                const data = { id: doc.id, ...doc.data() };
+            (cobrancasData || []).forEach(data => {
                 const status = (data.status || '').toUpperCase();
-
                 // Classifica por status
                 if (status === 'RECEIVED' || status === 'CONFIRMED' || status === 'PAGO' || status === 'PAID') {
                     cobrancasPagas.push(data);
@@ -733,6 +731,7 @@
 
     /**
      * Salva a cobrança e gera PIX/Boleto/Cartão
+     * FIX: Adicionada idempotency key para prevenir duplicatas em double-click
      */
     async function saveCharge() {
         console.log('💾 Salvando cobrança...');
@@ -767,6 +766,15 @@
         const params = new URLSearchParams(window.location.search);
         const numeroContrato = params.get('numero') || $('ivNumero')?.textContent || '';
         const titular = $('holderName')?.textContent || 'Cliente';
+
+        // --- IDEMPOTENCY: Previne duplicatas em double-click ou retry ---
+        const idempotencyKey = `charge_${empresaId}_${numeroContrato}_${vencimento}_${valor}_${metodo}`;
+        if (sessionStorage.getItem(idempotencyKey)) {
+            showToast('Cobrança já está sendo processada. Aguarde.', 'warning');
+            console.warn('🔒 Idempotency key encontrada, bloqueando duplicata:', idempotencyKey);
+            return;
+        }
+        sessionStorage.setItem(idempotencyKey, 'processing');
 
         showLoading('Gerando cobrança...');
 
@@ -825,10 +833,15 @@
                 window.location.reload();
             }
 
+            // Libera a idempotency key após 30 segundos (permite recriar se necessário)
+            setTimeout(() => sessionStorage.removeItem(idempotencyKey), 30000);
+
         } catch (error) {
             console.error('❌ Erro ao gerar cobrança:', error);
             hideLoading();
             showToast(error.message || 'Erro ao gerar cobrança', 'error');
+            // Libera a key imediatamente em caso de erro para permitir retry
+            sessionStorage.removeItem(idempotencyKey);
         }
     }
 
@@ -1702,62 +1715,54 @@
     }
 
     /**
-     * CORRIGIDO: Salva cobrança no Firestore usando caminho direto
-     * Não depende de multitenantConfig - usa empresaUid diretamente
+     * Salva cobrança no Firestore usando caminho direto.
+     * FIX: Removido fallback silencioso para localStorage.
+     * Dados financeiros DEVEM ir para o Firestore. Se falhar, o erro é propagado.
      */
     async function salvarCobrancaFirestore(cobrancaData, empresaUid) {
-        try {
-            // Validação do empresaUid
-            if (!empresaUid) {
-                // Tenta recuperar do localStorage como último recurso
-                empresaUid = getEmpresaId();
-            }
-
-            if (!empresaUid) {
-                throw new Error('Nenhuma empresa ativa - empresaUid não fornecido');
-            }
-
-            console.log('💾 Salvando cobrança no Firestore para empresa:', empresaUid);
-
-            // Verifica se Firebase está disponível
-            if (typeof firebase !== 'undefined' && firebase.firestore) {
-                const db = firebase.firestore();
-
-                // CORREÇÃO: Caminho manual e direto, sem depender de config global
-                const cobrancasRef = db.collection('empresas').doc(empresaUid).collection('cobrancas');
-
-                // Adiciona documento
-                const docRef = await cobrancasRef.add({
-                    ...cobrancaData,
-                    empresaId: empresaUid,
-                    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                console.log('✅ Cobrança salva no Firestore, ID:', docRef.id);
-
-                // Recarrega a lista de cobranças
-                if (typeof carregarCobrancas === 'function') {
-                    carregarCobrancas(empresaUid);
-                }
-
-                return docRef.id;
-
-            } else {
-                // Fallback: salva no localStorage se Firebase não estiver disponível
-                const key = `COBRANCA_${cobrancaData.contratoNumero}_${Date.now()}`;
-                localStorage.setItem(key, JSON.stringify(cobrancaData));
-                console.log('✅ Cobrança salva no localStorage (fallback):', key);
-                return key;
-            }
-
-        } catch (error) {
-            console.error('❌ Erro ao salvar cobrança:', error);
-
-            // Fallback: salva no localStorage em caso de erro
-            const key = `COBRANCA_${cobrancaData.contratoNumero}_${Date.now()}`;
-            localStorage.setItem(key, JSON.stringify(cobrancaData));
-            console.log('⚠️ Cobrança salva no localStorage (erro Firestore):', key);
+        // Validação do empresaUid
+        if (!empresaUid) {
+            empresaUid = getEmpresaId();
         }
+
+        if (!empresaUid) {
+            throw new Error('Nenhuma empresa ativa selecionada. Impossível salvar cobrança.');
+        }
+
+        console.log('💾 Salvando cobrança no Supabase para empresa:', empresaUid);
+
+        if (!window.supabase) {
+            throw new Error('Supabase indisponível. A cobrança NÃO foi salva.');
+        }
+
+        const { data, error } = await window.supabase
+            .from('cobrancas')
+            .insert({
+                company_id: empresaUid,
+                contrato_numero: String(cobrancaData.contratoNumero || ''),
+                tipo: cobrancaData.tipo,
+                valor: cobrancaData.valor,
+                vencimento: cobrancaData.vencimento,
+                status: cobrancaData.status || 'PENDING',
+                metadata: {
+                    mensagem: cobrancaData.mensagem,
+                    criadoEm: cobrancaData.criadoEm || new Date().toISOString(),
+                    idAsaas: cobrancaData.idAsaas || null
+                }
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        console.log('✅ Cobrança salva no Supabase, ID:', data.id);
+
+        // Recarrega a lista de cobranças
+        if (typeof carregarCobrancasContrato === 'function') {
+            carregarCobrancasContrato(empresaUid);
+        }
+
+        return data.id;
     }
 
     /**

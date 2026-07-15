@@ -40,6 +40,25 @@
       font-weight: 600;
     }
 
+    /* Checkbox column */
+    table.simple th.col-check,
+    table.simple td.col-check {
+      width: 40px;
+      text-align: center;
+    }
+
+    table.simple th.col-check input,
+    table.simple td.col-check input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #5b21b6;
+    }
+
+    table.simple tr.selected {
+      background: #f3f0ff;
+    }
+
     .badge {
       display: inline-block;
       padding: 4px 8px;
@@ -71,6 +90,7 @@
     .records {
       margin-top: 10px;
       color: #666;
+      font-size: 13px;
     }
 
     .empty {
@@ -83,6 +103,315 @@
       padding: 8px 10px;
       border: 1px solid #ddd;
       border-radius: 6px;
+    }
+
+    /* ═══════ BULK ACTION BAR ═══════ */
+    .bulk-bar {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: #5b21b6;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      animation: slideDown .2s ease;
+    }
+
+    .bulk-bar.visible {
+      display: flex;
+    }
+
+    .bulk-bar .bulk-count {
+      font-weight: 600;
+    }
+
+    .bulk-bar button {
+      background: rgba(255, 255, 255, .15);
+      border: 1px solid rgba(255, 255, 255, .3);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .15s;
+    }
+
+    .bulk-bar button:hover {
+      background: rgba(255, 255, 255, .25);
+    }
+
+    .bulk-bar button.danger {
+      background: #dc2626;
+      border-color: #dc2626;
+    }
+
+    .bulk-bar button.danger:hover {
+      background: #b91c1c;
+    }
+
+    .bulk-bar .bulk-spacer {
+      flex: 1;
+    }
+
+    /* ═══════ PAGINATION ═══════ */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 8px 0;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .pagination-info {
+      color: #666;
+      font-size: 13px;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pagination-controls button {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #333;
+      transition: all .15s;
+    }
+
+    .pagination-controls button:hover:not(:disabled) {
+      background: #f3f0ff;
+      border-color: #5b21b6;
+      color: #5b21b6;
+    }
+
+    .pagination-controls button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .pagination-controls button.active {
+      background: #5b21b6;
+      color: #fff;
+      border-color: #5b21b6;
+    }
+
+    .pagination-controls span.page-ellipsis {
+      padding: 6px 4px;
+      color: #999;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ═══════ MODAL DE CONFIRMAÇÃO ═══════ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+      animation: fadeIn .2s ease;
+    }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
+      text-align: center;
+      animation: scaleIn .25s ease;
+    }
+
+    .modal-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #fef2f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .modal-icon i {
+      font-size: 24px;
+      color: #dc2626;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .modal-desc strong {
+      color: #dc2626;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .modal-actions button {
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+    }
+
+    .btn-cancel {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-cancel:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-confirm-delete {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .btn-confirm-delete:hover {
+      background: #b91c1c;
+    }
+
+    .btn-confirm-delete:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .btn-confirm-delete i.fa-spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    /* ═══════ TOAST NOTIFICATION ═══════ */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 280px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
+      animation: toastIn .3s ease;
+    }
+
+    .toast.success {
+      border-left: 4px solid #22c55e;
+    }
+
+    .toast.error {
+      border-left: 4px solid #ef4444;
+    }
+
+    .toast i {
+      font-size: 18px;
+    }
+
+    .toast.success i {
+      color: #22c55e;
+    }
+
+    .toast.error i {
+      color: #ef4444;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
   </style>
   <script>window.DISABLE_MULTITENANT_AUTO_RENDER = true;</script>
@@ -184,10 +513,21 @@
       <input id="searchInput" class="search-input" type="text"
         placeholder="Pesquisar nº, titular, vendedor, plano, status" />
     </div>
+
+    <!-- Barra de ações em massa -->
+    <div id="bulkBar" class="bulk-bar">
+      <span class="bulk-count"><span id="selectedCount">0</span> selecionado(s)</span>
+      <div class="bulk-spacer"></div>
+      <button onclick="clearSelection()" title="Limpar seleção"><i class="fas fa-times"></i> Limpar</button>
+      <button class="danger" onclick="openDeleteModal()" title="Excluir selecionados"><i class="fas fa-trash"></i>
+        Excluir Selecionados</button>
+    </div>
+
     <div class="table-wrap">
       <table id="contractsSimpleTable" class="simple">
         <thead>
           <tr>
+            <th class="col-check"><input type="checkbox" id="masterCheckbox" title="Selecionar todos da página" /></th>
             <th>Nº</th>
             <th>Data</th>
             <th>Titular</th>
@@ -201,28 +541,58 @@
       </table>
       <div id="emptyState" class="empty" style="display:none;">Nenhum contrato encontrado.</div>
     </div>
-    <div id="recordsInfo" class="records">Quantidade de registros: 0</div>
+
+    <!-- Paginação + info -->
+    <div class="pagination-bar">
+      <div id="recordsInfo" class="pagination-info">Quantidade de registros: 0</div>
+      <div id="paginationControls" class="pagination-controls"></div>
+    </div>
   </main>
 
-  <script src="../assets/js/storage-safe.js?v=20251216001"></script>
-  <script src="../assets/js/cache-buster.js?v=20251216001"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003"></script>
-  <script src="../firebase-config.js?v=20250127003"></script>
-  <script src="../assets/js/multitenant-config.js?v=20250127003"></script>
-  <script src="../assets/js/active-company-display.js?v=20250127003"></script>
-  <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
-  <script src="../assets/js/sidebar.js?v=20250127003" defer></script>
-  <script src="../assets/js/header-search.js?v=20250127003" defer></script>
-  <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
+  <script src="../assets/js/utils/storage-safe.js?v=20251216001"></script>
+  <script src="../assets/js/utils/cache-buster.js?v=20251216001"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
+  <script src="../assets/js/core/multitenant-config.js?v=20250127003"></script>
+  <script src="../assets/js/core/active-company-display.js?v=20250127003"></script>
+  <script src="../assets/js/core/sidebar-menu.js?v=20250127003" defer></script>
+  <script src="../assets/js/features/sidebar.js?v=20250127003" defer></script>
+  <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
+  <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
   <script>
-    const tableBody = () => document.getElementById('contractsBody');
-    const emptyState = () => document.getElementById('emptyState');
-    const recordsInfo = () => document.getElementById('recordsInfo');
-    const searchInput = () => document.getElementById('searchInput');
+    // ═══════════════════════════════════════════════
+    // ESTADO GLOBAL
+    // ═══════════════════════════════════════════════
+    const ITEMS_PER_PAGE = 15;
+    let allData = [];          // dados brutos deduplicados
+    let filteredData = [];     // após busca
+    let currentPage = 1;
+    let totalPages = 1;
+    const selectedRows = new Set(); // chaves selecionadas (numero)
+    let _deletionInProgress = false; // Flag de supressão — bloqueia re-renders durante exclusão
+
+    // DOM helpers
+    const $body = () => document.getElementById('contractsBody');
+    const $empty = () => document.getElementById('emptyState');
+    const $info = () => document.getElementById('recordsInfo');
+    const $search = () => document.getElementById('searchInput');
+    const $pagCtrl = () => document.getElementById('paginationControls');
+    const $bulkBar = () => document.getElementById('bulkBar');
+    const $selCount = () => document.getElementById('selectedCount');
+    const $masterCb = () => document.getElementById('masterCheckbox');
+
+    // ═══════════════════════════════════════════════
+    // UTILIDADES
+    // ═══════════════════════════════════════════════
     function normalizeStatus(s) { const v = String(s || '').trim().toLowerCase(); return v || 'ativo'; }
-    function statusClass(s) { const v = normalizeStatus(s); if (['cancelado'].includes(v)) return 'cancelado'; if (['inadimplente', 'atrasado'].includes(v)) return 'inadimplente'; if (['encerrado', 'inativo'].includes(v)) return 'encerrado'; return 'ativo'; }
+    function statusClass(s) {
+      const v = normalizeStatus(s);
+      if (['cancelado'].includes(v)) return 'cancelado';
+      if (['inadimplente', 'atrasado'].includes(v)) return 'inadimplente';
+      if (['encerrado', 'inativo'].includes(v)) return 'encerrado';
+      return 'ativo';
+    }
+
     let familiasCache = null;
     function getTitularByFamilyIdCached(familyId) {
       try {
@@ -231,15 +601,16 @@
           const raw = localStorage.getItem('familias');
           familiasCache = raw ? JSON.parse(raw) : [];
         }
-        const fam = (familiasCache || []).find(f => String(f.id) === String(familyId));
-        return fam?.titular?.nome || null;
+        return (familiasCache || []).find(f => String(f.id) === String(familyId))?.titular?.nome || null;
       } catch (_) { return null; }
     }
+
     function toContract(data, fam) {
       const numeroRaw = data.numero || data.id || '';
       const numeroLimpo = String(numeroRaw).replace(/\D/g, '');
       const numeroNumerico = numeroLimpo ? parseInt(numeroLimpo, 10) : Date.now();
-      const titularName = (fam?.titular?.nome) || data.titular || fam?.titular || (data.familyId ? getTitularByFamilyIdCached(data.familyId) : null) || '-';
+      const titularName = fam?.titular?.nome || data.titular || fam?.titular
+        || (data.familyId ? getTitularByFamilyIdCached(data.familyId) : null) || '-';
       return {
         id: numeroNumerico,
         numero: String(numeroRaw || numeroNumerico),
@@ -247,119 +618,474 @@
         titular: titularName,
         plano: data.plano || '-',
         status: normalizeStatus(data.status || 'ativo'),
-        vendedor: (data.vendedor && String(data.vendedor).trim()) ? data.vendedor : 'nenhum'
+        vendedor: (data.vendedor && String(data.vendedor).trim()) ? data.vendedor : 'nenhum',
+        // Metadados para exclusão no Firestore
+        firestoreId: data.firestoreId || data.id || null,
+        firestoreSource: data.firestoreSource || null,
+        familyId: data.familyId || (fam ? fam.id : null)
       };
     }
-    function renderRows(rows) { const body = tableBody(); body.innerHTML = rows.map(c => `<tr><td>${c.numero}</td><td>${c.date}</td><td>${c.titular}</td><td>${c.plano}</td><td><span class="badge ${statusClass(c.status)}">${c.status}</span></td><td>${c.vendedor}</td><td><a class="btn btn-outline-primary btn-sm" href="../pages/edicao-contrato.html?numero=${encodeURIComponent(c.numero)}"><i class="fas fa-edit" style="margin-right:6px;"></i>Gerir</a></td></tr>`).join(''); }
-    function applySearch(data) { const q = String(searchInput().value || '').trim().toLowerCase(); if (!q) return data; return data.filter(c => `${c.numero} ${c.titular} ${c.vendedor} ${c.plano} ${c.status}`.toLowerCase().includes(q)); }
-    function updateUI(data) { const filtered = applySearch(data); if (filtered.length === 0) { tableBody().innerHTML = ''; emptyState().style.display = 'block'; } else { emptyState().style.display = 'none'; renderRows(filtered); } recordsInfo().textContent = `Quantidade de registros: ${filtered.length}`; }
-    async function loadFromContratosFirestore() { try { const mt = window.multitenantConfig; if (!mt || !mt.getActiveCompany || !mt.getCompanyCollection || !mt.getActiveCompany()) return null; const snap = await mt.getCompanyCollection('contratos').get(); const list = snap.docs.map(d => toContract({ id: d.id, ...d.data() })); return list; } catch (e) { console.warn('Falha ao carregar contratos (Firestore):', e); return null; } }
-    async function loadFromFamiliasFirestore() { try { const mt = window.multitenantConfig; if (!mt || !mt.getActiveCompany || !mt.getCompanyCollection || !mt.getActiveCompany()) return null; const snap = await mt.getCompanyCollection('familias').get(); const list = []; snap.forEach(doc => { const fam = { id: doc.id, ...(doc.data() || {}) }; const contratos = Array.isArray(fam.contratos) ? fam.contratos : []; contratos.forEach(ct => list.push(toContract(ct, fam))); }); return list; } catch (e) { console.warn('Falha ao carregar contratos via famílias (Firestore):', e); return null; } }
-    function loadFromLocalFamilias() { try { const raw = localStorage.getItem('familias'); if (!raw) return null; const familias = JSON.parse(raw || '[]') || []; const list = []; familias.forEach(fam => { const contratos = Array.isArray(fam.contratos) ? fam.contratos : []; contratos.forEach(ct => list.push(toContract(ct, fam))); }); return list; } catch (e) { console.warn('Falha ao carregar contratos via famílias (localStorage):', e); return null; } }
-    function loadFromLocalContractEdits() { try { const list = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i) || ''; if (k.startsWith('CONTRACT_EDIT_')) { try { const data = JSON.parse(localStorage.getItem(k) || '{}'); if (data && (data.numero || data.id)) { list.push(toContract({ numero: data.numero || data.id, date: (data.dataContrato ? new Date(data.dataContrato).toLocaleDateString('pt-BR') : undefined), plano: data.plano, status: data.situacao, vendedor: data.vendedor })); } } catch (_) { } } } return list; } catch (e) { console.warn('Falha ao carregar contratos locais (CONTRACT_EDIT_*):', e); return null; } }
+
+    // ═══════════════════════════════════════════════
+    // PAGINAÇÃO
+    // ═══════════════════════════════════════════════
+    function getPageData() {
+      const start = (currentPage - 1) * ITEMS_PER_PAGE;
+      return filteredData.slice(start, start + ITEMS_PER_PAGE);
+    }
+
+    function renderPagination() {
+      totalPages = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const ctrl = $pagCtrl();
+      if (totalPages <= 1) { ctrl.innerHTML = ''; return; }
+
+      let html = '';
+      // Anterior
+      html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+        <i class="fas fa-chevron-left"></i> Anterior</button>`;
+
+      // Números de página com elipsis
+      const pages = buildPageNumbers(currentPage, totalPages);
+      pages.forEach(p => {
+        if (p === '...') {
+          html += '<span class="page-ellipsis">…</span>';
+        } else {
+          html += `<button class="${p === currentPage ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`;
+        }
+      });
+
+      // Próxima
+      html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+        Próxima <i class="fas fa-chevron-right"></i></button>`;
+
+      ctrl.innerHTML = html;
+    }
+
+    function buildPageNumbers(current, total) {
+      if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+      const pages = [1];
+      if (current > 3) pages.push('...');
+      for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+      if (current < total - 2) pages.push('...');
+      pages.push(total);
+      return pages;
+    }
+
+    function goToPage(page) {
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      renderTable();
+      renderPagination();
+      syncMasterCheckbox();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ═══════════════════════════════════════════════
+    // RENDERIZAÇÃO DA TABELA
+    // ═══════════════════════════════════════════════
+    function renderTable() {
+      if (_deletionInProgress) { console.log('⏸️ renderTable bloqueado — exclusão em andamento'); return; }
+      const pageData = getPageData();
+      const body = $body();
+
+      if (filteredData.length === 0) {
+        body.innerHTML = '';
+        $empty().style.display = 'block';
+      } else {
+        $empty().style.display = 'none';
+        body.innerHTML = pageData.map(c => {
+          const isSelected = selectedRows.has(c.numero);
+          return `<tr class="${isSelected ? 'selected' : ''}" data-numero="${c.numero}">
+            <td class="col-check"><input type="checkbox" ${isSelected ? 'checked' : ''}
+              onchange="toggleRow('${c.numero}', this.checked)" /></td>
+            <td>${c.numero}</td>
+            <td>${c.date}</td>
+            <td>${c.titular}</td>
+            <td>${c.plano}</td>
+            <td><span class="badge ${statusClass(c.status)}">${c.status}</span></td>
+            <td>${c.vendedor}</td>
+            <td><a class="btn btn-outline-primary btn-sm" href="../pages/edicao-contrato.html?numero=${encodeURIComponent(c.numero)}">
+              <i class="fas fa-edit" style="margin-right:6px;"></i>Gerir</a></td>
+          </tr>`;
+        }).join('');
+      }
+
+      // Info: "Mostrando 1-15 de 23 registros"
+      const start = filteredData.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+      const end = Math.min(currentPage * ITEMS_PER_PAGE, filteredData.length);
+      const searchActive = String($search().value || '').trim().length > 0;
+      $info().textContent = filteredData.length === 0
+        ? 'Nenhum registro encontrado'
+        : `Mostrando ${start}-${end} de ${filteredData.length} registros${searchActive ? ' (filtrados)' : ''}`;
+    }
+
+    // ═══════════════════════════════════════════════
+    // SELEÇÃO / BULK ACTIONS
+    // ═══════════════════════════════════════════════
+    function toggleRow(numero, checked) {
+      if (checked) selectedRows.add(numero); else selectedRows.delete(numero);
+      // Highlight visual
+      const row = document.querySelector(`tr[data-numero="${numero}"]`);
+      if (row) row.classList.toggle('selected', checked);
+      updateBulkBar();
+      syncMasterCheckbox();
+    }
+
+    function syncMasterCheckbox() {
+      const pageData = getPageData();
+      const mc = $masterCb();
+      if (pageData.length === 0) { mc.checked = false; mc.indeterminate = false; return; }
+      const checkedOnPage = pageData.filter(c => selectedRows.has(c.numero)).length;
+      mc.checked = checkedOnPage === pageData.length;
+      mc.indeterminate = checkedOnPage > 0 && checkedOnPage < pageData.length;
+    }
+
+    function masterToggle() {
+      const pageData = getPageData();
+      const mc = $masterCb();
+      if (mc.checked) {
+        pageData.forEach(c => selectedRows.add(c.numero));
+      } else {
+        pageData.forEach(c => selectedRows.delete(c.numero));
+      }
+      renderTable();
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const bar = $bulkBar();
+      $selCount().textContent = selectedRows.size;
+      bar.classList.toggle('visible', selectedRows.size > 0);
+    }
+
+    function clearSelection() {
+      selectedRows.clear();
+      renderTable();
+      updateBulkBar();
+      syncMasterCheckbox();
+    }
+
+    // ═══════════════════════════════════════════════
+    // MODAL DE CONFIRMAÇÃO + EXCLUSÃO CASCATA
+    // ═══════════════════════════════════════════════
+
+    function openDeleteModal() {
+      const count = selectedRows.size;
+      if (count === 0) return;
+      document.getElementById('deleteCount').textContent = count;
+      document.getElementById('deleteCountBtn').textContent = count;
+      document.getElementById('deleteModal').classList.add('open');
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').classList.remove('open');
+      // Reset button state
+      const btn = document.getElementById('btnConfirmDelete');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-trash"></i> Sim, excluir contratos';
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)'; toast.style.transition = 'all .3s'; }, 3700);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // ═══════════════════════════════════════════════
+    // EXCLUSÃO ATÔMICA — SINGLE WRITEBATCH
+    // ═══════════════════════════════════════════════
+    async function confirmBulkDelete() {
+      const btn = document.getElementById('btnConfirmDelete');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner"></i> Excluindo...';
+
+      const frozenIds = [...selectedRows];
+      const totalToDelete = frozenIds.length;
+
+      console.log(`🔒 EXCLUSÃO INICIADA — ${totalToDelete} itens congelados:`, frozenIds);
+
+      const mt = window.multitenantConfig;
+      if (!mt || !mt.getActiveCompany()) {
+        closeDeleteModal();
+        showToast('Erro: empresa ativa não disponível.', 'error');
+        return;
+      }
+
+      _deletionInProgress = true;
+
+      try {
+        const contractsCol = mt.getCompanyCollection('contratos');
+        const familiasCol = mt.getCompanyCollection('familias');
+
+        let successCount = 0;
+        let failCount = 0;
+
+        // Processamento sequencial/Promise.all para simular batch
+        // Nota: A abstração multitenant não suporta batch, então usamos operações individuais
+        const tasks = frozenIds.map(async (numero) => {
+          const contract = allData.find(c => c.numero === numero);
+          if (!contract) return;
+
+          try {
+            // Se for um contrato direto
+            if (contract.firestoreSource === 'contratos' && contract.firestoreId) {
+              await contractsCol.doc(contract.firestoreId).delete();
+            }
+            // Se estiver dentro de uma família
+            else if (contract.firestoreSource === 'familia' && contract.familyId) {
+              const famSnap = await familiasCol.doc(contract.familyId).get();
+              if (famSnap.exists) {
+                const famData = famSnap.data();
+                const updatedContratos = (famData.contratos || []).filter(ct =>
+                  String(ct.numero || ct.id || '').trim() !== numero
+                );
+                await familiasCol.doc(contract.familyId).update({ contratos: updatedContratos });
+              }
+            }
+            // Limpeza de localStorage se necessário
+            const editKey = `CONTRACT_EDIT_${numero}`;
+            if (localStorage.getItem(editKey)) localStorage.removeItem(editKey);
+
+            successCount++;
+          } catch (err) {
+            console.error(`Erro ao excluir contrato ${numero}:`, err);
+            failCount++;
+          }
+        });
+
+        await Promise.all(tasks);
+
+        // Atualizar estado local
+        const frozenSet = new Set(frozenIds);
+        allData = allData.filter(c => !frozenSet.has(c.numero));
+        selectedRows.clear();
+
+        _deletionInProgress = false;
+        applySearchAndRender();
+        updateBulkBar();
+        syncMasterCheckbox();
+        closeDeleteModal();
+
+        if (failCount > 0) {
+          showToast(`${successCount} excluídos, ${failCount} falharam.`, 'warning');
+        } else {
+          showToast(`${totalToDelete} contrato(s) excluído(s) com sucesso!`, 'success');
+        }
+
+      } catch (error) {
+        console.error('❌ Erro na exclusão:', error);
+        _deletionInProgress = false;
+        closeDeleteModal();
+        showToast('Erro ao excluir: ' + error.message, 'error');
+      }
+    }
+
+    // ═══════════════════════════════════════════════
+    // BUSCA + ATUALIZAÇÃO COMPLETA
+    // ═══════════════════════════════════════════════
+    function applySearch(data) {
+      const q = String($search().value || '').trim().toLowerCase();
+      if (!q) return data;
+      return data.filter(c => `${c.numero} ${c.titular} ${c.vendedor} ${c.plano} ${c.status}`.toLowerCase().includes(q));
+    }
+
+    function applySearchAndRender() {
+      if (_deletionInProgress) { console.log('⏸️ applySearchAndRender bloqueado — exclusão em andamento'); return; }
+      filteredData = applySearch(allData);
+      currentPage = 1;
+      renderTable();
+      renderPagination();
+    }
+
+    // ═══════════════════════════════════════════════
+    // LOADING DE DADOS (6 FONTES)
+    // ═══════════════════════════════════════════════
+    async function loadFromContratosFirestore() {
+      try {
+        const mt = window.multitenantConfig;
+        if (!mt || !mt.getActiveCompany || !mt.getCompanyCollection || !mt.getActiveCompany()) return null;
+        const snap = await mt.getCompanyCollection('contratos').get();
+        return snap.docs.map(d => toContract({ id: d.id, firestoreId: d.id, firestoreSource: 'contratos', ...d.data() }));
+      } catch (e) { console.warn('Falha ao carregar contratos (Firestore):', e); return null; }
+    }
+
+    async function loadFromFamiliasFirestore() {
+      try {
+        const mt = window.multitenantConfig;
+        if (!mt || !mt.getActiveCompany || !mt.getCompanyCollection || !mt.getActiveCompany()) return null;
+        const snap = await mt.getCompanyCollection('familias').get();
+        const list = [];
+        snap.forEach(doc => {
+          const fam = { id: doc.id, ...(doc.data() || {}) };
+          const contratos = Array.isArray(fam.contratos) ? fam.contratos : [];
+          contratos.forEach(ct => list.push(toContract({ ...ct, firestoreSource: 'familia', familyId: doc.id }, fam)));
+        });
+        return list;
+      } catch (e) { console.warn('Falha ao carregar contratos via famílias (Firestore):', e); return null; }
+    }
+
+    function loadFromLocalFamilias() {
+      try {
+        const raw = localStorage.getItem('familias'); if (!raw) return null;
+        const familias = JSON.parse(raw || '[]') || [];
+        const list = [];
+        familias.forEach(fam => {
+          (Array.isArray(fam.contratos) ? fam.contratos : []).forEach(ct => list.push(toContract(ct, fam)));
+        });
+        return list;
+      } catch (e) { return null; }
+    }
+
+    function loadFromLocalContractEdits() {
+      try {
+        const list = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i) || '';
+          if (k.startsWith('CONTRACT_EDIT_')) {
+            try {
+              const data = JSON.parse(localStorage.getItem(k) || '{}');
+              if (data && (data.numero || data.id)) {
+                list.push(toContract({
+                  numero: data.numero || data.id,
+                  date: data.dataContrato ? new Date(data.dataContrato).toLocaleDateString('pt-BR') : undefined,
+                  plano: data.plano, status: data.situacao, vendedor: data.vendedor
+                }));
+              }
+            } catch (_) { }
+          }
+        }
+        return list;
+      } catch (e) { return null; }
+    }
+
+    async function loadFromGlobalContratos() {
+      try {
+        const mt = window.multitenantConfig;
+        if (!mt || !mt.initialized) return null;
+        // No Supabase, 'contratos' sem empresa_id não existe estruturalmente na ponte multitenant
+        // mas podemos tentar simular se houver uma tabela global.
+        // Por enquanto, mantemos vazio se não houver contexto.
+        return null;
+      } catch (e) { return null; }
+    }
+
+    async function loadFromGlobalFamilias() {
+      try {
+        const mt = window.multitenantConfig;
+        if (!mt || !mt.initialized) return null;
+        return null;
+      } catch (e) { return null; }
+    }
+
     async function loadAll() {
       console.log('🔍 Iniciando carregamento de contratos...');
       try {
-        const a = await loadFromContratosFirestore();
-        console.log('📦 Contratos de /contratos:', a?.length || 0);
-
-        const b = await loadFromFamiliasFirestore();
-        console.log('📦 Contratos de /familias:', b?.length || 0);
-
+        const [a, b, e, f] = await Promise.all([
+          loadFromContratosFirestore(),
+          loadFromFamiliasFirestore(),
+          loadFromGlobalContratos(),
+          loadFromGlobalFamilias()
+        ]);
         const c = loadFromLocalFamilias();
-        console.log('📦 Contratos de localStorage familias:', c?.length || 0);
-
         const d = loadFromLocalContractEdits();
-        console.log('📦 Contratos de CONTRACT_EDIT_*:', d?.length || 0);
 
-        // NOVO: Busca direta na coleção global 'contratos' (fallback)
-        const e = await loadFromGlobalContratos();
-        console.log('📦 Contratos de coleção global:', e?.length || 0);
-
-        // NOVO: Busca direta em 'familias' global
-        const f = await loadFromGlobalFamilias();
-        console.log('📦 Contratos de familias global:', f?.length || 0);
+        console.log('📦 contratos:', a?.length || 0, '| familias:', b?.length || 0,
+          '| local:', c?.length || 0, '| edits:', d?.length || 0,
+          '| global-c:', e?.length || 0, '| global-f:', f?.length || 0);
 
         const combined = [...(a || []), ...(b || []), ...(c || []), ...(d || []), ...(e || []), ...(f || [])];
-        console.log('📊 Total combinado (antes de dedupe):', combined.length);
-
         const dedup = new Map();
         combined.forEach(cn => {
           const key = String(cn.numero || cn.id || '').trim();
           if (key && !dedup.has(key)) dedup.set(key, cn);
         });
-        const data = Array.from(dedup.values());
-        console.log('✅ Total após dedupe:', data.length);
 
-        updateUI(data);
-        searchInput().addEventListener('input', () => updateUI(data));
-      } catch (e) {
-        console.error('❌ Erro de carregamento:', e);
-        updateUI([]);
+        allData = Array.from(dedup.values());
+        console.log('✅ Total após dedupe:', allData.length);
+
+        applySearchAndRender();
+
+        // Busca reativa
+        $search().addEventListener('input', () => applySearchAndRender());
+      } catch (err) {
+        console.error('❌ Erro de carregamento:', err);
+        allData = []; applySearchAndRender();
       }
     }
 
-    // NOVO: Busca contratos na coleção global 'contratos' (sem multitenant)
-    async function loadFromGlobalContratos() {
-      try {
-        if (!window.db) return null;
-        const snap = await window.db.collection('contratos').get();
-        const list = snap.docs.map(d => toContract({ id: d.id, ...d.data() }));
-        return list;
-      } catch (e) {
-        console.warn('Falha ao carregar contratos globais:', e);
-        return null;
-      }
+    // ═══════════════════════════════════════════════
+    // INICIALIZAÇÃO AUTOSSUFICIENTE
+    // ═══════════════════════════════════════════════
+    let _loadAllExecuted = false;
+
+    function resolveCompanyId() {
+      return localStorage.getItem('activeCompanyId')
+        || localStorage.getItem('empresaSelecionadaId') || null;
     }
 
-    // NOVO: Busca contratos em familias globais
-    async function loadFromGlobalFamilias() {
-      try {
-        if (!window.db) return null;
-        const snap = await window.db.collection('familias').get();
-        const list = [];
-        snap.forEach(doc => {
-          const fam = { id: doc.id, ...(doc.data() || {}) };
-          const contratos = Array.isArray(fam.contratos) ? fam.contratos : [];
-          contratos.forEach(ct => list.push(toContract(ct, fam)));
-        });
-        return list;
-      } catch (e) {
-        console.warn('Falha ao carregar familias globais:', e);
-        return null;
-      }
-    }
-
-    // Inicialização robusta aguardando Multitenant
-    document.addEventListener('DOMContentLoaded', () => {
+    function patchMultitenant(companyId) {
       const mt = window.multitenantConfig;
-
-      // Se já estiver pronto, carrega
-      if (mt && mt.initialized && mt.getActiveCompany()) {
-        loadAll();
-      } else {
-        // Aguarda evento ou faz polling
-        window.addEventListener('multitenantReady', loadAll, { once: true });
-
-        // Fallback de polling caso o evento já tenha passado ou falhado
-        const checkInterval = setInterval(() => {
-          if (window.multitenantConfig && window.multitenantConfig.initialized && window.multitenantConfig.getActiveCompany()) {
-            clearInterval(checkInterval);
-            loadAll();
-          }
-        }, 500);
-
-        // Timeout de segurança para não ficar carregando eternamente
-        setTimeout(() => {
-          clearInterval(checkInterval);
-          // Tenta carregar mesmo que não esteja "pronto" (pode pegar dados locais)
-          if (document.getElementById('contractsBody').children.length === 0) {
-            loadAll();
-          }
-        }, 5000);
+      if (!mt) return;
+      if (mt.activeCompany && mt.activeCompany.id) return;
+      if (companyId) {
+        mt.activeCompany = mt.activeCompany || { id: companyId };
+        mt.initialized = true;
       }
+    }
+
+    async function safeLoadAll() {
+      if (_loadAllExecuted) return;
+      _loadAllExecuted = true;
+      const cid = resolveCompanyId();
+      if (cid) patchMultitenant(cid);
+      await loadAll();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Master checkbox
+      $masterCb().addEventListener('change', masterToggle);
+
+      // Auth
+      if (window.auth && typeof window.auth.onAuthStateChanged === 'function') {
+        window.auth.onAuthStateChanged(user => {
+          if (user && user.uid) setTimeout(() => safeLoadAll(), 300);
+          else setTimeout(() => safeLoadAll(), 500);
+        });
+      }
+      window.addEventListener('multitenantReady', () => safeLoadAll(), { once: true });
+      setTimeout(() => { if (!_loadAllExecuted) safeLoadAll(); }, 4000);
     });
   </script>
+
+  <!-- Modal de Confirmação de Exclusão -->
+  <div id="deleteModal" class="modal-overlay" onclick="if(event.target===this)closeDeleteModal()">
+    <div class="modal-card">
+      <div class="modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="modal-title">Confirmar Exclusão</div>
+      <div class="modal-desc">
+        Você está prestes a excluir <strong><span id="deleteCount">0</span> contrato(s)</strong>.<br>
+        Esta ação <strong>não pode ser desfeita</strong> e também removerá as referências destes contratos nas famílias
+        associadas.
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+        <button class="btn-confirm-delete" id="btnConfirmDelete" onclick="confirmBulkDelete()">
+          <i class="fas fa-trash"></i> Sim, excluir <span id="deleteCountBtn">0</span> contratos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
 </body>
 
 </html>

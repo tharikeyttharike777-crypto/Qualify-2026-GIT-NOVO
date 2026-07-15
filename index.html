@@ -507,25 +507,19 @@
         });
     </script>
 
-    <!-- Firestore Error Suppressor - antes dos scripts do Firebase -->
-    <script src="assets/js/firestore-error-suppressor.js?v=20250127003"></script>
-
-    <!-- Scripts Firebase (compat libs substituídas por v8.10.1 conforme solicitado) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <script src="firebase-config.js"></script>
+    <!-- Supabase SDK e Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
 
     <!-- Utilitário de retry de rede -->
-    <script src="assets/js/network-retry.js"></script>
+    <script src="assets/js/utils/network-retry.js"></script>
 
-    <!-- Scripts que dependem do Firebase -->
-    <script src="assets/js/auth-guard.js"></script>
-    <script src="assets/js/sidebar-menu.js"></script>
-    <script src="assets/js/user-menu.js?v=20251031001"></script>
-    <script src="assets/js/empresa-display-fix.js?v=20251031001"></script>
-    <script src="assets/js/active-company-display.js?v=20251031001"></script>
+    <!-- Scripts que dependem do Supabase -->
+    <script src="assets/js/core/auth-guard.js"></script>
+    <script src="assets/js/core/sidebar-menu.js"></script>
+    <script src="assets/js/core/user-menu.js?v=20251031001"></script>
+    <script src="assets/js/core/empresa-display-fix.js?v=20251031001"></script>
+    <script src="assets/js/core/active-company-display.js?v=20251031001"></script>
 
     <!-- Bloqueador de requisições será injetado automaticamente pelo webpack -->
     <script>

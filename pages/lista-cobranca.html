@@ -15,8 +15,8 @@
     <link rel="stylesheet" href="../assets/css/lista-cobranca.css?v=20250127003">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003"
         rel="stylesheet">
-    <script src="../assets/js/user-menu.js?v=20250127003" defer></script>
-    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
 </head>
 
 <body>
@@ -433,7 +433,7 @@
     </div>
 
     <!-- Removido script duplicado de lista-cobranca.js para evitar inicializações em duplicidade -->
-    <script src="../assets/js/sidebar-menu.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/sidebar-menu.js?v=20250127003" defer></script>
 
     <!-- Script Melhorado do Accordion -->
     <script>
@@ -709,17 +709,15 @@
         })();
     </script>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js?v=20250127003"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js?v=20250127003"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js?v=20250127003"></script>
-
-    <script src="../firebase-config.js?v=20250127003" defer></script>
-    <script src="../assets/js/auth-guard.js?v=20250127003" defer></script>
-    <script src="../assets/js/multitenant-config.js?v=20250127003" defer></script>
-    <script src="../assets/js/user-data-manager.js?v=20250127003" defer></script>
-    <script src="../assets/js/lista-cobranca.js?v=20250127003" defer></script>
+    <!-- Supabase SDK e Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/auth-guard.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/multitenant-config.js?v=20250127003" defer></script>
+    <script src="../assets/js/core/user-data-manager.js?v=20250127003" defer></script>
+    <script src="../assets/js/features/lista-cobranca.js?v=20250127003" defer></script>
 
 </body>
 
 </html>
+

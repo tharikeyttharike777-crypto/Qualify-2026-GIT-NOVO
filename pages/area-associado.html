@@ -36,7 +36,7 @@
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="../assets/js/header-search.js?v=20250127003" defer></script>
+    <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
 </head>
 <body>
     <!-- Header -->
@@ -416,11 +416,10 @@
     <!-- Scripts -->
     
     <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
-    <script src="../firebase-config.js?v=20250127003"></script>
-    <script src="../assets/js/firestore-utils.js?v=20250127003"></script>
-    <script src="../assets/js/auth-manager.js?v=20250127003"></script>
-    <script src="../assets/js/user-data-manager.js?v=20250127003"></script>
-    <script src="../assets/js/sidebar-menu.js?v=20250127003"></script>
+    <script src="../assets/js/features/firestore-utils.js?v=20250127003"></script>
+    <script src="../assets/js/core/auth-manager.js?v=20250127003"></script>
+    <script src="../assets/js/core/user-data-manager.js?v=20250127003"></script>
+    <script src="../assets/js/core/sidebar-menu.js?v=20250127003"></script>
 
     <!-- Script Melhorada para inicializar o accordion
     function initializeImprovedAccordion() {
@@ -490,8 +489,8 @@
     // Também disponibiliza globalmente para re-inicialização manual
     window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
-    <script src="../assets/js/user-menu.js?v=20250127003"></script>
-    <script src="../assets/js/area-associado.js?v=20250127003"></script>
+    <script src="../assets/js/core/user-menu.js?v=20250127003"></script>
+    <script src="../assets/js/features/area-associado.js?v=20250127003"></script>
 
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
@@ -671,9 +670,10 @@
         
     })();
     </script>
-    <script src="../assets/js/pix-checkout.js?v=20250127003"></script>
+    <script src="../assets/js/features/pix-checkout.js?v=20250127003"></script>
 </body>
 </html>
+
 
 
 
