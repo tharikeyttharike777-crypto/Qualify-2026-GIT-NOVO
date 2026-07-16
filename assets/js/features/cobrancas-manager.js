@@ -720,6 +720,36 @@
             }
         }
 
+        // Preenche CPF e Endereço do titular (se disponível na memória global da página edicao-contrato)
+        if (window.currentFamily) {
+            const fam = Array.isArray(window.currentFamily) ? window.currentFamily[0] : window.currentFamily;
+            if (fam) {
+                // Tenta pegar o CPF do titular ou do elemento HTML
+                const mcCpfPagador = $('mcCpfPagador');
+                if (mcCpfPagador) {
+                    const cpfEl = $('holderCpf');
+                    let cpfVal = '';
+                    if (cpfEl && cpfEl.getAttribute('data-cpf')) {
+                        cpfVal = cpfEl.getAttribute('data-cpf');
+                    } else if (fam.titular && fam.titular.cpf) {
+                        cpfVal = fam.titular.cpf;
+                    }
+                    mcCpfPagador.value = cpfVal;
+                }
+
+                // Tenta pegar o endereço
+                if (fam.endereco) {
+                    const e = fam.endereco;
+                    if ($('mcCep')) $('mcCep').value = e.cep || '';
+                    if ($('mcLogradouro')) $('mcLogradouro').value = e.rua || e.logradouro || '';
+                    if ($('mcNumero')) $('mcNumero').value = e.numero || '';
+                    if ($('mcBairro')) $('mcBairro').value = e.bairro || '';
+                    if ($('mcCidade')) $('mcCidade').value = e.cidade || '';
+                    if ($('mcUf')) $('mcUf').value = e.uf || e.estado || '';
+                }
+            }
+        }
+
         // Abre o modal
         const modal = $('modalAddCharge');
         if (modal) {
