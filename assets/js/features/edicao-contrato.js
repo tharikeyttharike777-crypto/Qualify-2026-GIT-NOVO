@@ -547,38 +547,6 @@ function setupSupabaseRealtime(contractId) {
         .subscribe();
 }
 
-// =========================================================
-// RESULTADO DA BUSCA
-// =========================================================
-if (!contratoDoc) {
-    // SE NÃO ACHAR, NÃO CRIA NADA! APENAS AVISA.
-    console.error("❌ Contrato realmente não encontrado.");
-    const tabela = document.getElementById('tabela-vinculados');
-    if (tabela) {
-        let tbody = tabela.querySelector('tbody');
-        if (!tbody) { tbody = document.createElement('tbody'); tabela.appendChild(tbody); }
-        tbody.innerHTML = `
-                        <tr><td colspan="10" class="text-center text-danger" style="padding: 20px;">
-                            <strong>Erro 404: Contrato ${numeroString} não localizado.</strong><br>
-                            Verifique se o cadastro foi finalizado na tela anterior.
-                        </td></tr>`;
-    }
-    return;
-}
-
-// SUCESSO: CARREGA OS DADOS
-const dadosContrato = contratoDoc.data();
-
-
-// EXPÕE DADOS GLOBALMENTE (Para PDF e Cobranças)
-window.currentContract = { id: contratoDoc.id, ...dadosContrato };
-
-// Recarrega cobranças com o número CORRETO do contrato (evita mismatch de URL)
-// Timeout pequeno para garantir que carregarCobrancasContrato já foi definido
-setTimeout(() => {
-    if (window.carregarCobrancasContrato) {
-
-
         // =================================================================
         // 6. TOAST NOTIFICATION
         // =================================================================
