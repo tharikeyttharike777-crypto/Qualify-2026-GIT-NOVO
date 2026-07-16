@@ -31,24 +31,6 @@ class CatalogoPlanos {
         }
     }
 
-    // ==== Helpers Firebase / multitenant ====
-    waitForFirebaseReady() {
-        return new Promise((resolve) => {
-            if (window.firebase && window.db) {
-                resolve();
-                return;
-            }
-            const check = () => {
-                if (window.firebase && window.db) {
-                    resolve();
-                } else {
-                    setTimeout(check, 100);
-                }
-            };
-            window.addEventListener('firebaseReady', () => resolve(), { once: true });
-            check();
-        });
-    }
 
     getActiveCompanyId() {
         try {
@@ -89,38 +71,41 @@ class CatalogoPlanos {
      * Carrega os dados dos planos (simulado)
      */
     async loadPlans() {
-        // Reduzir tempo de loading
         await this.delay(300);
-        let loadedFromFirestore = false;
-        try {
-            await this.waitForFirebaseReady();
-            const companyId = this.getActiveCompanyId();
-            const path = `empresas/${companyId}/planos`;
-            const snapshot = await window.db.collection(path).get();
-            const docs = snapshot.docs || [];
-            if (docs.length > 0) {
-                const rawPlans = docs.map(doc => ({ id: parseInt(doc.id, 10) || doc.id, ...doc.data() }));
-                this.plans = rawPlans.map(p => ({
-                    id: p.id,
-                    title: p.name || 'Plano',
-                    category: 'geral',
-                    type: (parseInt(p.maxPeople, 10) || 1) > 1 ? 'Familiar' : 'Individual',
-                    price: this.parseMoney(p.monthlyValue) || 0,
-                    period: 'mensal',
-                    description: p.description || '',
-                    features: Array.isArray(p.services)
-                        ? p.services.map(s => s.name || s.titulo || 'Serviço incluso')
-                        : [],
-                    badge: null,
-                    icon: 'fas fa-briefcase-medical'
-                }));
-                loadedFromFirestore = true;
+        let loadedFromSupabase = false;
+
+        // 1) Supabase (se disponível)
+        if (window.supabase) {
+            try {
+                const companyId = this.getActiveCompanyId();
+                const { data, error } = await window.supabase
+                    .from('planos')
+                    .select('*')
+                    .eq('company_id', companyId);
+                if (!error && data && data.length > 0) {
+                    this.plans = data.map(p => ({
+                        id: p.id,
+                        title: p.name || 'Plano',
+                        category: 'geral',
+                        type: (parseInt(p.maxPeople, 10) || 1) > 1 ? 'Familiar' : 'Individual',
+                        price: this.parseMoney(p.monthlyValue) || 0,
+                        period: 'mensal',
+                        description: p.description || '',
+                        features: Array.isArray(p.services)
+                            ? p.services.map(s => s.name || s.titulo || 'Serviço incluso')
+                            : [],
+                        badge: null,
+                        icon: 'fas fa-briefcase-medical'
+                    }));
+                    loadedFromSupabase = true;
+                }
+            } catch (err) {
+                console.warn('Falha ao carregar planos do Supabase:', err);
             }
-        } catch (fsErr) {
-            console.warn('Falha ao carregar planos do Firestore, usando localStorage:', fsErr?.message || fsErr);
         }
 
-        if (!loadedFromFirestore) {
+        // 2) Fallback: localStorage
+        if (!loadedFromSupabase) {
             try {
                 const saved = localStorage.getItem('planos');
                 if (saved) {
@@ -147,7 +132,7 @@ class CatalogoPlanos {
                 this.plans = [];
             }
         }
-        
+
         this.filteredPlans = [...this.plans];
     }
 

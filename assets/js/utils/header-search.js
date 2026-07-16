@@ -243,8 +243,8 @@ function initLogoutButton() {
 
         // Fallback absoluto caso não esteja disponível
         try {
-            if (typeof firebase !== 'undefined' && firebase.auth) {
-                await firebase.auth().signOut();
+            if (typeof window.supabase !== 'undefined') {
+                await window.supabase.auth.signOut();
             }
         } catch (e) {}
         try {

@@ -9,35 +9,39 @@ let comissionamentoData = {
     planos: []
 };
 
-// Função para carregar dados reais do Firestore
+// Função para carregar dados reais do Supabase
 async function loadComissionamentoData() {
     try {
-        // Aguarda o sistema multitenant estar disponível
-        if (!window.multitenantConfig) {
-            console.warn('Sistema multitenant não disponível');
+        if (!window.supabase) {
+            console.warn('Supabase não disponível');
             return;
         }
         
-        const user = firebase.auth().currentUser;
-        if (!user) {
+        const { data: { session } } = await window.supabase.auth.getSession();
+        if (!session || !session.user) {
             console.log('Usuário não autenticado');
             return;
         }
 
-        // Carregar dados de comissionamento usando o sistema multitenant
-        const comissionamentoRef = window.multitenantConfig.getCompanyCollection('comissionamento');
+        const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+        if (!companyId) return;
+
+        // Carregar dados de comissionamento usando Supabase
+        const { data: dadosComissionamento, error } = await window.supabase
+            .from('comissionamento')
+            .select('*')
+            .eq('company_id', companyId);
+            
+        if (error) throw error;
         
-        const snapshot = await comissionamentoRef.get();
-        
-        if (!snapshot.empty) {
+        if (dadosComissionamento && dadosComissionamento.length > 0) {
             const planos = [];
             let valorEmAberto = 0;
             let valorRecebido = 0;
             
-            snapshot.forEach(doc => {
-                const data = doc.data();
+            dadosComissionamento.forEach(data => {
                 planos.push({
-                    id: doc.id,
+                    id: data.id,
                     nome: data.nome || 'Plano não identificado',
                     tipoComissao: data.tipoComissao || 'Valor',
                     comissao: data.comissao || 0.00,
@@ -449,8 +453,8 @@ function showToast(message, type = 'info') {
 // Função para debug
 function debugComissionamento() {
     console.log('=== DEBUG COMISSIONAMENTO ===');
-    console.log('Data atual:', formatDateTime(currentDate));
-    console.log('Dados:', comissionamentoData);
+    
+    
     console.log('Loading:', isLoading);
     console.log('============================');
 }

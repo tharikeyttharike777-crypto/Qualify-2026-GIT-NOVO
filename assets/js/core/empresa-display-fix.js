@@ -5,12 +5,11 @@
     function atualizarEmpresaDisplay() {
         const empresaNome = localStorage.getItem('empresaSelecionadaNome');
         const emailFromLocal = localStorage.getItem('currentUserEmail') || localStorage.getItem('userEmail');
-        const emailFromFirebase = (window.firebase && firebase.auth().currentUser) ? firebase.auth().currentUser.email : null;
-        const userEmail = emailFromLocal || emailFromFirebase || null;
+        let userEmail = emailFromLocal;
 
         console.log('[EMPRESA DISPLAY FIX] Atualizando display...');
         console.log('[EMPRESA DISPLAY FIX] Empresa Nome:', empresaNome);
-        console.log('[EMPRESA DISPLAY FIX] User Email:', userEmail);
+        
 
         // 1. Header (Top Bar)
         const headerEmpresaDisplay = document.getElementById('headerEmpresaDisplay');
@@ -31,20 +30,22 @@
         // para evitar conflitos de fonte (Firebase vs localStorage).
     }
 
-    // Inicializar quando o Firebase estiver pronto
-    if (window.firebase && firebase.auth) {
-        firebase.auth().onAuthStateChanged(user => {
-            if (user) {
-                console.log('[EMPRESA DISPLAY FIX] Usuário logado:', user.email);
+    // Inicializar quando o Supabase estiver pronto
+    if (window.supabase) {
+        window.supabase.auth.onAuthStateChange((event, session) => {
+            if (session?.user) {
+                
                 // Aguardar um pouco para garantir que o localStorage foi populado
                 setTimeout(() => {
                     atualizarEmpresaDisplay();
                 }, 300);
             } else {
-                // Mesmo sem usuário do Firebase, tentamos com localStorage
+                // Mesmo sem usuário do Supabase, tentamos com localStorage
                 setTimeout(atualizarEmpresaDisplay, 300);
             }
         });
+    } else {
+        setTimeout(atualizarEmpresaDisplay, 300);
     }
 
     // Atualizar quando o localStorage mudar (quando uma empresa for selecionada)

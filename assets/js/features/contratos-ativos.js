@@ -31,7 +31,7 @@ function waitForDependencies() {
 
 // Inicializar apenas quando dependências estiverem prontas
 waitForDependencies().then(() => {
-    console.log('Contratos ativos dependencies loaded successfully');
+    
     initializeContratosAtivos();
 }).catch(error => {
     console.error('Failed to load contratos ativos dependencies:', error);
@@ -1384,7 +1384,7 @@ function initializeImport() {
 
     const importCallbacks = {
         onSuccess: (data) => {
-            console.log('Dados importados com sucesso:', data);
+            
             renderTable(); // Atualizar tabela após importação
         },
         onError: (error) => {

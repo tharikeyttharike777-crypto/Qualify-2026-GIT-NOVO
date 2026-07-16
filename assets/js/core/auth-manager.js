@@ -68,7 +68,7 @@ class AuthManager {
     }
 
     handleUserLoggedIn(user) {
-        console.log('Usuário logado:', user.email);
+        
         try { localStorage.setItem('lastAuthTime', String(Date.now())); } catch (_) { }
 
         if (this.isLoginPage() && !this.isRedirecting) {

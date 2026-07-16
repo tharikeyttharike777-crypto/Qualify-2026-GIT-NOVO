@@ -67,7 +67,7 @@
      * @param {string} empresaId - ID da empresa
      */
     async function carregarCobrancasContrato(empresaId, contratoNumeroOverride = null) {
-        console.log('📋 Carregando cobranças para empresa:', empresaId, 'Contrato:', contratoNumeroOverride);
+        
 
         if (!empresaId) {
             empresaId = getEmpresaId();
@@ -108,7 +108,7 @@
             const numeroContrato = contratoNumeroOverride || params.get('numero');
 
             if (numeroContrato) {
-                console.log(`🔍 Filtrando cobranças pelo contrato: ${numeroContrato}`);
+                
                 query = query.eq('contrato_numero', String(numeroContrato));
             }
 
@@ -428,8 +428,13 @@
 
         try {
             showLoading('Excluindo...');
-            const db = firebase.firestore();
-            await db.collection('empresas').doc(empresaId).collection('cobrancas').doc(id).delete();
+            const { error } = await window.supabase
+                .from('cobrancas')
+                .delete()
+                .eq('id', id)
+                .eq('company_id', empresaId);
+                
+            if (error) throw error;
 
             showToast('Cobrança excluída com sucesso!', 'success');
 
@@ -468,16 +473,21 @@
 
         try {
             showLoading('Dando baixa...');
-            const db = firebase.firestore();
 
             // Atualiza status local e remoto
-            await db.collection('empresas').doc(empresaId).collection('cobrancas').doc(id).update({
-                status: 'CONFIRMED',
-                statusTraduzido: 'Pago Manualmente',
-                dataPagamento: new Date().toISOString(),
-                metodoPagamento: 'MANUAL', // Marca que foi manual
-                atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            const { error } = await window.supabase
+                .from('cobrancas')
+                .update({
+                    status: 'CONFIRMED',
+                    statusTraduzido: 'Pago Manualmente',
+                    dataPagamento: new Date().toISOString(),
+                    metodoPagamento: 'MANUAL', // Marca que foi manual
+                    atualizadoEm: new Date().toISOString()
+                })
+                .eq('id', id)
+                .eq('company_id', empresaId);
+                
+            if (error) throw error;
 
             // Sucesso Visual com Modal
             await showSuccessModal('Pagamento Confirmado!', 'A cobrança foi movida para a lista de PAGOS com sucesso.');
@@ -935,7 +945,7 @@
         const cpfInput = document.getElementById('mcCpfPagador');
         if (cpfInput && cpfInput.value) {
             cpfDevedor = cpfInput.value.replace(/\D/g, '');
-            console.log('📋 CPF obtido do campo do modal');
+            
         }
 
         // PRIORIDADE 2: Busca do elemento holderCpf (data-cpf)
@@ -943,7 +953,7 @@
             const cpfEl = document.getElementById('holderCpf');
             if (cpfEl && cpfEl.dataset.cpf) {
                 cpfDevedor = cpfEl.dataset.cpf.replace(/\D/g, '');
-                console.log('📋 CPF obtido do holderCpf');
+                
             }
         }
 
@@ -955,7 +965,7 @@
                 try {
                     const parsed = JSON.parse(contractData);
                     cpfDevedor = (parsed.cpf || parsed.cpfTitular || parsed.documento || '').replace(/\D/g, '');
-                    console.log('📋 CPF obtido do localStorage');
+                    
                 } catch (e) { }
             }
         }
@@ -966,7 +976,7 @@
             throw new Error('CPF do pagador é obrigatório. Por favor, informe um CPF válido.');
         }
 
-        console.log('📋 CPF do devedor:', cpfDevedor.substring(0, 3) + '***' + cpfDevedor.substring(8));
+        
 
         // Captura campos de endereço do modal
         const cep = document.getElementById('mcCep')?.value || '';
@@ -1755,7 +1765,7 @@
 
         if (error) throw error;
 
-        console.log('✅ Cobrança salva no Supabase, ID:', data.id);
+        
 
         // Recarrega a lista de cobranças
         if (typeof carregarCobrancasContrato === 'function') {

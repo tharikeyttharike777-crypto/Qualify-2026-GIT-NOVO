@@ -39,7 +39,7 @@
             </div>
 
             <!-- Área de Empresas Existentes -->
-            <div class="empresas-section">
+            <div class="empresas-section" style="display:none;">
                 <h2>Empresas Existentes</h2>
                 <div id="empresasGrid" class="empresas-grid">
                     <!-- Empresas serão carregadas aqui -->
@@ -82,21 +82,188 @@
         </div>
     </div>
 
-    <!-- Conflict Prevention Flag -->
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Supabase Client -->
+    <script src="../assets/js/core/supabase-client.js?v=20260716002"></script>
+
+    <!-- TODA A LOGICA DA PAGINA INLINE - bypassa cache da Hostinger -->
     <script>
-        // Impeça que scripts globais (auth-guard, multitenant-config) desenhem a tela
-        // pois esta página tem seu próprio script controlador (trocar-empresa.js)
+        // Previne auto-render de outros scripts
         window.DISABLE_MULTITENANT_AUTO_RENDER = true;
-        console.log('🛑 Auto-renderização global DESATIVADA para esta página.');
+
+        let currentUser = null;
+        let empresas = [];
+
+        function mostrarLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.querySelector('.empresas-section').style.display = show ? 'none' : 'block';
+        }
+
+        function formatarCNPJ(input) {
+            let v = input.value.replace(/\D/g, '');
+            if (v.length > 14) v = v.substring(0, 14);
+            if (v.length <= 2) {}
+            else if (v.length <= 5) v = v.replace(/(\d{2})(\d+)/, '$1.$2');
+            else if (v.length <= 8) v = v.replace(/(\d{2})(\d{3})(\d+)/, '$1.$2.$3');
+            else if (v.length <= 12) v = v.replace(/(\d{2})(\d{3})(\d{3})(\d+)/, '$1.$2.$3/$4');
+            else v = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d+)/, '$1.$2.$3/$4-$5');
+            input.value = v;
+        }
+
+        function abrirModal() {
+            document.getElementById('modal-nova-empresa').style.display = 'flex';
+            setTimeout(() => document.getElementById('input-nome-empresa').focus(), 100);
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-nova-empresa').style.display = 'none';
+            document.getElementById('form-nova-empresa').reset();
+        }
+
+        function exibirEmpresas() {
+            const grid = document.getElementById('empresasGrid');
+            const nenhuma = document.getElementById('nenhumaEmpresa');
+            grid.innerHTML = '';
+            if (empresas.length === 0) {
+                nenhuma.style.display = 'block';
+                return;
+            }
+            nenhuma.style.display = 'none';
+            empresas.forEach(function(emp) {
+                const card = document.createElement('div');
+                card.className = 'empresa-card';
+                if (localStorage.getItem('activeCompanyId') === emp.id) card.classList.add('ativa');
+                card.innerHTML =
+                    '<div class="empresa-info">' +
+                    '<h3>' + (emp.name || 'Sem nome') + '</h3>' +
+                    '<p class="empresa-cnpj">' + (emp.cnpj || '') + '</p>' +
+                    '<p class="empresa-cidade">' + (emp.city || '') + '</p>' +
+                    '<span class="empresa-tipo">' + (emp.tipo === 'owner' ? 'Proprietário' : 'Membro') + '</span>' +
+                    (localStorage.getItem('activeCompanyId') === emp.id ? '<span class="empresa-ativa">ATIVA</span>' : '') +
+                    '</div>' +
+                    '<div class="empresa-actions">' +
+                    '<button class="btn-acessar-empresa" onclick="acessarEmpresa(\'' + emp.id + '\')">Acessar</button>' +
+                    (emp.tipo === 'owner' ? '<button class="btn-deletar-empresa" onclick="deletarEmpresa(\'' + emp.id + '\')" title="Excluir"><i class="fas fa-trash-alt"></i></button>' : '') +
+                    '</div>';
+                grid.appendChild(card);
+            });
+        }
+
+        async function carregarEmpresas() {
+            if (!currentUser) return;
+            mostrarLoading(true);
+            try {
+                const uid = currentUser.id;
+                const resp = await window.supabase.from('empresas').select('*');
+                if (resp.error) throw resp.error;
+                empresas = (resp.data || []).filter(function(e) {
+                    return e.owner_id === uid || (Array.isArray(e.members) && e.members.includes(uid));
+                }).map(function(e) {
+                    return Object.assign({}, e, { tipo: e.owner_id === uid ? 'owner' : 'membro' });
+                });
+                exibirEmpresas();
+            } catch (err) {
+                console.error('Erro ao carregar empresas:', err);
+                document.getElementById('empresasGrid').innerHTML = '<p style="color:red">Erro: ' + (err.message || err) + '</p>';
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function acessarEmpresa(empresaId) {
+            const emp = empresas.find(function(e) { return e.id === empresaId; });
+            if (emp) {
+                localStorage.setItem('empresaSelecionadaId', empresaId);
+                localStorage.setItem('empresaSelecionadaNome', emp.name || 'Empresa sem nome');
+                localStorage.setItem('activeCompanyId', empresaId);
+                localStorage.setItem('activeCompany', JSON.stringify({
+                    id: emp.id, name: emp.name || '', cnpj: emp.cnpj || null, city: emp.city || null
+                }));
+            }
+            window.location.href = '../index.html';
+        }
+
+        async function deletarEmpresa(empresaId) {
+            if (!confirm('Excluir esta empresa? Ação irreversível.')) return;
+            const resp = await window.supabase.from('empresas').delete().eq('id', empresaId);
+            if (resp.error) { alert('Erro ao excluir: ' + resp.error.message); return; }
+            alert('Empresa excluída!');
+            carregarEmpresas();
+        }
+
+        async function salvarNovaEmpresa(e) {
+            e.preventDefault();
+            if (!currentUser) { alert('Você não está logado!'); return; }
+            const nome = document.getElementById('input-nome-empresa').value.trim();
+            const cnpj = document.getElementById('input-cnpj').value.trim();
+            const cidade = document.getElementById('input-cidade').value.trim();
+            if (!nome || !cnpj || !cidade) { alert('Preencha todos os campos.'); return; }
+
+            const btn = document.getElementById('btn-salvar-empresa');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+            try {
+                const resp = await window.supabase.from('empresas').insert([{
+                    name: nome, cnpj: cnpj, city: cidade,
+                    owner_id: currentUser.id, members: [currentUser.id]
+                }]).select();
+                if (resp.error) throw resp.error;
+                alert('Empresa criada com sucesso!');
+                fecharModal();
+                carregarEmpresas();
+            } catch (err) {
+                alert('Erro ao salvar: ' + (err.message || err));
+            } finally {
+                btn.disabled = false; btn.textContent = 'Salvar Empresa';
+            }
+        }
+
+        async function initPage() {
+            // Aguarda o supabase-client.js inicializar (máx 3s)
+            let waited = 0;
+            while (!window.supabase && waited < 3000) {
+                await new Promise(r => setTimeout(r, 100));
+                waited += 100;
+            }
+            if (!window.supabase) {
+                alert('Erro: Supabase não carregado. Verifique sua conexão.');
+                return;
+            }
+
+            const { data: { session } } = await window.supabase.auth.getSession();
+            if (!session || !session.user) {
+                window.location.href = '../login.html';
+                return;
+            }
+            currentUser = session.user;
+            const emailEl = document.getElementById('userEmail');
+            if (emailEl) emailEl.textContent = currentUser.email;
+
+            // Configura listeners
+            document.getElementById('voltarBtn').addEventListener('click', () => window.history.back());
+            document.getElementById('novaEmpresaBtn').addEventListener('click', abrirModal);
+            document.getElementById('btn-fechar-modal').addEventListener('click', fecharModal);
+            document.getElementById('btn-cancelar-modal').addEventListener('click', fecharModal);
+            document.getElementById('modal-nova-empresa').addEventListener('click', function(ev) {
+                if (ev.target === this) fecharModal();
+            });
+            document.getElementById('form-nova-empresa').addEventListener('submit', salvarNovaEmpresa);
+            document.getElementById('input-cnpj').addEventListener('input', function(ev) { formatarCNPJ(ev.target); });
+
+            // Monitora logout
+            window.supabase.auth.onAuthStateChange(function(event, sess) {
+                if (event === 'SIGNED_OUT' || !sess) window.location.href = '../login.html';
+            });
+
+            carregarEmpresas();
+        }
+
+        document.addEventListener('DOMContentLoaded', initPage);
     </script>
 
-    <!-- Supabase SDK e Cliente -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
-    <script src="../assets/js/core/auth-guard.js?v=20250127003" defer></script>
-    <script src="../assets/js/core/multitenant-config.js?v=20250127003" defer></script>
-    <script src="../assets/js/features/trocar-empresa.js?v=20250127003"></script>
-    <script src="../assets/js/core/user-menu.js?v=20250127003"></script>
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </body>
 
 </html>

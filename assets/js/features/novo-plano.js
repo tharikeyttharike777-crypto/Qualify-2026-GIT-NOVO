@@ -42,16 +42,16 @@ class NovoPlano {
         }
     }
 
-    waitForFirebaseReady(timeoutMs = 5000) {
+    waitForSupabaseReady(timeoutMs = 5000) {
         return new Promise((resolve) => {
-            if (window.firebase && window.db && window.auth) {
+            if (window.supabase) {
                 resolve(true);
                 return;
             }
             let elapsed = 0;
             const interval = 100;
             const check = () => {
-                if (window.firebase && window.db && window.auth) {
+                if (window.supabase) {
                     resolve(true);
                 } else if (elapsed >= timeoutMs) {
                     resolve(false);
@@ -60,43 +60,27 @@ class NovoPlano {
                     setTimeout(check, interval);
                 }
             };
-            window.addEventListener('firebaseReady', () => resolve(true), { once: true });
             check();
         });
     }
 
     async loadExistingPlans() {
         const companyId = this.getActiveCompanyId();
-        const ready = await this.waitForFirebaseReady(3000);
-        const plansFromFirestore = [];
+        const ready = await this.waitForSupabaseReady(3000);
+        const plansFromSupabase = [];
 
-        // 1. Tentar carregar do Firestore (Merge de companies e empresas)
-        if (ready && window.db) {
-            let loaded = false;
-            
-            // A) Via Multitenant API
-            if (window.getCompanyCollection) {
-                try {
-                    const snap = await window.getCompanyCollection('planos').get();
-                    const docs = snap?.docs || [];
-                    docs.forEach(doc => plansFromFirestore.push({ id: parseInt(doc.id, 10) || doc.id, ...doc.data() }));
-                    if (docs.length > 0) loaded = true;
-                } catch (e) { console.warn('Falha load multitenant:', e); }
-            }
-
-            // B) Via Path Manual (Fallback)
-            if (!loaded) {
-                const bases = ['companies', 'empresas'];
-                for (const base of bases) {
-                    try {
-                        const path = `${base}/${companyId}/planos`;
-                        const snap = await window.db.collection(path).get();
-                        const docs = snap?.docs || [];
-                        docs.forEach(doc => plansFromFirestore.push({ id: parseInt(doc.id, 10) || doc.id, ...doc.data() }));
-                        if (docs.length > 0) break;
-                    } catch (e) { console.warn(`Falha load ${base}:`, e); }
+        // 1. Tentar carregar do Supabase
+        if (ready && window.supabase) {
+            try {
+                const { data, error } = await window.supabase
+                    .from('planos')
+                    .select('*')
+                    .eq('company_id', companyId);
+                
+                if (!error && data) {
+                    data.forEach(doc => plansFromSupabase.push(doc));
                 }
-            }
+            } catch (e) { console.warn('Falha load Supabase:', e); }
         }
 
         // 2. Carregar do LocalStorage
@@ -113,8 +97,8 @@ class NovoPlano {
         // Primeiro popula com local (pode ter dados offline)
         localPlans.forEach(p => mergedMap.set(String(p.id), p));
         
-        // Sobrescreve/Adiciona com Firestore (fonte da verdade online)
-        plansFromFirestore.forEach(p => mergedMap.set(String(p.id), p));
+        // Sobrescreve/Adiciona com Supabase (fonte da verdade online)
+        plansFromSupabase.forEach(p => mergedMap.set(String(p.id), p));
 
         this.existingPlans = Array.from(mergedMap.values());
         
@@ -562,7 +546,7 @@ class NovoPlano {
         }
     }
 
-    // Persistência Centralizada: Salva no localStorage e tenta no Firestore
+    // Persistência Centralizada: Salva no localStorage e tenta no Supabase
     async saveToStorageAndFirestore(plan, isUpdate) {
         // 1. Atualizar localStorage (Sincronização imediata)
         localStorage.setItem('planos', JSON.stringify(this.existingPlans));
@@ -571,40 +555,30 @@ class NovoPlano {
             if (companyId) localStorage.setItem(`planos_${companyId}`, JSON.stringify(this.existingPlans));
         } catch(_) {}
 
-        // 2. Salvar no Firestore
+        // 2. Salvar no Supabase
         try {
-            await this.waitForFirebaseReady(2000);
+            await this.waitForSupabaseReady(2000);
             const companyId = this.getActiveCompanyId();
-            const planIdStr = String(plan.id);
-            let saved = false;
-
-            if (window.getCompanyCollection) {
-                try {
-                    await window.getCompanyCollection('planos').doc(planIdStr).set(plan, { merge: true });
-                    console.log(`Plano ${planIdStr} salvo via Multitenant API.`);
-                    saved = true;
-                } catch (e) { console.warn('Falha Multitenant API Save:', e); }
-            }
-
-            if (!saved && window.db) {
-                const bases = ['companies', 'empresas'];
-                for (const base of bases) {
-                    try {
-                        const path = `${base}/${companyId}/planos`;
-                        await window.db.collection(path).doc(planIdStr).set(plan, { merge: true });
-                        console.log(`Plano ${planIdStr} salvo em ${path}.`);
-                        saved = true;
-                        break;
-                    } catch (e) { console.warn(`Falha save ${base}:`, e); }
+            
+            if (window.supabase) {
+                const payload = { ...plan, company_id: companyId };
+                const { error } = await window.supabase
+                    .from('planos')
+                    .upsert(payload);
+                    
+                if (error) {
+                    console.warn('Falha ao salvar no Supabase:', error);
+                } else {
+                    console.log(`Plano ${plan.id} salvo no Supabase.`);
                 }
             }
         } catch (e) {
-            console.warn('Falha ao persistir no Firestore (dados salvos localmente):', e);
+            console.warn('Falha ao persistir no Supabase (dados salvos localmente):', e);
         }
     }
 
     async createPlan(data) {
-        console.log('Criando novo plano:', data);
+        
         try {
             // CORREÇÃO: Usar this.existingPlans que contém o merge de Firestore + LocalStorage
             // Calcula novo ID baseado no maior ID existente
@@ -657,7 +631,7 @@ class NovoPlano {
     }
 
     async updatePlan(data) {
-        console.log('Atualizando plano:', data);
+        
         try {
             const planIndex = this.existingPlans.findIndex(p => String(p.id) === String(this.currentPlanId));
 

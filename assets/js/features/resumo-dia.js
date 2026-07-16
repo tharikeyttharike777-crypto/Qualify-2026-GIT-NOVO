@@ -44,76 +44,67 @@ let resumoData = {
     ultimosAcessos: []
 };
 
-// Função para carregar dados reais do Firestore
+// Função para carregar dados reais do Supabase
 async function loadResumoData() {
-    try {
-        const user = firebase.auth().currentUser;
-        if (!user) {
-            console.log('Usuário não autenticado');
-            return;
-        }
-
-        // Carregar dados de resumo do dia do Firestore
-        const resumoRef = window.db
-            .collection('users')
-            .doc(user.uid)
-            .collection('resumo-dia');
-        
-        const today = new Date().toISOString().split('T')[0];
-        const doc = await resumoRef.doc(today).get();
-        
-        if (doc.exists) {
-            const data = doc.data();
-            resumoData = {
-                indicadores: data.indicadores || resumoData.indicadores,
-                boletos: data.boletos || resumoData.boletos,
-                movimentacoes: data.movimentacoes || []
-            };
-        }
-        
-        // Atualizar interface
-        updateResumoInterface();
-        
-    } catch (error) {
-        console.error('Erro ao carregar dados de resumo:', error);
-        // Manter dados vazios em caso de erro
-        updateResumoInterface();
-    }
+    await loadResumoDataForDate(getTodayISO());
 }
 
 // Carregar dados por data selecionada (YYYY-MM-DD)
 async function loadResumoDataForDate(isoDate) {
     try {
-        const user = firebase.auth().currentUser;
-        if (!user) {
-            console.log('Usuário não autenticado');
+        const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+        if (!companyId || !window.supabase) {
+            console.log('Sem empresa ativa ou Supabase indisponível');
             return;
         }
 
-        const resumoRef = window.db
-            .collection('users')
-            .doc(user.uid)
-            .collection('resumo-dia');
+        // Reseta dados
+        Object.keys(resumoData.indicadores).forEach(k => {
+            resumoData.indicadores[k].valor = 0;
+            resumoData.indicadores[k].quantidade = 0;
+        });
+        resumoData.boletos.quitado.valor = 0;
+        resumoData.boletos.quitado.quantidade = 0;
+        resumoData.movimentacoes = [];
+        resumoData.ultimosAcessos = [];
 
-        const doc = await resumoRef.doc(isoDate).get();
-        if (doc.exists) {
-            const data = doc.data();
-            resumoData = {
-                indicadores: data.indicadores || resumoData.indicadores,
-                boletos: data.boletos || resumoData.boletos,
-                movimentacoes: data.movimentacoes || [],
-                ultimosAcessos: data.ultimosAcessos || []
-            };
-        } else {
-            // Sem dados para a data: zera listas e mantém 0
-            resumoData.movimentacoes = [];
-            resumoData.ultimosAcessos = [];
-            Object.keys(resumoData.indicadores).forEach(k => {
-                resumoData.indicadores[k].valor = 0;
-                resumoData.indicadores[k].quantidade = 0;
+        // Buscar cobranças para gerar resumo
+        const { data: cobrancas, error } = await window.supabase
+            .from('cobrancas')
+            .select('*')
+            .eq('company_id', companyId);
+
+        if (!error && cobrancas) {
+            cobrancas.forEach(c => {
+                const valor = parseFloat(c.valor) || 0;
+                const status = (c.status || '').toLowerCase();
+                const vencimentoStr = c.vencimento ? c.vencimento.split('T')[0] : '';
+                
+                // Calcula indicadores baseados na data selecionada
+                if (status === 'pago' || status === 'recebido') {
+                    const dataPagamentoStr = c.data_pagamento ? c.data_pagamento.split('T')[0] : '';
+                    if (dataPagamentoStr === isoDate) {
+                        resumoData.indicadores.recebido.valor += valor;
+                        resumoData.indicadores.recebido.quantidade += 1;
+                        resumoData.boletos.quitado.valor += valor;
+                        resumoData.boletos.quitado.quantidade += 1;
+                        
+                        resumoData.movimentacoes.push({
+                            nome: c.pagador_nome || c.descricao || 'Cobrança recebida',
+                            entrada: valor,
+                            saida: 0
+                        });
+                    }
+                } else if (status === 'pendente') {
+                    if (vencimentoStr === isoDate) {
+                        resumoData.indicadores.aReceber.valor += valor;
+                        resumoData.indicadores.aReceber.quantidade += 1;
+                    } else if (vencimentoStr < isoDate && vencimentoStr !== '') {
+                        resumoData.indicadores.receberAtraso.valor += valor;
+                        resumoData.indicadores.receberAtraso.quantidade += 1;
+                    }
+                }
             });
-            resumoData.boletos.quitado.valor = 0;
-            resumoData.boletos.quitado.quantidade = 0;
         }
 
         updateResumoInterface();
@@ -515,8 +506,8 @@ function showToast(message, type = 'info') {
 // Função para debug
 function debugResumo() {
     console.log('=== DEBUG RESUMO DO DIA ===');
-    console.log('Data atual:', formatDateTime(currentDate));
-    console.log('Dados:', resumoData);
+    
+    
     console.log('Loading:', isLoading);
     console.log('========================');
 }

@@ -336,7 +336,7 @@ class ExcelImportManager {
             totalRows: data.length
         };
 
-        console.log('Dados CSV processados:', this.currentData);
+        
     }
 
     /**
@@ -379,7 +379,7 @@ class ExcelImportManager {
             sheetName: firstSheetName
         };
 
-        console.log('Dados Excel processados:', this.currentData);
+        
     }
 
     /**

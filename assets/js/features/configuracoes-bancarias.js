@@ -15,21 +15,28 @@ let empresaAtiva = null;
 document.addEventListener('DOMContentLoaded', function () {
     console.log('🏦 Inicializando página de configurações bancárias (Asaas)...');
 
-    // Aguarda Firebase estar pronto
-    if (window.auth) {
+    // Aguarda Supabase estar pronto
+    if (window.supabase) {
         inicializar();
     } else {
-        window.addEventListener('firebaseReady', inicializar, { once: true });
+        // Fallback caso script do supabase ainda esteja carregando
+        setTimeout(inicializar, 500);
     }
 });
 
-function inicializar() {
+async function inicializar() {
     // Verifica autenticação
-    window.auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            // Carrega empresa ativa
-            await carregarEmpresaAtiva();
-        } else {
+    if (!window.supabase) return;
+    
+    const { data: { session } } = await window.supabase.auth.getSession();
+    if (session && session.user) {
+        await carregarEmpresaAtiva();
+    } else {
+        window.location.href = '../login.html';
+    }
+    
+    window.supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
             window.location.href = '../login.html';
         }
     });

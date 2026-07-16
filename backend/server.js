@@ -6,8 +6,11 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const { requireAuth } = require('./middleware/auth');
 
 // Inicialização do Supabase
 const initSupabase = () => {
@@ -34,6 +37,17 @@ const supabase = initSupabase();
 // Inicialização do Express
 const app = express();
 
+// Segurança HTTP
+app.use(helmet());
+
+// Rate Limiting (Prevenção DDoS / Brute Force)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 100, // Limite de 100 requisições por IP a cada 15 min
+    message: { error: 'Muitas requisições deste IP, tente novamente mais tarde.' }
+});
+app.use('/api/', limiter);
+
 // Middleware de CORS
 app.use(cors({
     origin: true,
@@ -55,11 +69,11 @@ const configRoutes = require('./routes/config');
 const webhookRoutes = require('./routes/webhook');
 const subscriptionRoutes = require('./routes/subscriptions');
 
-app.use('/api/pix', pixRoutes);
-app.use('/api/boleto', boletoRoutes);
-app.use('/api/config', configRoutes);
+app.use('/api/pix', requireAuth, pixRoutes);
+app.use('/api/boleto', requireAuth, boletoRoutes);
+app.use('/api/config', requireAuth, configRoutes);
 app.use('/api/webhook', webhookRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/subscriptions', requireAuth, subscriptionRoutes);
 
 // Rota de health check
 app.get('/api/health', (req, res) => {
@@ -75,7 +89,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Status Invoice (Compatibilidade Supabase)
-app.get('/api/invoices/:invoiceId/status', async (req, res) => {
+app.get('/api/invoices/:invoiceId/status', requireAuth, async (req, res) => {
     try {
         const { invoiceId } = req.params;
         const empresaId = req.query.empresaId;

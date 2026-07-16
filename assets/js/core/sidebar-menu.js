@@ -584,7 +584,7 @@ class ModernSidebar {
 
         // Listener customizado para mudanças na mesma aba
         document.addEventListener('userDataUpdated', () => {
-            console.log('🔄 Evento userDataUpdated recebido, atualizando sidebar...');
+            
             setTimeout(() => {
                 this.renderUserCompanyInfo();
             }, 100);
@@ -602,21 +602,17 @@ class ModernSidebar {
     }
 
     /**
-     * Configura listener do Firebase Auth para manter o email do usuário sincronizado
+     * Configura listener do Supabase Auth para manter o email do usuário sincronizado
      */
     setupAuthListener() {
         try {
-            const hasFirebase = typeof window !== 'undefined' && window.firebase && firebase.auth;
-            const authInstance = (window.auth && typeof window.auth.onAuthStateChanged === 'function')
-                ? window.auth
-                : (hasFirebase ? firebase.auth() : null);
-
-            if (!authInstance || typeof authInstance.onAuthStateChanged !== 'function') {
-                console.warn('⚠️ Auth listener indisponível no sidebar.');
+            if (!window.supabase) {
+                console.warn('⚠️ Supabase indisponível no sidebar.');
                 return;
             }
 
-            authInstance.onAuthStateChanged((user) => {
+            window.supabase.auth.onAuthStateChange((event, session) => {
+                const user = session?.user;
                 try {
                     if (user && user.email) {
                         localStorage.setItem('currentUserEmail', user.email);
@@ -997,10 +993,8 @@ class ModernSidebar {
     }
 
     getUserCompanyData() {
-        // Recupera o email do usuário de múltiplas fontes possíveis
-        const userEmail = (typeof window !== 'undefined' && window.firebase && firebase.auth && firebase.auth().currentUser)
-                        ? firebase.auth().currentUser.email
-                        : (localStorage.getItem('currentUserEmail') || localStorage.getItem('userEmail') || null);
+        // Recupera o email do usuário do localStorage
+        const userEmail = localStorage.getItem('currentUserEmail') || localStorage.getItem('userEmail') || null;
         
         const userName = localStorage.getItem('userDisplayName') || 
                         localStorage.getItem('userEmail') || 

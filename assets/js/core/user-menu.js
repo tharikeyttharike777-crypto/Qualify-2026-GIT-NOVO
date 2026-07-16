@@ -7,7 +7,7 @@
     'use strict';
 
     function UserMenu() {
-        console.log('Construtor UserMenu iniciado...');
+        
 
         try {
             this.menuContainer = document.querySelector('.user-menu-container');
@@ -44,7 +44,7 @@
             console.log('Configurando acessibilidade...');
             this.setupAccessibility();
 
-            console.log('UserMenu inicializado com sucesso');
+            
         } catch (error) {
             console.error('Erro no construtor UserMenu:', error);
             throw error;
@@ -542,12 +542,10 @@
                     try {
                         if (typeof window.handleLogout === 'function') {
                             window.handleLogout();
-                        } else if (typeof window.fazerLogout === 'function') {
-                            window.fazerLogout();
                         } else {
                             // Fallback absoluto
                             (async function () {
-                                try { if (window.firebase && firebase.auth) { await firebase.auth().signOut(); } } catch (e) { }
+                                try { if (window.supabase) { await window.supabase.auth.signOut(); } } catch (e) { }
                                 try { localStorage.clear(); sessionStorage.clear(); } catch (e) { }
                                 const base = window.location.pathname.includes('/pages/') ? '../login.html' : 'login.html';
                                 window.location.href = base;
@@ -658,11 +656,10 @@
     async function handleLogout() {
         console.log('*** INICIANDO LOGOUT COMPLETO E SEGURO ***');
         try {
-            if (window.firebase && firebase.auth) {
-                await firebase.auth().signOut();
-                console.log('Firebase signOut() SUCESSO.');
-            } else {
-                console.warn('Firebase não disponível, realizando logout local.');
+            // Supabase signOut
+            if (window.supabase && window.supabase.auth) {
+                await window.supabase.auth.signOut();
+                console.log('Supabase signOut() SUCESSO.');
             }
             // Limpeza total de storages e caches
             try { localStorage.clear(); } catch (e) { }
@@ -672,26 +669,15 @@
                 if (window.caches && caches.keys) {
                     const keys = await caches.keys();
                     await Promise.all(keys.map(k => caches.delete(k)));
-                    console.log('Caches limpos:', keys);
                 }
             } catch (e) { console.warn('Falha ao limpar caches', e); }
-            // Limpar IndexedDB (inclui Firebase)
-            try {
-                if (indexedDB && indexedDB.databases) {
-                    const dbs = await indexedDB.databases();
-                    await Promise.all((dbs || []).map(d => indexedDB.deleteDatabase(d.name)));
-                    console.log('IndexedDB limpo:', dbs);
-                } else {
-                    // Fallback: nomes comuns
-                    const common = ['firebaseLocalStorageDb', 'firestore', 'fs-default', 'keyval-store'];
-                    common.forEach(name => { try { indexedDB.deleteDatabase(name); } catch (e) { } });
-                }
-            } catch (e) { console.warn('Falha ao limpar IndexedDB', e); }
-            console.log('*** LocalStorage/SessionStorage COMPLETAMENTE LIMPOS. ***');
+            console.log('*** Logout completo. Redirecionando... ***');
             const base = window.location.pathname.includes('/pages/') ? '../login.html' : '/login.html';
             window.location.href = base;
         } catch (error) {
             console.error('*** ERRO CRÍTICO DURANTE LOGOUT:', error);
+            const base = window.location.pathname.includes('/pages/') ? '../login.html' : '/login.html';
+            window.location.href = base;
         }
     }
 
@@ -815,13 +801,13 @@
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', function () {
-        console.log('DOM carregado - Inicializando UserMenu...');
+        
 
         setTimeout(() => {
-            console.log('Criando instância do UserMenu...');
+            
             try {
                 window.userMenu = new UserMenu();
-                console.log('UserMenu inicializado:', window.userMenu);
+                
                 // Adicionar chamada para atualizar o display após a inicialização
                 window.userMenu.updateDisplay();
                 // Listener universal para qualquer botão/link de logout presente na página
@@ -836,7 +822,7 @@
                             window.fazerLogout();
                         } else {
                             (async function () {
-                                try { if (window.firebase && firebase.auth) { await firebase.auth().signOut(); } } catch (e) { }
+                                try { if (window.supabase) { await window.supabase.auth.signOut(); } } catch (e) { }
                                 try { localStorage.clear(); sessionStorage.clear(); } catch (e) { }
                                 const base = window.location.pathname.includes('/pages/') ? '../login.html' : 'login.html';
                                 window.location.href = base;
@@ -877,35 +863,10 @@
         }
     };
 
-    // Inicializar o display quando o Firebase estiver pronto
-    if (window.firebase && firebase.auth) {
-        firebase.auth().onAuthStateChanged(user => {
-            if (user && window.userMenu) {
-                window.userMenu.updateDisplay();
-            }
-        });
-    }
-
-    // Adicionar listener para o evento de seleção de empresa
-    window.addEventListener('storage', (event) => {
-        if (event.key === 'empresaSelecionadaNome' && window.userMenu) {
-            window.userMenu.updateDisplay();
-        }
-    });
-
-    // Mantém somente atualização do header
-    UserMenu.prototype.updateDisplay = function () {
-        const empresaNome = localStorage.getItem('empresaSelecionadaNome') || 'Nenhuma empresa ativa';
-        const headerEmpresaDisplay = document.getElementById('headerEmpresaDisplay');
-        if (headerEmpresaDisplay) {
-            headerEmpresaDisplay.textContent = empresaNome;
-        }
-    };
-
-    // Inicializar o display quando o Firebase estiver pronto
-    if (window.firebase && firebase.auth) {
-        firebase.auth().onAuthStateChanged(user => {
-            if (user && window.userMenu) {
+    // Inicializar o display quando o Supabase estiver pronto
+    if (window.supabase) {
+        window.supabase.auth.onAuthStateChange((event, session) => {
+            if (session?.user && window.userMenu) {
                 window.userMenu.updateDisplay();
             }
         });

@@ -72,7 +72,7 @@ class FichaAdesao {
     fillSampleData() {
         // This method could be used to pre-fill the form with sample data
         // for demonstration purposes or when editing an existing enrollment
-        console.log('Sample data could be filled here');
+        
     }
 
     // Method to validate form before printing
@@ -112,7 +112,7 @@ class FichaAdesao {
             timestamp: new Date().toISOString()
         };
 
-        console.log('Form data to save:', formData);
+        
         return formData;
     }
 

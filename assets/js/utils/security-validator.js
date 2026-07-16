@@ -216,11 +216,15 @@ class SecurityValidator {
     /**
      * Valida sessão atual
      */
-    validateSession() {
+    async validateSession() {
         try {
             const grace = sessionStorage.getItem('authGraceActive') === '1';
-            const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
-            if (grace || (user && user.uid)) return true;
+            let user = null;
+            if (typeof window.supabase !== 'undefined') {
+                const { data: { session } } = await window.supabase.auth.getSession();
+                user = session?.user;
+            }
+            if (grace || (user && user.id)) return true;
 
             const userEmail = localStorage.getItem('userEmail');
             const userId = localStorage.getItem('userId');

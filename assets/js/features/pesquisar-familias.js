@@ -69,7 +69,7 @@ async function loadData() {
         const companyId = activeCompany.id;
 
         let familiasComTitulares = [];
-        let carregadoDe = 'firestore';
+        let carregadoDe = 'supabase';
 
         // Tenta carregar do Supabase
         try {
@@ -524,33 +524,30 @@ function handleDeleteFamily(familyId) {
             companyId = activeCompany && activeCompany.id ? activeCompany.id : null;
         } catch (_) { companyId = null; }
 
-        // Tenta remover no Firestore quando disponível
+        // Tenta remover no Supabase quando disponível
         try {
-            if (typeof window !== 'undefined' && window.db && companyId) {
-                const db = window.db;
+            if (window.supabase && companyId) {
+                // Opcional: Remove associados vinculados primeiro se não houver ON DELETE CASCADE no banco
+                await window.supabase
+                    .from('associados')
+                    .delete()
+                    .eq('familia_id', id);
+
                 // Remove família
-                await db.collection(`empresas/${companyId}/familias`).doc(id).delete();
-                // Remove associados vinculados
-                const associadosSnap = await db
-                    .collection(`empresas/${companyId}/associados`)
-                    .where('familiaId', '==', id)
-                    .get();
-                const batch = db.batch ? db.batch() : null;
-                if (batch) {
-                    associadosSnap.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                } else {
-                    const deletions = [];
-                    associadosSnap.forEach(doc => deletions.push(doc.ref.delete()));
-                    await Promise.all(deletions);
-                }
+                const { error } = await window.supabase
+                    .from('familias')
+                    .delete()
+                    .eq('id', id);
+                    
+                if (error) throw error;
+
                 showToast('Cadastro excluído com sucesso!', 'success');
                 await loadData();
                 return;
             }
-            throw new Error('Firestore indisponível, usando fallback local');
+            throw new Error('Supabase indisponível, usando fallback local');
         } catch (fsErr) {
-            console.warn('Falha na exclusão via Firestore:', fsErr);
+            console.warn('Falha na exclusão via Supabase:', fsErr);
             // Fallback para localStorage
             try {
                 let familias = JSON.parse(localStorage.getItem('familias') || '[]');
@@ -572,7 +569,7 @@ function handleDeleteFamily(familyId) {
 }
 
 function renderTableData() {
-    if (_deletionInProgress) { console.log('⏸️ renderTableData suprimido — exclusão em andamento'); return; }
+    if (_deletionInProgress) {  return; }
     const tableBody = document.getElementById('tableBody');
     if (!tableBody) return;
 

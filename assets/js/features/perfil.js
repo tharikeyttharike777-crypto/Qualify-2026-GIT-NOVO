@@ -86,28 +86,38 @@ class ProfileManager {
     // Carrega dados do usuário
     async loadUserData() {
         try {
-            const ready = (typeof window !== 'undefined' && window.firebase && firebase.apps && firebase.apps.length > 0 && firebase.auth);
-            const authUser = ready ? firebase.auth().currentUser : null;
-            const name = localStorage.getItem('userDisplayName') || authUser?.displayName || '';
-            const email = localStorage.getItem('userEmail') || authUser?.email || '';
+            if (!window.supabase) {
+                this.populateForm({ name: localStorage.getItem('userDisplayName') || '', email: localStorage.getItem('userEmail') || '' });
+                return;
+            }
+            
+            const { data: { user } } = await window.supabase.auth.getUser();
+            const name = localStorage.getItem('userDisplayName') || user?.user_metadata?.name || '';
+            const email = localStorage.getItem('userEmail') || user?.email || '';
             const baseData = { name, email };
-            if (authUser && window.db) {
+            
+            if (user) {
                 try {
-                    const doc = await window.db.collection('users').doc(authUser.uid).get();
-                    const data = doc.exists ? doc.data() : {};
-                    this.populateForm(Object.assign({}, baseData, {
-                        phone: data.phone || '',
-                        cep: data.cep || '',
-                        city: data.city || '',
-                        state: data.state || '',
-                        street: data.street || '',
-                        neighborhood: data.neighborhood || '',
-                        number: data.number || ''
-                    }));
-                    return;
+                    // Buscar na tabela users do supabase
+                    const { data, error } = await window.supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single();
+                        
+                    if (!error && data) {
+                        this.populateForm(Object.assign({}, baseData, {
+                            phone: data.phone || '',
+                            cep: data.cep || '',
+                            city: data.city || '',
+                            state: data.state || '',
+                            street: data.street || '',
+                            neighborhood: data.neighborhood || '',
+                            number: data.number || ''
+                        }));
+                        return;
+                    }
                 } catch (_) {
-                    this.populateForm(baseData);
-                    return;
                 }
             }
             this.populateForm(baseData);
@@ -143,17 +153,32 @@ class ProfileManager {
         try {
             if (!this.validateForm()) return;
             const formData = this.getFormData();
-            const ready = (typeof window !== 'undefined' && window.firebase && firebase.apps && firebase.apps.length > 0 && firebase.auth);
-            const user = ready ? firebase.auth().currentUser : null;
-            if (!user || !user.uid) {
+            if (!window.supabase) {
+                this.showNotification('Banco de dados indisponível', 'error');
+                return;
+            }
+            
+            const { data: { user } } = await window.supabase.auth.getUser();
+            if (!user || !user.id) {
                 this.showNotification('Usuário não autenticado', 'error');
                 return;
             }
+            
             if (formData.name) {
-                try { await user.updateProfile({ displayName: formData.name }); } catch(_) {}
+                try { 
+                    await window.supabase.auth.updateUser({ data: { name: formData.name } });
+                } catch(_) {}
                 try { localStorage.setItem('userDisplayName', formData.name); } catch(_) {}
             }
-            await window.db.collection('users').doc(user.uid).set({
+            
+            // Check if user exists in table before updating
+            const { data: existingUser } = await window.supabase
+                .from('users')
+                .select('id')
+                .eq('id', user.id)
+                .single();
+                
+            const payload = {
                 name: formData.name,
                 email: formData.email,
                 phone: formData.phone,
@@ -163,8 +188,15 @@ class ProfileManager {
                 street: formData.street,
                 neighborhood: formData.neighborhood,
                 number: formData.number,
-                updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
+                updated_at: new Date().toISOString()
+            };
+            
+            if (existingUser) {
+                await window.supabase.from('users').update(payload).eq('id', user.id);
+            } else {
+                await window.supabase.from('users').insert({ id: user.id, ...payload });
+            }
+            
             this.showNotification('Perfil atualizado com sucesso!', 'success');
         } catch (error) {
             this.showNotification('Erro ao salvar perfil. Tente novamente.', 'error');
@@ -250,7 +282,7 @@ class ProfileManager {
             await this.simulateApiCall();
 
             // Em produção, aqui seria feita a chamada real para alterar a senha
-            console.log('Alterando senha...');
+            
 
             // Fecha o modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));

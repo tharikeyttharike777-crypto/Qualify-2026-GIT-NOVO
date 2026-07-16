@@ -24,7 +24,7 @@ class ConnectionMonitor {
             console.log('🌐 Conexão restaurada');
             this.isOnline = true;
             this.reconnectAttempts = 0;
-            this.testFirebaseConnection();
+            this.testSupabaseConnection();
         });
 
         window.addEventListener('offline', () => {
@@ -88,19 +88,20 @@ class ConnectionMonitor {
         }
     }
 
-    async testFirebaseConnection() {
-        if (!window.firebase || !window.firebase.auth) {
-            console.warn('Firebase não está disponível para teste de conexão');
+    async testSupabaseConnection() {
+        if (!window.supabase) {
+            console.warn('Supabase não está disponível para teste de conexão');
             return false;
         }
 
         try {
-            // Tentar uma operação simples do Firebase
-            const user = window.firebase.auth().currentUser;
-            console.log('🔥 Conexão Firebase OK');
+            // Tentar uma operação simples do Supabase
+            const { data, error } = await window.supabase.auth.getSession();
+            if (error) throw error;
+            console.log('⚡ Conexão Supabase OK');
             return true;
         } catch (error) {
-            console.error('❌ Erro na conexão Firebase:', error);
+            console.error('❌ Erro na conexão Supabase:', error);
             return false;
         }
     }
@@ -115,7 +116,7 @@ class ConnectionMonitor {
         const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 10000);
         await new Promise(resolve => setTimeout(resolve, delay));
         
-        const isConnected = await this.testFirebaseConnection();
+        const isConnected = await this.testSupabaseConnection();
         
         if (isConnected) {
             console.log('✅ Reconexão bem-sucedida');

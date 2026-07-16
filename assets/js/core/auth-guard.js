@@ -42,10 +42,10 @@ window.fazerLogout = window.logoutUser;
 // ESCUTADOR DE ESTADO DE AUTENTICAÇÃO (Supabase)
 window.supabase.auth.onAuthStateChange((event, session) => {
   const user = session?.user;
-  console.log('*** onAuthStateChange DISPARADO. Event:', event, 'User UID:', user ? user.id : 'NULL ***');
+  
 
   if (user) {
-    console.log("Auth Guard EXECUTANDO PARA USUÁRIO SUPABASE:", user.id, user.email);
+    
 
     // SALVA DADOS DO USUÁRIO
     localStorage.setItem('currentUserUID', user.id);
@@ -103,17 +103,20 @@ async function setupCompanyListener(uid) {
   try {
     // No Supabase relacional, as empresas estão na tabela 'empresas'
     // Se a tabela ainda não existir, o maybeSingle ou select vai falhar graciosamente
-    const { data: companies, error } = await window.supabase
+    const { data: allCompanies, error } = await window.supabase
       .from('empresas')
-      .select('*')
-      .or(`owner_id.eq.${uid},members.cs.{${uid}}`); // members é JSONB ou Array? Ajustar conforme schema
+      .select('*');
 
     if (error) {
-      console.warn('Erro ao buscar empresas (pode ser que a tabela empresas não exista ainda):', error);
-      // Fallback para empresas estáticas ou vazias enquanto o schema corporativo é consolidado
+      console.warn('Erro ao buscar empresas:', error);
       renderCompanies([]);
       return;
     }
+
+    // Filter locally to avoid PostgREST array contains syntax issues
+    const companies = (allCompanies || []).filter(c => 
+      c.owner_id === uid || (Array.isArray(c.members) && c.members.includes(uid))
+    );
 
     renderCompanies(companies || []);
   } catch (error) {

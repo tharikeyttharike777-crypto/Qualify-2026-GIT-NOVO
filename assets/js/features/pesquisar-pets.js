@@ -502,7 +502,7 @@ function exportData() {
         'Data de Nascimento': pet.birthDate
     }));
 
-    console.log('Dados para exportação:', dataToExport);
+    
     showToast(`Exportando ${dataToExport.length} pets para planilha...`, 'success');
 }
 

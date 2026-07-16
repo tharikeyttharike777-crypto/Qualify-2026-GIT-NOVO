@@ -80,7 +80,7 @@ class MultitenantConfig {
                 (Array.isArray(c.members) && c.members.includes(uid))
             );
 
-            console.log(`🏢 ${this.userCompanies.length} empresas carregadas`);
+            
             this.syncCompaniesToLocalStorage();
 
             window.dispatchEvent(new CustomEvent('companiesUpdated', {

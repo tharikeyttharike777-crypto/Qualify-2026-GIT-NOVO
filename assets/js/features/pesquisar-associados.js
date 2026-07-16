@@ -42,68 +42,51 @@ async function loadData() {
         }
         const companyId = activeCompany.id;
 
-        // Carrega famílias da empresa (preferir Firestore; fallback localStorage)
-        let familias = (JSON.parse(localStorage.getItem('familias') || '[]') || []).filter(f => String(f.companyId) === String(companyId));
+        // Carrega famílias da empresa via Supabase
+        let familias = [];
         try {
-            if ((!Array.isArray(familias) || familias.length === 0) && typeof window !== 'undefined') {
-                // Tenta via userDataManager
-                if (window.userDataManager && typeof window.userDataManager.getUserData === 'function') {
-                    const fsFamilias = await window.userDataManager.getUserData('familias', { orderBy: { field: 'titular.nome', direction: 'asc' } });
-                    if (Array.isArray(fsFamilias) && fsFamilias.length) familias = fsFamilias.filter(f => String(f.companyId) === String(companyId));
-                }
-                // Fallback via multitenantManager
-                if ((!Array.isArray(familias) || familias.length === 0) && window.multitenantManager && typeof window.multitenantManager.getCompanyCollection === 'function') {
-                    const coll = window.multitenantManager.getCompanyCollection('familias');
-                    const snap = await coll.get();
-                    const arr = [];
-                    if (snap && typeof snap.forEach === 'function') {
-                        snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() }));
-                    }
-                    if (arr.length) familias = arr;
-                }
-                // Fallback direto via window.db
-                if ((!Array.isArray(familias) || familias.length === 0) && window.db) {
-                    const fsSnap = await window.db.collection(`empresas/${companyId}/familias`).get();
-                    const arr = fsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    if (arr.length) familias = arr;
+            if (window.supabase) {
+                const { data, error } = await window.supabase
+                    .from('familias')
+                    .select('*')
+                    .eq('company_id', companyId);
+                
+                if (!error && data) {
+                    familias = data.map(f => ({
+                        id: f.id,
+                        companyId: f.company_id,
+                        titular: f.titular || {},
+                        dependentes: f.dependentes || [],
+                        endereco: f.endereco || {}
+                    }));
                 }
             }
         } catch (e) {
-            console.warn('Falha ao carregar famílias do Firestore, usando dados locais se houver:', e);
+            console.warn('Falha ao carregar famílias do Supabase, usando dados locais se houver:', e);
+        }
+
+        if (familias.length === 0) {
+            familias = (JSON.parse(localStorage.getItem('familias') || '[]') || []).filter(f => String(f.companyId) === String(companyId));
         }
 
         // Mapa de famílias por ID para acesso rápido
         const familiaById = new Map(familias.map(f => [String(f.id), f]));
         const familyIds = new Set(familias.map(f => String(f.id)));
 
-        // Carrega associados (preferir Firestore; mesclar com localStorage e com famílias)
+        // Carrega associados via Supabase
         let associadosFiltrados = [];
         try {
-            // Tenta via userDataManager
-            if (window.userDataManager && typeof window.userDataManager.getUserData === 'function') {
-                const fsAssociados = await window.userDataManager.getUserData('associados', { orderBy: { field: 'nome', direction: 'asc' } });
-                if (Array.isArray(fsAssociados) && fsAssociados.length) {
-                    associadosFiltrados = fsAssociados.filter(a => String(a.companyId) === String(companyId) || (a.familiaId && familyIds.has(String(a.familiaId))));
+            if (window.supabase) {
+                const { data, error } = await window.supabase
+                    .from('associados')
+                    .select('*');
+                
+                if (!error && data) {
+                    associadosFiltrados = data.filter(a => String(a.company_id) === String(companyId) || (a.familia_id && familyIds.has(String(a.familia_id))));
                 }
-            }
-            // Fallback via multitenantManager
-            if ((!Array.isArray(associadosFiltrados) || associadosFiltrados.length === 0) && window.multitenantManager && typeof window.multitenantManager.getCompanyCollection === 'function') {
-                const coll = window.multitenantManager.getCompanyCollection('associados');
-                const snap = await coll.get();
-                const arr = [];
-                if (snap && typeof snap.forEach === 'function') {
-                    snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() }));
-                }
-                if (arr.length) associadosFiltrados = arr.filter(a => String(a.companyId) === String(companyId) || (a.familiaId && familyIds.has(String(a.familiaId))));
-            }
-            // Fallback direto via window.db
-            if ((!Array.isArray(associadosFiltrados) || associadosFiltrados.length === 0) && window.db) {
-                const fsSnap = await window.db.collection(`empresas/${companyId}/associados`).get();
-                const arr = fsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                if (arr.length) associadosFiltrados = arr.filter(a => String(a.companyId) === String(companyId) || (a.familiaId && familyIds.has(String(a.familiaId))));
             }
         } catch (e) {
-            console.warn('Falha ao carregar associados do Firestore, usando dados locais para complementar:', e);
+            console.warn('Falha ao carregar associados do Supabase, usando dados locais para complementar:', e);
         }
 
         // Complementa com localStorage
@@ -630,5 +613,5 @@ function showToast(message, type = 'info') {
 
 // Console welcome message
 console.log('🔍 Pesquisar Associados - Sistema carregado com sucesso!');
-console.log('📊 Total de associados:', associadosData.length);
+
 console.log('🛠️ Use associadosDebug para funções de debug');

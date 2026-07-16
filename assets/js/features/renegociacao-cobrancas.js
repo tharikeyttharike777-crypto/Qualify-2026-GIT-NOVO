@@ -373,7 +373,7 @@ function confirmRenegotiation() {
     closeRenegotiationModal();
     
     // In a real application, you would send this data to the server
-    console.log('Renegotiation data:', renegotiationData);
+    
 }
 
 // Contract actions

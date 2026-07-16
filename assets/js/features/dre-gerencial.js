@@ -366,7 +366,7 @@ function exportDREData() {
     const data = dreData[year];
     
     console.log('Exportando dados do DRE para o ano:', year);
-    console.log('Dados:', data);
+    
     
     // Implementar exportação para Excel/PDF
     const reportData = document.querySelector('.dre-content');

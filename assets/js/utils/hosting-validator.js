@@ -21,7 +21,7 @@ class HostingValidator {
         this.addTest('Font Awesome', this.testFontAwesome.bind(this));
         this.addTest('CSS Principal', this.testMainCSS.bind(this));
         this.addTest('JavaScript Principal', this.testMainJS.bind(this));
-        this.addTest('Firebase', this.testFirebase.bind(this));
+        this.addTest('Supabase', this.testSupabase.bind(this));
         this.addTest('ViaCEP API', this.testViaCEP.bind(this));
         this.addTest('Chart.js', this.testChartJS.bind(this));
         this.addTest('Bootstrap', this.testBootstrap.bind(this));
@@ -176,20 +176,20 @@ class HostingValidator {
         }
     }
 
-    async testFirebase() {
-        if (typeof firebase === 'undefined' && typeof window.firebase === 'undefined') {
-            return { status: 'warning', message: 'Firebase não carregado (pode ser normal)' };
+    async testSupabase() {
+        if (typeof window.supabase === 'undefined') {
+            return { status: 'warning', message: 'Supabase não carregado (pode ser normal)' };
         }
 
         try {
-            // Testa se o Firebase está configurado
-            if (window.firebase && window.firebase.apps && window.firebase.apps.length > 0) {
-                return { status: 'passed', message: 'Firebase configurado e funcionando' };
+            // Testa se o Supabase está configurado e com URL válida
+            if (window.supabase && window.supabase.supabaseUrl) {
+                return { status: 'passed', message: 'Supabase configurado e funcionando' };
             } else {
-                return { status: 'warning', message: 'Firebase carregado mas não configurado' };
+                return { status: 'warning', message: 'Supabase carregado mas sem URL de configuração' };
             }
         } catch (error) {
-            return { status: 'failed', message: `Erro no Firebase: ${error.message}` };
+            return { status: 'failed', message: `Erro no Supabase: ${error.message}` };
         }
     }
 

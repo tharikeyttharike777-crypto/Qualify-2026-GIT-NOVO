@@ -107,7 +107,7 @@ function calcularCarencia(dataCadastro, diasCarencia, carenciaStatus) {
 // 2. CÉREBRO DA INTERFACE
 // =================================================================
 function atualizarInterfaceGlobal(contrato, familia) {
-    console.log("🎨 Desenhando dados na tela...", { contrato });
+    
 
     // 1. NOME NO TÍTULO
     let nomeTitular = "Cliente";
@@ -501,7 +501,7 @@ async function attachContractWatcher(numeroUrl) {
         if (error) throw error;
 
         if (data) {
-            console.log("🎉 Contrato encontrado!", data);
+            
 
             // Adaptar objeto retornado para a estrutura esperada pela interface legada
             const contratoOriginal = {
@@ -541,7 +541,7 @@ function setupSupabaseRealtime(contractId) {
             table: 'contratos',
             filter: `id=eq.${contractId}`
         }, payload => {
-            console.log('🔄 Contrato atualizado em tempo real!', payload.new);
+            
             atualizarInterfaceGlobal(payload.new, window.currentFamily);
         })
         .subscribe();
@@ -568,7 +568,7 @@ if (!contratoDoc) {
 
 // SUCESSO: CARREGA OS DADOS
 const dadosContrato = contratoDoc.data();
-console.log("✅ Dados Carregados:", dadosContrato);
+
 
 // EXPÕE DADOS GLOBALMENTE (Para PDF e Cobranças)
 window.currentContract = { id: contratoDoc.id, ...dadosContrato };
@@ -608,32 +608,37 @@ setTimeout(() => {
         // =================================================================
         // 7. ABA EVENTOS — LOG DE AUDITORIA
         // =================================================================
-        function getContractDocPath() {
-            const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId');
+        function getContractIds() {
+            const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
             const contract = window.currentContract;
             if (!companyId || !contract) return null;
-            const docId = contract.numero || contract.id;
-            return { db: firebase.firestore(), path: `empresas/${companyId}/contratos/${docId}`, docId, companyId };
+            const docId = contract.id || contract.numero;
+            return { companyId, contractId: docId };
         }
 
         async function carregarEventos() {
-            const info = getContractDocPath();
-            if (!info) return;
+            const info = getContractIds();
+            if (!info || !window.supabase) return;
             const tbody = document.getElementById('tbodyEventos');
             if (!tbody) return;
 
             try {
-                const snap = await info.db.collection(info.path + '/eventos').orderBy('dataHora', 'desc').get();
+                const { data: eventos, error } = await window.supabase
+                    .from('eventos')
+                    .select('*')
+                    .eq('contrato_id', info.contractId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
                 tbody.innerHTML = '';
 
-                if (snap.empty) {
+                if (!eventos || eventos.length === 0) {
                     tbody.innerHTML = `<tr class="empty-state-row"><td colspan="5" style="text-align:center;padding:40px 20px;color:#94a3b8;"><i class="fas fa-stream" style="font-size:28px;margin-bottom:8px;display:block;color:#cbd5e1;"></i>Nenhum evento registrado para este contrato.</td></tr>`;
                     return;
                 }
 
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    const dataStr = d.dataHora ? (d.dataHora.toDate ? d.dataHora.toDate().toLocaleString('pt-BR') : new Date(d.dataHora).toLocaleString('pt-BR')) : '—';
+                eventos.forEach(d => {
+                    const dataStr = d.created_at ? new Date(d.created_at).toLocaleString('pt-BR') : '—';
                     const tipoBadge = {
                         'pagamento': 'badge-success',
                         'cobranca': 'badge-warning',
@@ -652,7 +657,7 @@ setTimeout(() => {
             `;
                     tbody.appendChild(tr);
                 });
-                console.log(`✅ Eventos carregados: ${snap.size}`);
+                console.log(`✅ Eventos carregados: ${eventos.length}`);
             } catch (err) {
                 console.error('❌ Erro ao carregar eventos:', err);
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#ef4444;"><i class="fas fa-exclamation-circle"></i> Erro ao carregar eventos.</td></tr>`;
@@ -667,19 +672,31 @@ setTimeout(() => {
          */
         async function registrarEvento(contratoId, dadosEvento) {
             try {
-                const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId');
+                const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
                 if (!companyId) throw new Error('Empresa não identificada');
-                const db = firebase.firestore();
-                const path = `empresas/${companyId}/contratos/${contratoId}/eventos`;
-                await db.collection(path).add({
-                    tipo: dadosEvento.tipo || 'sistema',
-                    descricao: dadosEvento.descricao || '',
-                    valor: dadosEvento.valor || null,
-                    metodo: dadosEvento.metodo || null,
-                    dataHora: firebase.firestore.FieldValue.serverTimestamp(),
-                    criadoPor: firebase.auth().currentUser?.email || 'sistema'
-                });
-                console.log(`📝 Evento registrado em ${path}: ${dadosEvento.tipo}`);
+                if (!window.supabase) throw new Error('Supabase indisponível');
+                
+                // Pega user auth atual, ou 'sistema'
+                let userEmail = 'sistema';
+                try {
+                    const { data: { user } } = await window.supabase.auth.getUser();
+                    if (user) userEmail = user.email;
+                } catch(e) {}
+                
+                const { error } = await window.supabase
+                    .from('eventos')
+                    .insert({
+                        contrato_id: contratoId,
+                        company_id: companyId,
+                        tipo: dadosEvento.tipo || 'sistema',
+                        descricao: dadosEvento.descricao || '',
+                        valor: dadosEvento.valor || null,
+                        metodo: dadosEvento.metodo || null,
+                        criado_por: userEmail
+                    });
+                    
+                if (error) throw error;
+                console.log(`📝 Evento registrado: ${dadosEvento.tipo}`);
                 return true;
             } catch (err) {
                 console.error('❌ Erro ao registrar evento:', err);
@@ -694,43 +711,52 @@ setTimeout(() => {
         let _lembretesUnsubscribe = null;
 
         function carregarLembretes() {
-            const info = getContractDocPath();
-            if (!info) return;
+            const info = getContractIds();
+            if (!info || !window.supabase) return;
             const tbody = document.getElementById('tbodyLembretes');
             if (!tbody) return;
 
             // Cancelar listener anterior
-            if (_lembretesUnsubscribe) { _lembretesUnsubscribe(); _lembretesUnsubscribe = null; }
+            if (_lembretesUnsubscribe) { window.supabase.removeChannel(_lembretesUnsubscribe); _lembretesUnsubscribe = null; }
 
-            _lembretesUnsubscribe = info.db.collection(info.path + '/lembretes')
-                .orderBy('criadoEm', 'desc')
-                .onSnapshot(snap => {
-                    tbody.innerHTML = '';
-                    if (snap.empty) {
-                        tbody.innerHTML = `<tr class="empty-state-row"><td colspan="4" style="text-align:center;padding:40px 20px;color:#94a3b8;"><i class="fas fa-sticky-note" style="font-size:28px;margin-bottom:8px;display:block;color:#cbd5e1;"></i>Nenhum lembrete criado. Use o formulário acima para adicionar.</td></tr>`;
-                        return;
-                    }
-                    snap.forEach(doc => {
-                        const d = doc.data();
-                        const dataStr = d.criadoEm ? (d.criadoEm.toDate ? d.criadoEm.toDate().toLocaleString('pt-BR') : new Date(d.criadoEm).toLocaleString('pt-BR')) : '—';
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                    <td style="padding:10px;font-weight:600;">${d.titulo || '—'}</td>
-                    <td style="padding:10px;color:#64748b;">${d.descricao || '—'}</td>
-                    <td class="text-center" style="padding:10px;font-size:13px;">${dataStr}</td>
-                    <td class="text-center" style="padding:10px;">
-                        <button onclick="excluirLembrete('${doc.id}')" class="btn btn-sm" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;" title="Excluir">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                        tbody.appendChild(tr);
-                    });
-                    console.log(`✅ Lembretes atualizados: ${snap.size}`);
-                }, err => {
-                    console.error('❌ Erro no listener de lembretes:', err);
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#ef4444;"><i class="fas fa-exclamation-circle"></i> Erro ao carregar lembretes.</td></tr>`;
+            const renderLembretes = async () => {
+                const { data: lembretes, error } = await window.supabase
+                    .from('lembretes')
+                    .select('*')
+                    .eq('contrato_id', info.contractId)
+                    .order('created_at', { ascending: false });
+
+                tbody.innerHTML = '';
+                if (error || !lembretes || lembretes.length === 0) {
+                    tbody.innerHTML = `<tr class="empty-state-row"><td colspan="4" style="text-align:center;padding:40px 20px;color:#94a3b8;"><i class="fas fa-sticky-note" style="font-size:28px;margin-bottom:8px;display:block;color:#cbd5e1;"></i>Nenhum lembrete criado. Use o formulário acima para adicionar.</td></tr>`;
+                    return;
+                }
+                
+                lembretes.forEach(d => {
+                    const dataStr = d.created_at ? new Date(d.created_at).toLocaleString('pt-BR') : '—';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td style="padding:10px;font-weight:600;">${d.titulo || '—'}</td>
+                <td style="padding:10px;color:#64748b;">${d.descricao || '—'}</td>
+                <td class="text-center" style="padding:10px;font-size:13px;">${dataStr}</td>
+                <td class="text-center" style="padding:10px;">
+                    <button onclick="excluirLembrete('${d.id}')" class="btn btn-sm" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+                    tbody.appendChild(tr);
                 });
+                console.log(`✅ Lembretes atualizados: ${lembretes.length}`);
+            };
+
+            renderLembretes();
+            
+            _lembretesUnsubscribe = window.supabase.channel(`lembretes-${info.contractId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'lembretes', filter: `contrato_id=eq.${info.contractId}` }, payload => {
+                    renderLembretes();
+                })
+                .subscribe();
         }
 
         async function adicionarLembrete() {
@@ -738,16 +764,27 @@ setTimeout(() => {
             const descricao = (document.getElementById('remDesc')?.value || '').trim();
             if (!titulo) { showToastEC('Informe ao menos um título.', 'warning'); return; }
 
-            const info = getContractDocPath();
-            if (!info) { showToastEC('Contrato não identificado.', 'error'); return; }
+            const info = getContractIds();
+            if (!info || !window.supabase) { showToastEC('Contrato não identificado.', 'error'); return; }
 
             try {
-                await info.db.collection(info.path + '/lembretes').add({
-                    titulo,
-                    descricao,
-                    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-                    criadoPor: firebase.auth().currentUser?.email || 'sistema'
-                });
+                let userEmail = 'sistema';
+                try {
+                    const { data: { user } } = await window.supabase.auth.getUser();
+                    if (user) userEmail = user.email;
+                } catch(e) {}
+
+                const { error } = await window.supabase
+                    .from('lembretes')
+                    .insert({
+                        contrato_id: info.contractId,
+                        company_id: info.companyId,
+                        titulo,
+                        descricao,
+                        criado_por: userEmail
+                    });
+                if (error) throw error;
+                
                 document.getElementById('remTitle').value = '';
                 document.getElementById('remDesc').value = '';
                 showToastEC('Lembrete adicionado com sucesso!', 'success');
@@ -760,11 +797,15 @@ setTimeout(() => {
 
         async function excluirLembrete(lembreteId) {
             if (!confirm('Deseja excluir este lembrete?')) return;
-            const info = getContractDocPath();
-            if (!info) return;
+            const info = getContractIds();
+            if (!info || !window.supabase) return;
 
             try {
-                await info.db.collection(info.path + '/lembretes').doc(lembreteId).delete();
+                const { error } = await window.supabase
+                    .from('lembretes')
+                    .delete()
+                    .eq('id', lembreteId);
+                if (error) throw error;
                 showToastEC('Lembrete excluído.', 'success');
             } catch (err) {
                 console.error('❌ Erro ao excluir lembrete:', err);
@@ -779,46 +820,55 @@ setTimeout(() => {
         let _arquivosUnsubscribe = null;
 
         function carregarArquivos() {
-            const info = getContractDocPath();
-            if (!info) return;
+            const info = getContractIds();
+            if (!info || !window.supabase) return;
             const tbody = document.getElementById('tbodyArquivos');
             if (!tbody) return;
 
             // Cancelar listener anterior
-            if (_arquivosUnsubscribe) { _arquivosUnsubscribe(); _arquivosUnsubscribe = null; }
+            if (_arquivosUnsubscribe) { window.supabase.removeChannel(_arquivosUnsubscribe); _arquivosUnsubscribe = null; }
 
-            _arquivosUnsubscribe = info.db.collection(info.path + '/arquivos')
-                .orderBy('geradoEm', 'desc')
-                .onSnapshot(snap => {
-                    tbody.innerHTML = '';
-                    if (snap.empty) {
-                        tbody.innerHTML = `<tr class="empty-state-row"><td colspan="4" style="text-align:center;padding:40px 20px;color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:28px;margin-bottom:8px;display:block;color:#cbd5e1;"></i>Nenhum arquivo vinculado a este contrato.</td></tr>`;
-                        return;
-                    }
-                    snap.forEach(doc => {
-                        const d = doc.data();
-                        const dataStr = d.geradoEm ? (d.geradoEm.toDate ? d.geradoEm.toDate().toLocaleString('pt-BR') : new Date(d.geradoEm).toLocaleString('pt-BR')) : '—';
-                        const ext = (d.tipo || d.nome || '').split('.').pop().toUpperCase();
-                        const iconMap = { PDF: 'fa-file-pdf', PNG: 'fa-file-image', JPG: 'fa-file-image', JPEG: 'fa-file-image', DOC: 'fa-file-word', DOCX: 'fa-file-word', XLS: 'fa-file-excel', XLSX: 'fa-file-excel' };
-                        const icon = iconMap[ext] || 'fa-file';
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                    <td style="padding:10px;"><i class="fas ${icon}" style="color:#6366f1;margin-right:6px;"></i> ${d.nome || 'arquivo'}</td>
-                    <td class="text-center" style="padding:10px;">${d.tipo || ext || '—'}</td>
-                    <td class="text-center" style="padding:10px;font-size:13px;">${dataStr}</td>
-                    <td class="text-center" style="padding:10px;">
-                        ${d.url ? `<a href="${d.url}" target="_blank" class="btn btn-sm" style="background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;border-radius:8px;padding:6px 14px;text-decoration:none;font-size:12px;font-weight:600;">
-                            <i class="fas fa-download"></i> Baixar
-                        </a>` : '<span style="color:#94a3b8;">—</span>'}
-                    </td>
-                `;
-                        tbody.appendChild(tr);
-                    });
-                    console.log(`✅ Arquivos atualizados em tempo real: ${snap.size}`);
-                }, err => {
-                    console.error('❌ Erro no listener de arquivos:', err);
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#ef4444;"><i class="fas fa-exclamation-circle"></i> Erro ao carregar arquivos.</td></tr>`;
+            const renderArquivos = async () => {
+                const { data: arquivos, error } = await window.supabase
+                    .from('arquivos')
+                    .select('*')
+                    .eq('contrato_id', info.contractId)
+                    .order('created_at', { ascending: false });
+
+                tbody.innerHTML = '';
+                if (error || !arquivos || arquivos.length === 0) {
+                    tbody.innerHTML = `<tr class="empty-state-row"><td colspan="4" style="text-align:center;padding:40px 20px;color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:28px;margin-bottom:8px;display:block;color:#cbd5e1;"></i>Nenhum arquivo vinculado a este contrato.</td></tr>`;
+                    return;
+                }
+                
+                arquivos.forEach(d => {
+                    const dataStr = d.created_at ? new Date(d.created_at).toLocaleString('pt-BR') : '—';
+                    const ext = (d.tipo || d.nome || '').split('.').pop().toUpperCase();
+                    const iconMap = { PDF: 'fa-file-pdf', PNG: 'fa-file-image', JPG: 'fa-file-image', JPEG: 'fa-file-image', DOC: 'fa-file-word', DOCX: 'fa-file-word', XLS: 'fa-file-excel', XLSX: 'fa-file-excel' };
+                    const icon = iconMap[ext] || 'fa-file';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td style="padding:10px;"><i class="fas ${icon}" style="color:#6366f1;margin-right:6px;"></i> ${d.nome || 'arquivo'}</td>
+                <td class="text-center" style="padding:10px;">${d.tipo || ext || '—'}</td>
+                <td class="text-center" style="padding:10px;font-size:13px;">${dataStr}</td>
+                <td class="text-center" style="padding:10px;">
+                    ${d.url ? `<a href="${d.url}" target="_blank" class="btn btn-sm" style="background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;border-radius:8px;padding:6px 14px;text-decoration:none;font-size:12px;font-weight:600;">
+                        <i class="fas fa-download"></i> Baixar
+                    </a>` : '<span style="color:#94a3b8;">—</span>'}
+                </td>
+            `;
+                    tbody.appendChild(tr);
                 });
+                console.log(`✅ Arquivos atualizados em tempo real: ${arquivos.length}`);
+            };
+
+            renderArquivos();
+
+            _arquivosUnsubscribe = window.supabase.channel(`arquivos-${info.contractId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'arquivos', filter: `contrato_id=eq.${info.contractId}` }, payload => {
+                    renderArquivos();
+                })
+                .subscribe();
         }
 
         // =================================================================
@@ -923,7 +973,6 @@ setTimeout(() => {
             try {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                const db = firebase.firestore();
                 const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
                 const empresaNome = localStorage.getItem('empresaSelecionadaNome') || 'QUALIFY';
                 const numeroContrato = contrato.numero || contrato.id || '---';

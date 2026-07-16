@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Dados do usuário inválidos');
             }
 
-            console.log('Dados do usuário carregados com sucesso:', userData);
+            
 
             // Preencher dados na página com verificação de existência
             const userCpf = document.getElementById('userCpf');

@@ -86,35 +86,37 @@ class NetworkRetryManager {
                networkErrorMessages.some(msg => error.message?.includes(msg));
     }
 
-    // Método específico para retry de autenticação Firebase
-    async retryFirebaseAuth(email, password, maxRetries = 3) {
-        const operationId = `firebase-auth-${email}`;
+    // Método específico para retry de autenticação Supabase
+    async retrySupabaseAuth(email, password, maxRetries = 3) {
+        const operationId = `supabase-auth-${email}`;
         
         return this.retryOperation(operationId, async () => {
-            if (!window.auth) {
-                throw new Error('Firebase Auth não está disponível');
+            if (!window.supabase) {
+                throw new Error('Supabase Auth não está disponível');
             }
             
             console.log(`🔄 Tentando autenticação para: ${email}`);
-            const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
+            const { data, error } = await window.supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
             console.log(`✅ Autenticação bem-sucedida para: ${email}`);
-            return userCredential;
+            return data;
         }, maxRetries);
     }
 
-    // Método específico para retry de registro Firebase
-    async retryFirebaseRegister(email, password, maxRetries = 3) {
-        const operationId = `firebase-register-${email}`;
+    // Método específico para retry de registro Supabase
+    async retrySupabaseRegister(email, password, maxRetries = 3) {
+        const operationId = `supabase-register-${email}`;
 
         return this.retryOperation(operationId, async () => {
-            if (!window.auth) {
-                throw new Error('Firebase Auth não está disponível');
+            if (!window.supabase) {
+                throw new Error('Supabase Auth não está disponível');
             }
 
             console.log(`🔄 Tentando registro para: ${email}`);
-            const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
+            const { data, error } = await window.supabase.auth.signUp({ email, password });
+            if (error) throw error;
             console.log(`✅ Registro bem-sucedido para: ${email}`);
-            return userCredential;
+            return data;
         }, maxRetries);
     }
 
@@ -132,26 +134,5 @@ class NetworkRetryManager {
 // Instância global
 window.networkRetryManager = new NetworkRetryManager();
 
-// Interceptar erros de Firestore para aplicar retry automático
-if (window.firebase && window.firebase.firestore) {
-    const originalCollection = window.firebase.firestore().collection;
-    
-    window.firebase.firestore().collection = function(path) {
-        const collection = originalCollection.call(this, path);
-        const originalOnSnapshot = collection.onSnapshot;
-        
-        collection.onSnapshot = function(observer, errorCallback) {
-            const wrappedErrorCallback = (error) => {
-                if (window.networkRetryManager.isNetworkError(error)) {
-                    console.warn('Erro de rede detectado no onSnapshot, aplicando retry...', error);
-                    // Implementar lógica de retry específica para onSnapshot se necessário
-                }
-                if (errorCallback) errorCallback(error);
-            };
-            
-            return originalOnSnapshot.call(this, observer, wrappedErrorCallback);
-        };
-        
-        return collection;
-    };
-}
+// Interceptar erros de Supabase (Opcional, futuro)
+// ...

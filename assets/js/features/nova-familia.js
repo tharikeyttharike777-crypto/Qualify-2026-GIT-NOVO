@@ -923,79 +923,25 @@ function normalizePlanName(plan) {
     return plan?.nome || plan?.name || plan?.titulo || plan?.descricao || plan?.label || '';
 }
 
-async function loadPlansFromFirestore(companyId) {
+async function loadPlansFromSupabase(companyId) {
     const results = [];
     try {
-        if (typeof window !== 'undefined' && window.db) {
-            const db = window.db;
-            // Preferência: usar multitenantConfig para garantir o namespace correto
-            const mt = window.multitenantConfig;
-            if (mt && typeof mt.getCompanyCollection === 'function' && mt.getActiveCompany()) {
-                try {
-                    const ref = mt.getCompanyCollection('planos');
-                    const snap = await ref.get();
-                    snap.forEach(doc => {
-                        const data = doc.data ? doc.data() : {};
-                        results.push({ id: doc.id, ...data });
-                    });
-                    if (results.length) {
-                        console.log(`[Planos] Carregados ${results.length} via multitenant (empresas/{id}/planos)`);
-                    }
-                } catch (err) {
-                    console.warn('[Planos] Erro ao carregar via multitenant:', err);
-                }
-            }
+        if (!window.supabase) return results;
+        if (!companyId) return results;
 
-            // Fallback explícito para caminho empresas/{id}/planos
-            if (results.length === 0 && companyId) {
-                try {
-                    const snapEmpresas = await db.collection(`empresas/${companyId}/planos`).get();
-                    snapEmpresas.forEach(doc => {
-                        const data = doc.data ? doc.data() : {};
-                        results.push({ id: doc.id, ...data });
-                    });
-                    if (results.length) {
-                        console.log(`[Planos] Carregados ${results.length} de empresas/${companyId}/planos`);
-                    }
-                } catch (e1) {
-                    console.warn('[Planos] Fallback empresas falhou:', e1);
-                }
-            }
+        const { data, error } = await window.supabase
+            .from('planos')
+            .select('*')
+            .eq('company_id', companyId);
 
-            // Fallback legado companies/{id}/planos
-            if (results.length === 0 && companyId) {
-                try {
-                    const snapCompanies = await db.collection(`companies/${companyId}/planos`).get();
-                    snapCompanies.forEach(doc => {
-                        const data = doc.data ? doc.data() : {};
-                        results.push({ id: doc.id, ...data });
-                    });
-                    if (results.length) {
-                        console.log(`[Planos] Carregados ${results.length} de companies/${companyId}/planos`);
-                    }
-                } catch (e2) {
-                    console.warn('[Planos] Fallback companies falhou:', e2);
-                }
-            }
+        if (error) throw error;
 
-            // Último recurso: coleção global 'planos'
-            if (results.length === 0) {
-                try {
-                    const snapGlobal = await db.collection('planos').get();
-                    snapGlobal.forEach(doc => {
-                        const data = doc.data ? doc.data() : {};
-                        results.push({ id: doc.id, ...data });
-                    });
-                    if (results.length) {
-                        console.log(`[Planos] Carregados ${results.length} de coleção global 'planos'`);
-                    }
-                } catch (e3) {
-                    console.warn('[Planos] Fallback global falhou:', e3);
-                }
-            }
+        if (data && data.length > 0) {
+            
+            return data;
         }
     } catch (e) {
-        console.warn('Falha ao carregar planos do Firestore:', e);
+        console.warn('Falha ao carregar planos do Supabase:', e);
     }
     return results;
 }
@@ -1016,10 +962,10 @@ async function populatePlanoSelectFromSources(selectEl) {
     selectEl.innerHTML = '<option value="">Selecione...</option>';
     const companyId = getActiveCompanyIdForPlans();
     let planos = [];
-    const firestorePlans = await loadPlansFromFirestore(companyId);
-    if (firestorePlans && firestorePlans.length) {
-        planos = firestorePlans;
-        console.log(`Planos carregados de Firestore (${firestorePlans.length})`);
+    const supabasePlans = await loadPlansFromSupabase(companyId);
+    if (supabasePlans && supabasePlans.length) {
+        planos = supabasePlans;
+        console.log(`Planos carregados de Supabase (${supabasePlans.length})`);
     } else {
         const localPlans = loadPlansFromLocalStorage();
         if (localPlans && localPlans.length) {
@@ -1526,7 +1472,7 @@ async function confirmarSalvarContrato() {
 
     // Tentar salvar a família automaticamente para garantir que o contrato tenha um "pai"
     try {
-        console.log('Salvando família automaticamente ao criar contrato...');
+        
         await saveFamilyInternal();
         console.log('Família salva automaticamente.');
     } catch (e) {
@@ -2195,6 +2141,14 @@ function validateForm() {
     let isValid = true;
 
     requiredFields.forEach(field => {
+        // Ignora campos dentro de modais que estão ocultos
+        const parentModal = field.closest('.modal');
+        if (parentModal) {
+            const style = window.getComputedStyle(parentModal);
+            if (style.display === 'none' || style.visibility === 'hidden') {
+                return; // pula este campo
+            }
+        }
         if (!validateField(field)) {
             isValid = false;
         }

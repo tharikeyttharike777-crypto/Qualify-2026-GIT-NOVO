@@ -83,7 +83,7 @@
                 }
             }
 
-            console.log(`✅ IndexedDB limpo (${dbCount} databases removidos)`);
+            
             results.indexedDB = true;
         }
     } catch (e) {
@@ -133,18 +133,18 @@
     }
 
     // ========================================
-    // 7. LIMPAR FIREBASE AUTH (LOGOUT)
+    // 7. LIMPAR SUPABASE AUTH (LOGOUT)
     // ========================================
     try {
-        if (window.firebase && firebase.auth) {
-            const currentUser = firebase.auth().currentUser;
-            if (currentUser) {
-                await firebase.auth().signOut();
-                console.log('✅ Firebase Auth: Usuário deslogado');
+        if (window.supabase) {
+            const { data: { session } } = await window.supabase.auth.getSession();
+            if (session) {
+                await window.supabase.auth.signOut();
+                console.log('✅ Supabase Auth: Usuário deslogado');
             }
         }
     } catch (e) {
-        console.warn('⚠️ Firebase Auth não disponível ou já deslogado');
+        console.warn('⚠️ Supabase Auth não disponível ou já deslogado');
     }
 
     // ========================================

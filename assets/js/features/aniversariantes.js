@@ -178,54 +178,22 @@
 
   // ===== Carregamento e Unificação de Dados =====
   async function loadAssociados() {
-    // Tenta via userDataManager (Firestore)
-    let firestoreAssociados = [];
+    // Tenta via Supabase
+    let dbAssociados = [];
     try {
-      const udm = window.userDataManager;
-      if (udm && typeof udm.getUserData === "function") {
-        // Busca diretamente a coleção 'associados' da empresa ativa
-        const arr = await udm.getUserData("associados", { orderBy: { field: "nome", direction: "asc" } });
-        if (Array.isArray(arr)) firestoreAssociados = arr;
-      }
-    } catch (e) {
-      console.warn("Falha ao carregar do Firestore:", e);
-    }
-
-    // Fallback extra: caminho antigo via multitenantManager (companies/.../associados)
-    try {
-      const mm = window.multitenantManager;
-      if (mm && typeof mm.getCompanyCollection === "function") {
-        const coll = mm.getCompanyCollection("associados");
-        const snap = await coll.get();
-        const arr = [];
-        if (snap && typeof snap.forEach === "function") {
-          snap.forEach((doc) => arr.push({ id: doc.id, ...doc.data() }));
-        }
-        if (Array.isArray(arr) && arr.length) {
-          firestoreAssociados = [...arr, ...firestoreAssociados];
+      const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+      if (companyId && window.supabase) {
+        const { data, error } = await window.supabase
+            .from('associados')
+            .select('*')
+            .eq('company_id', companyId);
+            
+        if (!error && data) {
+            dbAssociados = data;
         }
       }
     } catch (e) {
-      console.warn("Fallback companies/associados falhou:", e);
-    }
-
-    // Fallback direto: acessar caminho antigo via Firestore sem o manager
-    try {
-      const acObjStr = localStorage.getItem("activeCompany");
-      const acObj = acObjStr ? JSON.parse(acObjStr) : null;
-      const activeCompanyId = acObj?.id || localStorage.getItem("activeCompanyId") || localStorage.getItem("empresaSelecionadaId");
-      if (activeCompanyId && window.firebase && firebase.firestore) {
-        const snap = await firebase.firestore().collection('companies').doc(activeCompanyId).collection('associados').get();
-        const arr = [];
-        if (snap && typeof snap.forEach === "function") {
-          snap.forEach((doc) => arr.push({ id: doc.id, ...doc.data() }));
-        }
-        if (Array.isArray(arr) && arr.length) {
-          firestoreAssociados = [...arr, ...firestoreAssociados];
-        }
-      }
-    } catch (e) {
-      console.warn("Fallback direto companies/{id}/associados falhou:", e);
+      console.warn("Falha ao carregar associados do Supabase:", e);
     }
 
     // Fallback localStorage
@@ -310,7 +278,7 @@
 
     localAssociados.forEach((x) => put(x, "ls"));
     derivadosDeFamilias.forEach((x) => put(x, "lsfam"));
-    firestoreAssociados.forEach((x) => put(x, "fs"));
+    dbAssociados.forEach((x) => put(x, "db"));
 
     return Array.from(map.values());
   }

@@ -72,30 +72,32 @@ async function loadContractsFromFirestore() {
             ? window.getActiveCompanyId()
             : (localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId'));
 
-        if (!companyId || typeof firebase === 'undefined' || !firebase.firestore) {
-            showMessage('Selecione uma empresa ou aguarde o carregamento.', 'info');
+        if (!companyId || !window.supabase) {
+            showMessage('Selecione uma empresa ou aguarde o carregamento do banco.', 'info');
             if (elements.noDataMessage) elements.noDataMessage.classList.remove('hidden');
             if (elements.contractsTableBody) elements.contractsTableBody.innerHTML = '';
             return;
         }
 
-        const db = firebase.firestore();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Buscar contratos que vencem nos próximos 90 dias ou já venceram
-        const contratosRef = db.collection('empresas').doc(companyId).collection('contratos');
-        const snapshot = await contratosRef.get();
+        // Buscar contratos
+        const { data: snapshot, error } = await window.supabase
+            .from('contratos')
+            .select('*')
+            .eq('company_id', companyId);
+
+        if (error) throw error;
 
         sampleContracts = [];
         let idCounter = 1;
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const lastDue = data.dataFimVigencia || data.ultimoVencimento || data.fim || null;
+        (snapshot || []).forEach(data => {
+            const lastDue = data.dataFimVigencia || data.ultimoVencimento || data.fim || data.data_desativacao || data.ultima_parcela || null;
             if (!lastDue) return;
 
-            const lastDueDate = lastDue.toDate ? lastDue.toDate() : new Date(lastDue);
+            const lastDueDate = new Date(lastDue);
             const diffTime = lastDueDate.getTime() - today.getTime();
             const daysUntilExpiry = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -113,16 +115,16 @@ async function loadContractsFromFirestore() {
 
                 sampleContracts.push({
                     id: idCounter++,
-                    firestoreId: doc.id,
-                    number: data.numero || data.contratoNumero || doc.id,
+                    databaseId: data.id,
+                    number: data.numero || data.contratoNumero || data.id,
                     plan: data.plano || data.modalidade || 'N/A',
-                    holder: data.titular || data.nomeTitular || 'Sem titular',
-                    contractDate: data.dataContrato || data.dataInicio || '',
-                    firstDue: data.primeiraParcela || data.primeiroVencimento || '',
-                    lastDue: lastDue.toDate ? lastDue.toDate().toISOString().split('T')[0] : lastDue,
+                    holder: data.titular || data.nomeTitular || data.nome_titular || 'Sem titular',
+                    contractDate: data.dataContrato || data.dataInicio || data.createdAt || data.data_contrato || '',
+                    firstDue: data.primeiraParcela || data.primeiroVencimento || data.primeira_parcela || '',
+                    lastDue: lastDue,
                     status: status,
                     daysUntilExpiry: daysUntilExpiry,
-                    renewalStatus: data.renovacaoStatus || 'pendente',
+                    renewalStatus: data.renovacaoStatus || data.renovacao_status || 'pendente',
                     priority: priority
                 });
             }
@@ -141,7 +143,7 @@ async function loadContractsFromFirestore() {
         updateDashboardStats();
         checkExpirationAlerts();
 
-        console.log(`✅ ${sampleContracts.length} contratos carregados para renovações pendentes`);
+        
 
     } catch (error) {
         console.error('❌ Erro ao carregar contratos:', error);
@@ -564,19 +566,22 @@ function renewContract(id) {
                     ? window.getActiveCompanyId()
                     : (localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId'));
 
-                if (companyId && contract.firestoreId && typeof firebase !== 'undefined' && firebase.firestore) {
-                    const db = firebase.firestore();
+                if (companyId && contract.databaseId && window.supabase) {
                     const newEndDate = new Date();
                     newEndDate.setFullYear(newEndDate.getFullYear() + 1);
 
-                    await db.collection('empresas').doc(companyId)
-                        .collection('contratos').doc(contract.firestoreId)
+                    const { error } = await window.supabase
+                        .from('contratos')
                         .update({
                             renovacaoStatus: 'renovado',
-                            dataFimVigencia: newEndDate,
-                            renovadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-                            statusAnterior: contract.status
-                        });
+                            data_desativacao: newEndDate.toISOString(), // Assuming data_desativacao acts as dataFimVigencia in Supabase
+                            renovado_em: new Date().toISOString(),
+                            status_anterior: contract.status
+                        })
+                        .eq('id', contract.databaseId)
+                        .eq('company_id', companyId);
+                        
+                    if (error) throw error;
 
                     contract.renewalStatus = 'renovado';
                     contract.status = 'normal';
@@ -584,9 +589,9 @@ function renewContract(id) {
                     renderContractsTable();
                     updateDashboardStats();
                     checkExpirationAlerts();
-                    showMessage(`✅ Contrato ${contract.number} renovado e salvo no Firestore!`, 'success');
+                    showMessage(`✅ Contrato ${contract.number} renovado e salvo no banco!`, 'success');
                 } else {
-                    throw new Error('Firebase ou empresa não disponíveis');
+                    throw new Error('Supabase ou empresa não disponíveis');
                 }
             } catch (error) {
                 console.error('❌ Erro ao renovar contrato:', error);

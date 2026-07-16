@@ -149,43 +149,36 @@ class NavigationFix {
     /**
      * Verifica autenticação durante navegação
      */
-    checkAuthOnNavigation() {
-        // Se Firebase não está pronto, NÃO redirecionar — evitar falso-logout
-        const firebaseReady = (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0 && firebase.auth);
-        if (!firebaseReady) {
+    async checkAuthOnNavigation() {
+        // Se Supabase não está pronto, NÃO redirecionar — evitar falso-logout
+        if (!window.supabase) {
             return;
         }
 
         // Verificação robusta: aguardar resolução do estado de autenticação
-        // em vez de confiar apenas no currentUser síncrono que pode ser null durante a inicialização
-        const auth = firebase.auth();
+        const { data: { session }, error } = await window.supabase.auth.getSession();
 
-        // Se já temos usuário síncrono, está tudo bem
-        if (auth.currentUser) {
+        // Se já temos usuário, está tudo bem
+        if (session && session.user) {
             return;
         }
 
-        // Se não temos usuário, verificamos assincronamente antes de redirecionar
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            unsubscribe(); // Limpar listener imediatamente
+        const inGrace = sessionStorage.getItem('authGraceActive') === '1';
 
-            const inGrace = sessionStorage.getItem('authGraceActive') === '1';
+        if (!session || !session.user) {
+            console.log('NavigationFix: Usuário não autenticado confirmado via getSession');
+            if (inGrace) return;
 
-            if (!user) {
-                console.log('NavigationFix: Usuário não autenticado confirmado via onAuthStateChanged');
-                if (inGrace) return;
-
-                if (!window.location.pathname.includes('login.html')) {
-                    if (this.canRedirect('/login.html')) {
-                        console.log('NavigationFix: Redirecionando para login');
-                        this.markRedirect();
-                        window.location.href = '/login.html';
-                    }
+            if (!window.location.pathname.includes('login.html')) {
+                if (this.canRedirect('/login.html')) {
+                    console.log('NavigationFix: Redirecionando para login');
+                    this.markRedirect();
+                    window.location.href = '/login.html';
                 }
-            } else {
-                console.log('NavigationFix: Usuário autenticado recuperado (falso-negativo evitado)');
             }
-        });
+        } else {
+            console.log('NavigationFix: Usuário autenticado recuperado (falso-negativo evitado)');
+        }
     }
 
     /**

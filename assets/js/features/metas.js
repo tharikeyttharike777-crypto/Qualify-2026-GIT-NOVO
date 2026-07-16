@@ -677,8 +677,8 @@ function showToast(message, type = 'info') {
 // Função para debug
 function debugMetas() {
     console.log('=== DEBUG METAS ===');
-    console.log('Data atual:', formatDateTime(currentDate));
-    console.log('Dados:', metasData);
+    
+    
     console.log('Loading:', isLoading);
     console.log('Auto-update ativo:', !!updateInterval);
     console.log('==================');
@@ -711,4 +711,3 @@ window.loadMetasData = loadMetasData;
 window.exportMetasData = exportMetasData;
 
 console.log('Metas JavaScript carregado com sucesso!');
-console.log('Comandos disponíveis: debugMetas(), loadMetasData(), exportMetasData()');

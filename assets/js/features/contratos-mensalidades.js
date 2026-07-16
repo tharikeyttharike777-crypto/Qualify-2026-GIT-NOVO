@@ -1049,7 +1049,7 @@ function initializeImport() {
 
     const importCallbacks = {
         onSuccess: (data) => {
-            console.log('Dados importados com sucesso:', data);
+            
             renderDuplicatesTable(); // Atualizar tabela após importação
         },
         onError: (error) => {

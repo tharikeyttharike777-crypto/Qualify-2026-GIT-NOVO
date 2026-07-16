@@ -1,4 +1,4 @@
-// Pesquisa de Planos - Refeito do zero com listagem funcional
+// Pesquisa de Planos - Versão Supabase (sem Firebase)
 (function(){
   function getActiveCompanyId() {
     try {
@@ -8,29 +8,6 @@
     } catch (_) {
       return localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId') || 'default';
     }
-  }
-
-  function waitForFirebaseReady(timeoutMs) {
-    return new Promise((resolve) => {
-      if (window.firebase && window.db) {
-        resolve(true);
-        return;
-      }
-      let elapsed = 0;
-      const interval = 100;
-      const check = () => {
-        if (window.firebase && window.db) {
-          resolve(true);
-        } else if (elapsed >= timeoutMs) {
-          resolve(false);
-        } else {
-          elapsed += interval;
-          setTimeout(check, interval);
-        }
-      };
-      window.addEventListener('firebaseReady', () => resolve(true), { once: true });
-      check();
-    });
   }
 
   function normalizeMoney(val) {
@@ -47,33 +24,19 @@
 
   async function loadPlansMerged() {
     const companyId = getActiveCompanyId();
-    const ready = await waitForFirebaseReady(3000);
     const plans = [];
 
-    // 1) Firestore (companies/empresas), se disponível
-    if (ready && window.db) {
-      let loaded = false;
-      // Multitenant helper se existir
-      if (window.getCompanyCollection) {
-        try {
-          const snap = await window.getCompanyCollection('planos').get();
-          const docs = snap?.docs || [];
-          docs.forEach(doc => plans.push({ id: parseInt(doc.id, 10) || doc.id, ...doc.data() }));
-          loaded = docs.length > 0;
-        } catch (_) {}
-      }
-      if (!loaded) {
-        const bases = ['companies', 'empresas'];
-        for (const base of bases) {
-          try {
-            const path = `${base}/${companyId}/planos`;
-            const snap = await window.db.collection(path).get();
-            const docs = snap?.docs || [];
-            docs.forEach(doc => plans.push({ id: parseInt(doc.id, 10) || doc.id, ...doc.data() }));
-            if (docs.length > 0) break;
-          } catch (_) {}
+    // 1) Supabase (se disponível)
+    if (window.supabase) {
+      try {
+        const { data, error } = await window.supabase
+          .from('planos')
+          .select('*')
+          .eq('company_id', companyId);
+        if (!error && data && data.length > 0) {
+          data.forEach(p => plans.push(p));
         }
-      }
+      } catch (_) {}
     }
 
     // 2) LocalStorage por empresa, depois global
@@ -87,8 +50,7 @@
       // Mesclar com deduplicação por id
       const map = new Map();
       [...plans, ...localCompany, ...localGlobal].forEach(p => {
-        const pid = parseInt(p.id, 10);
-        const key = Number.isFinite(pid) ? pid : String(p.id);
+        const key = String(p.id || p.name || Math.random());
         if (!map.has(key)) map.set(key, p);
       });
       const merged = Array.from(map.values());

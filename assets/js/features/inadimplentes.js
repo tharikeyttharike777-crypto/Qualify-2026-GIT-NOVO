@@ -455,54 +455,54 @@ function initializeEventListeners() {
 
 // Load initial data
 async function loadData() {
-    // Garante que multitenant e empresa ativa estão prontos
-    const mtReady = !!(window.multitenantConfig && typeof window.multitenantConfig.getActiveCompany === 'function');
-    const activeCompany = mtReady ? window.multitenantConfig.getActiveCompany() : null;
-
-    if (!mtReady || !activeCompany) {
-        // Tenta aguardar brevemente
-        const waited = await waitForActiveCompanyReady(3000);
-        if (!waited) {
-            showEmptyState('Selecione uma empresa para visualizar os dados');
-            return;
-        }
-    }
-
-    const waitForAuthReady = async (timeoutMs = 3000) => {
-        const start = Date.now();
-        while (Date.now() - start < timeoutMs) {
-            const udmReady = !!(window.userDataManager && typeof window.userDataManager.isAuthenticated === 'function');
-            const udmAuth = udmReady && window.userDataManager.isAuthenticated();
-            const fbAuth = !!(window.firebase && window.firebase.auth && window.firebase.auth().currentUser);
-            if (udmAuth || fbAuth) return true;
-            await new Promise(r => setTimeout(r, 100));
-        }
-        return false;
-    };
-
-    const udmReady = !!(window.userDataManager && typeof window.userDataManager.isAuthenticated === 'function');
-    const udmAuth = udmReady && window.userDataManager.isAuthenticated();
-    const fbAuth = !!(window.firebase && window.firebase.auth && window.firebase.auth().currentUser);
-
-    if (!udmAuth && !fbAuth) {
-        const ready = await waitForAuthReady(3000);
-        if (!ready) {
-            console.log('Usuário não autenticado, não é possível carregar dados');
-            showEmptyState('Faça login para visualizar os dados');
-            return;
-        }
+    const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+    if (!companyId || !window.supabase) {
+        showEmptyState('Selecione uma empresa ou aguarde o carregamento.');
+        return;
     }
 
     try {
-        // Mostra loading
         showLoadingState();
 
-        // Busca dados do usuário logado
-        const userData = await window.userDataManager.getUserData('inadimplentes', {
-            orderBy: { field: 'dataVencimento', direction: 'desc' }
+        // Buscar contratos inadimplentes, ou seja, cobranças com status atrasado/inadimplente ou calculando
+        // Vamos buscar da tabela cobrancas
+        const today = new Date().toISOString().split('T')[0];
+        
+        const { data: cobrancas, error } = await window.supabase
+            .from('cobrancas')
+            .select(`
+                *,
+                contratos (
+                    id,
+                    numero
+                )
+            `)
+            .eq('company_id', companyId)
+            .eq('status', 'pendente')
+            .lt('vencimento', today)
+            .order('vencimento', { ascending: true });
+
+        if (error) throw error;
+
+        allData = (cobrancas || []).map(c => {
+            const vencimento = new Date(c.vencimento);
+            const hoje = new Date();
+            const diasAtraso = Math.max(0, Math.floor((hoje - vencimento) / (1000 * 60 * 60 * 24)));
+            
+            return {
+                id: c.contrato_id || c.id,
+                cobranca_id: c.id,
+                contrato: c.contratos?.numero || `C-${c.contrato_id}` || 'N/A',
+                data: c.vencimento ? c.vencimento.split('T')[0].split('-').reverse().join('/') : '',
+                titular: c.pagador_nome || 'N/A',
+                celular: c.pagador_telefone || 'N/A',
+                dias: diasAtraso,
+                quantidade: 1,
+                valor: parseFloat(c.valor) || 0,
+                observacao: c.descricao || ''
+            };
         });
 
-        allData = userData || [];
         filteredData = [...allData];
 
         if (allData.length === 0) {

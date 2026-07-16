@@ -104,7 +104,7 @@ if (userMenu) {
             'Sair'
         ];
         
-        console.log('Menu do usuário clicado - opções disponíveis:', userMenuOptions);
+        
     });
 }
 
