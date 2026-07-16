@@ -1867,6 +1867,7 @@ async function salvarTitular() {
     renderDependentesTable();
     showMessage('Titular salvo e refletido na lista de dependentes.', 'success');
 }
+window.salvarTitular = salvarTitular;
 
 function renderPaisTable() {
     const table = document.querySelector('#tabelaPais');

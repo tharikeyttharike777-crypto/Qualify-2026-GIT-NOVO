@@ -1213,12 +1213,12 @@
                 if (value === '') {
                     field.classList.add('invalid');
                     field.classList.remove('valid');
-                    errorMessage.classList.add('show');
+                    if (errorMessage) errorMessage.classList.add('show');
                     return false;
                 } else {
                     field.classList.remove('invalid');
                     field.classList.add('valid');
-                    errorMessage.classList.remove('show');
+                    if (errorMessage) errorMessage.classList.remove('show');
                     return true;
                 }
             }
