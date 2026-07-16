@@ -2658,10 +2658,11 @@ async function salvarFamilia(evt) {
                 }
             }
         } catch (e) {
-            console.warn('Falha ao salvar família/titular/contratos no Supabase:', e);
+            console.error('Falha ao salvar família/titular/contratos no Supabase:', e);
+            alert("ERRO DO BANCO DE DADOS: " + (e.message || JSON.stringify(e)) + "\n\n(Tire um print desse erro e envie para o suporte)");
+            window.__saving = false;
+            return; // Bloqueia a continuação para não dar falso positivo
         }
-
-        // Salvar nos localStorage (simulando banco de dados)
         salvarFamiliaLocalStorage(familia);
         salvarAssociadoLocalStorage(associado);
 
