@@ -119,6 +119,22 @@ async function setupCompanyListener(uid) {
     );
 
     renderCompanies(companies || []);
+    
+    // FORÇAR SELEÇÃO DE EMPRESA
+    const isTrocarEmpresaPage = window.location.pathname.includes('trocar-empresa.html');
+    const hasCompanySelected = localStorage.getItem('companyId') || localStorage.getItem('empresaSelecionadaId') || localStorage.getItem('activeCompanyId');
+    
+    if (companies.length === 0 && !isTrocarEmpresaPage) {
+        console.warn('Nenhuma empresa. Redirecionando para trocar-empresa.html');
+        window.location.href = '/pages/trocar-empresa.html';
+    } else if (!hasCompanySelected && !isTrocarEmpresaPage && companies.length > 0) {
+        // Se tem empresas mas nenhuma selecionada, usa a primeira
+        localStorage.setItem('empresaSelecionadaId', companies[0].id);
+        localStorage.setItem('companyId', companies[0].id);
+        localStorage.setItem('activeCompanyId', companies[0].id);
+        window.location.reload();
+    }
+    
   } catch (error) {
     console.error("Falha ao buscar empresas no Supabase:", error);
     renderCompanies([]);

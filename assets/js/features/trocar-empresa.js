@@ -221,9 +221,24 @@ async function salvarNovaEmpresa() {
 
         if (error) throw error;
         
+        // Acessa automaticamente a nova empresa
+        if (data && data.length > 0) {
+            const newCompanyId = data[0].id;
+            localStorage.setItem('empresaSelecionadaId', newCompanyId);
+            localStorage.setItem('companyId', newCompanyId);
+            localStorage.setItem('activeCompanyId', newCompanyId);
+            
+            const activeCompanyObj = {
+                id: newCompanyId,
+                name: nomeEmpresa,
+                cnpj: cnpj,
+                city: cidade
+            };
+            localStorage.setItem('activeCompany', JSON.stringify(activeCompanyObj));
+        }
+        
         alert("Empresa criada com sucesso!");
-        fecharModal();
-        carregarEmpresas();
+        window.location.href = '../index.html';
     } catch (error) {
         console.error("ERRO AO SALVAR EMPRESA:", error);
         alert("Falha ao salvar a empresa: " + (error.message || "Erro desconhecido"));

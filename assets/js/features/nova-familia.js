@@ -2607,7 +2607,7 @@ async function salvarFamilia(evt) {
             const ready = await waitForSupabaseReady(3000);
             if (ready && window.supabase) {
                 // Criar família
-                await window.supabase
+                const { error: errorFamilia } = await window.supabase
                     .from('familias')
                     .insert({
                         id: String(familiaId),
@@ -2623,6 +2623,7 @@ async function salvarFamilia(evt) {
                             dataCriacao: familia.dataCriacao
                         }
                     });
+                if (errorFamilia) throw errorFamilia;
 
                 // Criar associado (titular)
                 await window.supabase
