@@ -16,10 +16,11 @@ async function criarCobranca(config, dados) {
     const correlationID = dados.externalReference || uuidv4();
     const valorEmCentavos = Math.round(parseFloat(dados.value) * 100);
 
+    const rawComment = dados.description || 'Cobrança PIX';
     const payload = {
         correlationID: correlationID,
         value: valorEmCentavos,
-        comment: dados.description || 'Cobrança PIX',
+        comment: rawComment.substring(0, 50),
     };
 
     if (dados.customer) {
@@ -94,13 +95,14 @@ async function criarAssinatura(config, dados) {
     const dayGenerateCharge = diaHoje; 
     const dayDue = 5; // 5 dias para o cliente pagar a partir da geração
     
+    const rawComment = dados.description || 'Assinatura Mensal';
     const payload = {
         value: valorEmCentavos,
         type: 'PIX_RECURRING',
         frequency: 'MONTHLY',
         dayGenerateCharge: 5,
         dayDue: 5,
-        comment: dados.description || 'Assinatura Mensal',
+        comment: rawComment.substring(0, 50),
         customer: {
             name: dados.customer.name,
             taxID: dados.customer.cpfCnpj.replace(/\D/g, ''),
