@@ -20,7 +20,7 @@ async function criarCobranca(config, dados) {
     const payload = {
         correlationID: correlationID,
         value: valorEmCentavos,
-        comment: rawComment.substring(0, 50),
+        comment: rawComment.substring(0, 30),
     };
 
     if (dados.customer) {
@@ -102,7 +102,7 @@ async function criarAssinatura(config, dados) {
         frequency: 'MONTHLY',
         dayGenerateCharge: 5,
         dayDue: 5,
-        comment: rawComment.substring(0, 50),
+        comment: rawComment.substring(0, 30),
         customer: {
             name: dados.customer.name,
             taxID: dados.customer.cpfCnpj.replace(/\D/g, ''),
