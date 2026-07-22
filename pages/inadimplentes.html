@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -18,6 +19,8 @@
     <link href="../assets/css/inadimplentes.css?v=20250127003" rel="stylesheet">
     <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
     <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -44,12 +47,12 @@
                 <div class="logo">
                     <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
                         style="margin-right: 8px;">
-                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                    <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
                 </div>
             </div>
             <div class="header-center">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                     <i class="fas fa-search search-icon"></i>
                     <div id="search-results" class="search-results"></div>
                 </div>
@@ -60,12 +63,12 @@
                     <span class="notification-badge">9</span>
                 </div>
                 <div class="user-info">
-                    <!-- Informa��es do usu�rio ser�o inseridas aqui pelo auth-manager -->
+                    <!-- Informaï¿½ï¿½es do usuï¿½rio serï¿½o inseridas aqui pelo auth-manager -->
                 </div>
 
-                <!-- Menu de Usu�rio -->
+                <!-- Menu de Usuï¿½rio -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usu�rio"
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuï¿½rio"
                         aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
@@ -80,17 +83,17 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Meu Perfil</span>
-                                    <span class="dropdown-item-subtitle">Configura��es pessoais</span>
+                                    <span class="dropdown-item-subtitle">Configuraï¿½ï¿½es pessoais</span>
                                 </div>
                             </a>
 
-                            <!-- Item 2: Configura��es -->
+                            <!-- Item 2: Configuraï¿½ï¿½es -->
                             <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
                                 <div class="dropdown-item-icon">
                                     <i class="fas fa-cog"></i>
                                 </div>
                                 <div class="dropdown-item-content">
-                                    <span class="dropdown-item-title">Configura��es</span>
+                                    <span class="dropdown-item-title">Configuraï¿½ï¿½es</span>
                                     <span class="dropdown-item-subtitle">Ajustes do sistema</span>
                                 </div>
                             </a>
@@ -105,7 +108,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Ajuda</span>
-                                    <span class="dropdown-item-subtitle">Suporte e documenta��o</span>
+                                    <span class="dropdown-item-subtitle">Suporte e documentaï¿½ï¿½o</span>
                                 </div>
                             </a>
 
@@ -120,7 +123,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Sair</span>
-                                    <span class="dropdown-item-subtitle">Encerrar sess�o</span>
+                                    <span class="dropdown-item-subtitle">Encerrar sessï¿½o</span>
                                 </div>
                             </a>
                         </div>
@@ -143,7 +146,7 @@
                         <a href="#" class="menu-link">
                             <i class="icon-star"></i>
                             <span class="menu-text">Mais usados</span>
-                            <i class="arrow-icon">▼</i>
+                            <i class="arrow-icon">â–¼</i>
                         </a>
                         <ul class="submenu">
                             <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
@@ -151,7 +154,7 @@
                             <li><a href="dashboard.html">Dashboard</a></li>
                             <li><a href="inadimplentes.html" class="active">Inadimplentes</a></li>
                             <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                            <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                             <li><a href="controle-caixas.html">Controle de caixas</a></li>
                             <li><a href="contas-receber.html">Contas a receber</a></li>
 
@@ -163,13 +166,13 @@
                         <a href="#" class="menu-link">
                             <i class="icon-contract"></i>
                             <span class="menu-text">Contratos</span>
-                            <i class="arrow-icon">▼</i>
+                            <i class="arrow-icon">â–¼</i>
                         </a>
                         <ul class="submenu">
                             <li><a href="contratos.html">Ativos</a></li>
                             <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                            <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                            <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                            <li><a href="renegociacao-cobrancas.html">RenegociaÃ§Ã£o</a></li>
                             <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                             <li><a href="cancelados.html">Cancelados</a></li>
                         </ul>
@@ -180,11 +183,11 @@
                         <a href="#" class="menu-link">
                             <i class="icon-money"></i>
                             <span class="menu-text">Financeiro</span>
-                            <i class="arrow-icon">▼</i>
+                            <i class="arrow-icon">â–¼</i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
-                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentaÃ§Ãµes</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                             <li><a href="contas-pagar.html">Contas a pagar</a></li>
                             <li><a href="resumo-dia.html">Resumo do dia</a></li>
                             <li><a href="comissionamento.html">Comissionamento</a></li>
@@ -192,16 +195,16 @@
                         </ul>
                     </li>
 
-                    <!-- Famílias -->
+                    <!-- FamÃ­lias -->
                     <li class="menu-item has-submenu">
                         <a href="#" class="menu-link">
                             <i class="icon-family"></i>
-                            <span class="menu-text">Famílias</span>
-                            <i class="arrow-icon">▼</i>
+                            <span class="menu-text">FamÃ­lias</span>
+                            <i class="arrow-icon">â–¼</i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="nova-familia.html">Nova família</a></li>
-                            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                            <li><a href="nova-familia.html">Nova famÃ­lia</a></li>
+                            <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                             <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
                             <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
                             <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -211,7 +214,7 @@
             </div>
         </nav>
 
-        <!-- Overlay para fechar o menu em dispositivos móveis -->
+        <!-- Overlay para fechar o menu em dispositivos mÃ³veis -->
 
         <!-- Main Content -->
         <main class="main-content">
@@ -259,13 +262,13 @@
                         </div>
                         <div class="col-md-4">
                             <div class="summary-card text-center">
-                                <h3 class="summary-title">N° de Contratos</h3>
+                                <h3 class="summary-title">NÂ° de Contratos</h3>
                                 <p class="summary-value">0</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="summary-card text-center">
-                                <h3 class="summary-title">N° de Parcelas</h3>
+                                <h3 class="summary-title">NÂ° de Parcelas</h3>
                                 <p class="summary-value">0</p>
                             </div>
                         </div>
@@ -281,15 +284,15 @@
                                     <th width="50">
                                         <input type="checkbox" id="selectAll" class="form-check-input">
                                     </th>
-                                    <th>N° do Contrato</th>
+                                    <th>NÂ° do Contrato</th>
                                     <th>Data do Contrato</th>
                                     <th>Titular</th>
                                     <th>Celular</th>
                                     <th>Dias</th>
                                     <th>Qtd.</th>
                                     <th>Valor</th>
-                                    <th>Última observação</th>
-                                    <th width="100">Opções</th>
+                                    <th>Ãšltima observaÃ§Ã£o</th>
+                                    <th width="100">OpÃ§Ãµes</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -300,7 +303,7 @@
 
                 <!-- Pagination -->
                 <div class="pagination-container">
-                    <nav aria-label="Navegação da tabela">
+                    <nav aria-label="NavegaÃ§Ã£o da tabela">
                         <ul class="pagination justify-content-center"></ul>
                     </nav>
                 </div>
@@ -312,7 +315,7 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Filtros Avançados</h5>
+                        <h5 class="modal-title">Filtros AvanÃ§ados</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -333,13 +336,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Dias em Atraso (Mínimo)</label>
+                                    <label class="form-label">Dias em Atraso (MÃ­nimo)</label>
                                     <input type="number" class="form-control" id="diasMinimo" placeholder="Ex: 30">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Dias em Atraso (Máximo)</label>
+                                    <label class="form-label">Dias em Atraso (MÃ¡ximo)</label>
                                     <input type="number" class="form-control" id="diasMaximo" placeholder="Ex: 90">
                                 </div>
                             </div>
@@ -347,14 +350,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Valor Mínimo</label>
+                                    <label class="form-label">Valor MÃ­nimo</label>
                                     <input type="number" class="form-control" id="valorMinimo" placeholder="Ex: 50.00"
                                         step="0.01">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Valor Máximo</label>
+                                    <label class="form-label">Valor MÃ¡ximo</label>
                                     <input type="number" class="form-control" id="valorMaximo" placeholder="Ex: 500.00"
                                         step="0.01">
                                 </div>
@@ -366,7 +369,7 @@
                                 <option value="">Todos</option>
                                 <option value="pendente">Pendente</option>
                                 <option value="contatado">Contatado</option>
-                                <option value="negociacao">Em Negociação</option>
+                                <option value="negociacao">Em NegociaÃ§Ã£o</option>
                                 <option value="promessa">Promessa de Pagamento</option>
                             </select>
                         </div>
@@ -389,7 +392,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Destinatários</label>
+                            <label class="form-label">DestinatÃ¡rios</label>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="destinatarios" id="selecionados"
                                     value="selecionados" checked>
@@ -417,10 +420,10 @@
                             <label class="form-label">Modelo de Mensagem</label>
                             <select class="form-select" id="modeloMensagem">
                                 <option value="">Selecione um modelo</option>
-                                <option value="cobranca1">Cobrança Amigável - 1º Contato</option>
-                                <option value="cobranca2">Cobrança Amigável - 2º Contato</option>
-                                <option value="cobranca3">Cobrança Firme</option>
-                                <option value="negociacao">Proposta de Negociação</option>
+                                <option value="cobranca1">CobranÃ§a AmigÃ¡vel - 1Âº Contato</option>
+                                <option value="cobranca2">CobranÃ§a AmigÃ¡vel - 2Âº Contato</option>
+                                <option value="cobranca3">CobranÃ§a Firme</option>
+                                <option value="negociacao">Proposta de NegociaÃ§Ã£o</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -443,7 +446,7 @@
                                     <input type="date" class="form-control" id="dataAgendamento">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Horário</label>
+                                    <label class="form-label">HorÃ¡rio</label>
                                     <input type="time" class="form-control" id="horarioAgendamento">
                                 </div>
                             </div>
@@ -462,7 +465,7 @@
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Filtros Avançados - Contratos Inadimplentes</h5>
+                        <h5 class="modal-title">Filtros AvanÃ§ados - Contratos Inadimplentes</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                             id="closeAdvancedFilters"></button>
                     </div>
@@ -471,19 +474,19 @@
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="nav-item">
                                     <button class="nav-link active tab-button" data-tab="quickFilters"
-                                        type="button">Filtros Rápidos</button>
+                                        type="button">Filtros RÃ¡pidos</button>
                                 </li>
                                 <li class="nav-item">
                                     <button class="nav-link tab-button" data-tab="advancedFilters" type="button">Filtros
-                                        Avançados</button>
+                                        AvanÃ§ados</button>
                                 </li>
                                 <li class="nav-item">
                                     <button class="nav-link tab-button" data-tab="dateRange"
-                                        type="button">Período</button>
+                                        type="button">PerÃ­odo</button>
                                 </li>
                                 <li class="nav-item">
                                     <button class="nav-link tab-button" data-tab="sorting"
-                                        type="button">Ordenação</button>
+                                        type="button">OrdenaÃ§Ã£o</button>
                                 </li>
                             </ul>
                         </div>
@@ -498,7 +501,7 @@
                                             <div class="btn-group-vertical d-grid gap-2" role="group">
                                                 <input type="radio" class="btn-check" name="diasAtraso" id="ate30dias"
                                                     value="30">
-                                                <label class="btn btn-outline-primary" for="ate30dias">Até 30
+                                                <label class="btn btn-outline-primary" for="ate30dias">AtÃ© 30
                                                     dias</label>
 
                                                 <input type="radio" class="btn-check" name="diasAtraso" id="ate60dias"
@@ -524,7 +527,7 @@
                                             <div class="btn-group-vertical d-grid gap-2" role="group">
                                                 <input type="radio" class="btn-check" name="valorAtraso" id="ate100"
                                                     value="100">
-                                                <label class="btn btn-outline-success" for="ate100">Até R$ 100</label>
+                                                <label class="btn btn-outline-success" for="ate100">AtÃ© R$ 100</label>
 
                                                 <input type="radio" class="btn-check" name="valorAtraso" id="ate500"
                                                     value="500">
@@ -551,9 +554,9 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Número do Contrato</label>
+                                            <label class="form-label">NÃºmero do Contrato</label>
                                             <input type="text" class="form-control" id="numeroContrato"
-                                                placeholder="Digite o número">
+                                                placeholder="Digite o nÃºmero">
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Nome do Titular</label>
@@ -573,7 +576,7 @@
                                                 <option value="">Todos</option>
                                                 <option value="pendente">Pendente</option>
                                                 <option value="contatado">Contatado</option>
-                                                <option value="negociacao">Em Negociação</option>
+                                                <option value="negociacao">Em NegociaÃ§Ã£o</option>
                                                 <option value="promessa">Promessa de Pagamento</option>
                                             </select>
                                         </div>
@@ -581,15 +584,15 @@
                                             <label class="form-label">Plano</label>
                                             <select class="form-select" id="planoContrato">
                                                 <option value="">Todos os planos</option>
-                                                <option value="basico">Básico</option>
-                                                <option value="intermediario">Intermediário</option>
+                                                <option value="basico">BÃ¡sico</option>
+                                                <option value="intermediario">IntermediÃ¡rio</option>
                                                 <option value="premium">Premium</option>
                                             </select>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Região</label>
+                                            <label class="form-label">RegiÃ£o</label>
                                             <select class="form-select" id="regiaoContrato">
-                                                <option value="">Todas as regiões</option>
+                                                <option value="">Todas as regiÃµes</option>
                                                 <option value="norte">Norte</option>
                                                 <option value="nordeste">Nordeste</option>
                                                 <option value="centro-oeste">Centro-Oeste</option>
@@ -600,12 +603,12 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Valor Mínimo</label>
+                                            <label class="form-label">Valor MÃ­nimo</label>
                                             <input type="number" class="form-control" id="valorMinimo"
                                                 placeholder="0,00" step="0.01">
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Valor Máximo</label>
+                                            <label class="form-label">Valor MÃ¡ximo</label>
                                             <input type="number" class="form-control" id="valorMaximo"
                                                 placeholder="0,00" step="0.01">
                                         </div>
@@ -614,11 +617,11 @@
                                             <div class="row">
                                                 <div class="col-6">
                                                     <input type="number" class="form-control" id="diasMinimoAtraso"
-                                                        placeholder="Mín.">
+                                                        placeholder="MÃ­n.">
                                                 </div>
                                                 <div class="col-6">
                                                     <input type="number" class="form-control" id="diasMaximoAtraso"
-                                                        placeholder="Máx.">
+                                                        placeholder="MÃ¡x.">
                                                 </div>
                                             </div>
                                         </div>
@@ -631,7 +634,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="filter-section">
-                                            <h6>Período do Contrato</h6>
+                                            <h6>PerÃ­odo do Contrato</h6>
                                             <div class="row">
                                                 <div class="col-6">
                                                     <label class="form-label">Data Inicial</label>
@@ -646,7 +649,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="filter-section">
-                                            <h6>Período de Vencimento</h6>
+                                            <h6>PerÃ­odo de Vencimento</h6>
                                             <div class="row">
                                                 <div class="col-6">
                                                     <label class="form-label">Vencimento Inicial</label>
@@ -671,7 +674,7 @@
                                             <select class="form-select mb-3" id="sortBy">
                                                 <option value="dias">Dias em Atraso</option>
                                                 <option value="valor">Valor</option>
-                                                <option value="contrato">Número do Contrato</option>
+                                                <option value="contrato">NÃºmero do Contrato</option>
                                                 <option value="titular">Nome do Titular</option>
                                                 <option value="data">Data do Contrato</option>
                                             </select>
@@ -690,11 +693,11 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="filter-section">
-                                            <h6>Colunas Visíveis</h6>
+                                            <h6>Colunas VisÃ­veis</h6>
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="showContrato"
                                                     checked>
-                                                <label class="form-check-label" for="showContrato">Número do
+                                                <label class="form-check-label" for="showContrato">NÃºmero do
                                                     Contrato</label>
                                             </div>
                                             <div class="form-check">
@@ -722,7 +725,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="showObservacao"
                                                     checked>
-                                                <label class="form-check-label" for="showObservacao">Observação</label>
+                                                <label class="form-check-label" for="showObservacao">ObservaÃ§Ã£o</label>
                                             </div>
                                         </div>
                                     </div>
@@ -746,7 +749,7 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Ações em Massa</h5>
+                        <h5 class="modal-title">AÃ§Ãµes em Massa</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" id="closeBulkActions"></button>
                     </div>
                     <div class="modal-body">
@@ -801,7 +804,7 @@
                                                 <option value="">Selecionar status</option>
                                                 <option value="pendente">Pendente</option>
                                                 <option value="contatado">Contatado</option>
-                                                <option value="negociacao">Em Negociação</option>
+                                                <option value="negociacao">Em NegociaÃ§Ã£o</option>
                                                 <option value="promessa">Promessa de Pagamento</option>
                                             </select>
                                             <button class="btn btn-outline-warning btn-sm mt-2"
@@ -832,7 +835,7 @@
             </div>
         </div>
 
-        <!-- Container de Importação -->
+        <!-- Container de ImportaÃ§Ã£o -->
 
         <!-- Supabase SDK e Cliente -->
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -856,7 +859,7 @@
 
         <!-- Script Melhorado do Accordion -->
         <script>
-            // Fun��o melhorada para inicializar o accordion
+            // Funï¿½ï¿½o melhorada para inicializar o accordion
             function initializeImprovedAccordion() {
                 console.log('?? Inicializando accordion melhorado...');
 
@@ -867,7 +870,7 @@
                     console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
 
                     submenuItems.forEach((menuItem, index) => {
-                        // Encontra o link clic�vel dentro do item
+                        // Encontra o link clicï¿½vel dentro do item
                         const menuLink = menuItem.querySelector('.menu-link, a');
                         const submenu = menuItem.querySelector('.submenu');
                         const arrowIcon = menuItem.querySelector('.arrow-icon');
@@ -896,9 +899,9 @@
                                 menuItem.classList.toggle('expanded');
 
                                 const isExpanded = menuItem.classList.contains('expanded');
-                                console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra�do'}`);
+                                console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraï¿½do'}`);
 
-                                // Atualiza o �cone da seta se existir
+                                // Atualiza o ï¿½cone da seta se existir
                                 if (arrowIcon) {
                                     arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
                                 }
@@ -906,7 +909,7 @@
 
                             console.log(`? Evento vinculado ao item ${index + 1}`);
                         } else {
-                            console.warn(`?? Item ${index + 1} n�o tem link ou submenu v�lido`);
+                            console.warn(`?? Item ${index + 1} nï¿½o tem link ou submenu vï¿½lido`);
                         }
                     });
 
@@ -921,14 +924,14 @@
                 initializeImprovedAccordion();
             }
 
-            // Tamb�m disponibiliza globalmente para re-inicializa��o manual
+            // Tambï¿½m disponibiliza globalmente para re-inicializaï¿½ï¿½o manual
             window.reinitializeAccordion = initializeImprovedAccordion;
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003"
             defer></script>
         <script src="../assets/js/features/inadimplentes.js?v=20250127003" defer></script>
         <script>
-            // Configurar estado ativo do menu baseado na p�gina atual
+            // Configurar estado ativo do menu baseado na pï¿½gina atual
             document.addEventListener('DOMContentLoaded', function () {
                 const currentPage = 'pages/inadimplentes.html';
                 const sidebarLinks = document.querySelectorAll('#sidebar .submenu a');
@@ -937,7 +940,7 @@
                     const href = link.getAttribute('href');
                     if (href === currentPage) {
                         link.classList.add('active');
-                        // Expandir o submenu pai se necess�rio
+                        // Expandir o submenu pai se necessï¿½rio
                         const parentSubmenu = link.closest('.submenu');
                         if (parentSubmenu) {
                             const parentMenuItem = parentSubmenu.closest('.menu-item');
@@ -958,36 +961,36 @@
 
 
 
-        <!-- Corre��o Completa do Sidebar com Accordion -->
+        <!-- Correï¿½ï¿½o Completa do Sidebar com Accordion -->
         <script>
             (function () {
                 'use strict';
 
                 // Aguardar que todos os scripts sejam carregados
                 function initializeSidebar() {
-                    console.log('?? Inicializando corre��o completa do sidebar...');
+                    console.log('?? Inicializando correï¿½ï¿½o completa do sidebar...');
 
                     const menuToggle = document.getElementById('menu-toggle');
                     const sidebar = document.getElementById('sidebar');
                     const overlay = document.getElementById('sidebar-overlay');
 
                     if (!menuToggle) {
-                        console.error('? Bot�o do menu n�o encontrado!');
+                        console.error('? Botï¿½o do menu nï¿½o encontrado!');
                         return;
                     }
 
                     if (!sidebar) {
-                        console.error('? Sidebar n�o encontrado!');
+                        console.error('? Sidebar nï¿½o encontrado!');
                         return;
                     }
 
-                    console.log('? Elementos encontrados - aplicando corre��o...');
+                    console.log('? Elementos encontrados - aplicando correï¿½ï¿½o...');
 
                     // Limpar todos os event listeners existentes
                     const newMenuToggle = menuToggle.cloneNode(true);
                     menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
 
-                    // Fun��o para abrir o sidebar
+                    // Funï¿½ï¿½o para abrir o sidebar
                     function openSidebar() {
                         sidebar.classList.add('open', 'menu-aberto');
                         sidebar.style.transform = 'translateX(0)';
@@ -1000,7 +1003,7 @@
                         console.log('?? Sidebar aberto');
                     }
 
-                    // Fun��o para fechar o sidebar
+                    // Funï¿½ï¿½o para fechar o sidebar
                     function closeSidebar() {
                         sidebar.classList.remove('open', 'menu-aberto');
                         sidebar.style.transform = 'translateX(-100%)';
@@ -1013,7 +1016,7 @@
                         console.log('?? Sidebar fechado');
                     }
 
-                    // Event listener para o bot�o do menu
+                    // Event listener para o botï¿½o do menu
                     newMenuToggle.addEventListener('click', function (e) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -1053,7 +1056,7 @@
                         }
                     });
 
-                    // Event listener para bot�o de fechar (se existir)
+                    // Event listener para botï¿½o de fechar (se existir)
                     const closeButton = document.getElementById('sidebar-close') ||
                         document.querySelector('.sidebar-close') ||
                         document.querySelector('#sidebar .close-btn');
@@ -1061,7 +1064,7 @@
                         closeButton.addEventListener('click', function (e) {
                             e.preventDefault();
                             closeSidebar();
-                            console.log('?? Sidebar fechado via bot�o fechar');
+                            console.log('?? Sidebar fechado via botï¿½o fechar');
                         });
                     }
 
@@ -1116,7 +1119,7 @@
                     // Garantir que o sidebar inicie fechado
                     closeSidebar();
 
-                    console.log('? Corre��o completa do sidebar aplicada com sucesso!');
+                    console.log('? Correï¿½ï¿½o completa do sidebar aplicada com sucesso!');
                 }
 
                 // Inicializar quando o DOM estiver pronto
@@ -1133,4 +1136,5 @@
 </body>
 
 </html>
+
 

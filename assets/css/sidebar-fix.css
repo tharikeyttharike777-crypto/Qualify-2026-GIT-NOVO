@@ -64,22 +64,25 @@
 .main-content {
     margin-left: 0 !important;
     margin-top: var(--header-height) !important;
-    padding: 20px !important;
-    padding-top: 80px !important; /* Espaço para o header fixo */
+    padding: 30px 40px !important;
+    padding-top: calc(var(--header-height) + 20px) !important;
     min-height: calc(100vh - var(--header-height)) !important;
-    transition: none !important;
-    width: 100% !important;
     background-color: #f8f9fa !important;
     position: relative !important;
     z-index: 1 !important;
 }
 
-/* Container principal */
-.container {
+/* Container principal e correções globais para aproveitamento total de tela */
+.container, 
+.container-fluid {
     margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    transition: none !important;
+    padding: 0 !important; 
+    max-width: 100% !important;
+}
+
+.main-container {
+    margin: 0 !important;
+    max-width: 100% !important;
 }
 
 /* ===== OVERLAY PARA MOBILE ===== */
@@ -248,6 +251,7 @@
     
     .main-content {
         padding: 15px !important;
+        padding-top: calc(var(--header-height) + 15px) !important;
     }
 }
 

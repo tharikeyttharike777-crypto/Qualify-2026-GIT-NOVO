@@ -105,7 +105,7 @@
       border-radius: 6px;
     }
 
-    /* ═══════ BULK ACTION BAR ═══════ */
+    /* â•â•â•â•â•â•â• BULK ACTION BAR â•â•â•â•â•â•â• */
     .bulk-bar {
       display: none;
       align-items: center;
@@ -157,7 +157,7 @@
       flex: 1;
     }
 
-    /* ═══════ PAGINATION ═══════ */
+    /* â•â•â•â•â•â•â• PAGINATION â•â•â•â•â•â•â• */
     .pagination-bar {
       display: flex;
       align-items: center;
@@ -224,7 +224,7 @@
       }
     }
 
-    /* ═══════ MODAL DE CONFIRMAÇÃO ═══════ */
+    /* â•â•â•â•â•â•â• MODAL DE CONFIRMAÃ‡ÃƒO â•â•â•â•â•â•â• */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -329,7 +329,7 @@
       animation: spin 1s linear infinite;
     }
 
-    /* ═══════ TOAST NOTIFICATION ═══════ */
+    /* â•â•â•â•â•â•â• TOAST NOTIFICATION â•â•â•â•â•â•â• */
     .toast-container {
       position: fixed;
       bottom: 24px;
@@ -415,6 +415,8 @@
     }
   </style>
   <script>window.DISABLE_MULTITENANT_AUTO_RENDER = true;</script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -425,13 +427,13 @@
         <a href="../index.html" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
           <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
             style="margin-right: 8px;">
-          <span class="logo-text">QUALIFY - Sistema de gestão</span>
+          <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
         </a>
       </div>
     </div>
     <div class="header-center">
       <div class="search-container">
-        <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+        <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
         <i class="fas fa-search search-icon"></i>
         <div id="search-results" class="search-results"></div>
       </div>
@@ -440,7 +442,7 @@
       <div class="company-info"><i class="fas fa-building"></i><span id="headerEmpresaDisplay">Nenhuma empresa
           selec...</span></div>
       <div class="user-menu-container">
-        <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário" aria-expanded="false"><i
+        <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio" aria-expanded="false"><i
             class="fas fa-user-circle"></i></button>
         <div class="user-dropdown" id="userDropdown" role="menu">
           <div class="dropdown-content">
@@ -452,10 +454,10 @@
             <a href="../pages/minha-conta.html" class="dropdown-item" role="menuitem" data-action="account"><i
                 class="fas fa-wallet"></i><span>Minha Conta</span></a>
             <a href="../pages/area-associado-login.html" class="dropdown-item" role="menuitem"
-              data-action="associate-area" target="_blank"><i class="fas fa-external-link-alt"></i><span>Área do
+              data-action="associate-area" target="_blank"><i class="fas fa-external-link-alt"></i><span>Ãrea do
                 Associado</span></a>
             <a href="../pages/catalogo-planos.html" class="dropdown-item" role="menuitem" data-action="catalog"><i
-                class="fas fa-book"></i><span>Catálogo de Planos</span></a>
+                class="fas fa-book"></i><span>CatÃ¡logo de Planos</span></a>
             <div class="dropdown-separator"></div>
             <button class="dropdown-item logout-item" id="logoutBtn" role="menuitem"><i
                 class="fas fa-sign-out-alt"></i><span>Sair</span></button>
@@ -472,20 +474,20 @@
     </div>
     <div class="sidebar-content">
       <div class="sidebar-user-info">
-        <p class="user-email-display">Usuário: <span id="userDisplaySidebar">Nenhum usuário</span></p>
+        <p class="user-email-display">UsuÃ¡rio: <span id="userDisplaySidebar">Nenhum usuÃ¡rio</span></p>
         <p class="company-display">Empresa: <span id="empresaDisplaySidebar">Nenhuma empresa ativa</span></p>
       </div>
       <ul class="sidebar-menu">
         <li class="menu-item has-submenu expanded">
           <a href="#" class="menu-link"><i class="icon-star"></i><span class="menu-text">Mais usados</span><i
-              class="arrow-icon">▼</i></a>
+              class="arrow-icon">â–¼</i></a>
           <ul class="submenu">
             <li><a href="../pages/pesquisa-simplificada.html">Pesquisa simplificada</a></li>
             <li><a href="../pages/pesquisa-planos.html">Pesquisa de Planos</a></li>
             <li><a href="../pages/dashboard.html">Dashboard</a></li>
             <li><a href="../pages/inadimplentes.html">Inadimplentes</a></li>
             <li><a href="../pages/dre-gerencial.html">DRE Gerencial</a></li>
-            <li><a href="../pages/metricas-estrategicas.html">Métricas Estratégicas</a></li>
+            <li><a href="../pages/metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
             <li><a href="../pages/controle-caixas.html">Controle de caixas</a></li>
             <li><a href="../pages/contas-receber.html">Contas a receber</a></li>
             <li><a href="../pages/vendas.html">Vendas</a></li>
@@ -493,12 +495,12 @@
         </li>
         <li class="menu-item has-submenu">
           <a href="#" class="menu-link"><i class="icon-contract"></i><span class="menu-text">Contratos</span><i
-              class="arrow-icon">▼</i></a>
+              class="arrow-icon">â–¼</i></a>
           <ul class="submenu">
             <li><a href="../pages/contratos.html" class="active">Contratos</a></li>
             <li><a href="../pages/contratos-mensalidades.html">Mensalidades</a></li>
-            <li><a href="../pages/renovacoes-pendentes.html">Renovações pendentes</a></li>
-            <li><a href="../pages/renegociacao-cobrancas.html">Renegociação</a></li>
+            <li><a href="../pages/renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+            <li><a href="../pages/renegociacao-cobrancas.html">RenegociaÃ§Ã£o</a></li>
             <li><a href="../pages/contratos-adimplentes.html">Adimplentes</a></li>
             <li><a href="../pages/cancelados.html">Cancelados</a></li>
           </ul>
@@ -511,14 +513,14 @@
     <div class="title">Contratos</div>
     <div class="toolbar" style="margin-bottom:10px; display:flex; gap:8px; align-items:center;">
       <input id="searchInput" class="search-input" type="text"
-        placeholder="Pesquisar nº, titular, vendedor, plano, status" />
+        placeholder="Pesquisar nÂº, titular, vendedor, plano, status" />
     </div>
 
-    <!-- Barra de ações em massa -->
+    <!-- Barra de aÃ§Ãµes em massa -->
     <div id="bulkBar" class="bulk-bar">
       <span class="bulk-count"><span id="selectedCount">0</span> selecionado(s)</span>
       <div class="bulk-spacer"></div>
-      <button onclick="clearSelection()" title="Limpar seleção"><i class="fas fa-times"></i> Limpar</button>
+      <button onclick="clearSelection()" title="Limpar seleÃ§Ã£o"><i class="fas fa-times"></i> Limpar</button>
       <button class="danger" onclick="openDeleteModal()" title="Excluir selecionados"><i class="fas fa-trash"></i>
         Excluir Selecionados</button>
     </div>
@@ -527,14 +529,14 @@
       <table id="contractsSimpleTable" class="simple">
         <thead>
           <tr>
-            <th class="col-check"><input type="checkbox" id="masterCheckbox" title="Selecionar todos da página" /></th>
-            <th>Nº</th>
+            <th class="col-check"><input type="checkbox" id="masterCheckbox" title="Selecionar todos da pÃ¡gina" /></th>
+            <th>NÂº</th>
             <th>Data</th>
             <th>Titular</th>
             <th>Plano</th>
             <th>Status</th>
             <th>Vendedor</th>
-            <th>Ações</th>
+            <th>AÃ§Ãµes</th>
           </tr>
         </thead>
         <tbody id="contractsBody"></tbody>
@@ -542,7 +544,7 @@
       <div id="emptyState" class="empty" style="display:none;">Nenhum contrato encontrado.</div>
     </div>
 
-    <!-- Paginação + info -->
+    <!-- PaginaÃ§Ã£o + info -->
     <div class="pagination-bar">
       <div id="recordsInfo" class="pagination-info">Quantidade de registros: 0</div>
       <div id="paginationControls" class="pagination-controls"></div>
@@ -560,16 +562,16 @@
   <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
   <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
   <script>
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // ESTADO GLOBAL
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const ITEMS_PER_PAGE = 15;
     let allData = [];          // dados brutos deduplicados
-    let filteredData = [];     // após busca
+    let filteredData = [];     // apÃ³s busca
     let currentPage = 1;
     let totalPages = 1;
     const selectedRows = new Set(); // chaves selecionadas (numero)
-    let _deletionInProgress = false; // Flag de supressão — bloqueia re-renders durante exclusão
+    let _deletionInProgress = false; // Flag de supressÃ£o â€” bloqueia re-renders durante exclusÃ£o
 
     // DOM helpers
     const $body = () => document.getElementById('contractsBody');
@@ -581,9 +583,9 @@
     const $selCount = () => document.getElementById('selectedCount');
     const $masterCb = () => document.getElementById('masterCheckbox');
 
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // UTILIDADES
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     function normalizeStatus(s) { const v = String(s || '').trim().toLowerCase(); return v || 'ativo'; }
     function statusClass(s) {
       const v = normalizeStatus(s);
@@ -619,16 +621,16 @@
         plano: data.plano || '-',
         status: normalizeStatus(data.status || 'ativo'),
         vendedor: (data.vendedor && String(data.vendedor).trim()) ? data.vendedor : 'nenhum',
-        // Metadados para exclusão no Firestore
+        // Metadados para exclusÃ£o no Firestore
         firestoreId: data.firestoreId || data.id || null,
         firestoreSource: data.firestoreSource || null,
         familyId: data.familyId || (fam ? fam.id : null)
       };
     }
 
-    // ═══════════════════════════════════════════════
-    // PAGINAÇÃO
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // PAGINAÃ‡ÃƒO
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     function getPageData() {
       const start = (currentPage - 1) * ITEMS_PER_PAGE;
       return filteredData.slice(start, start + ITEMS_PER_PAGE);
@@ -646,19 +648,19 @@
       html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
         <i class="fas fa-chevron-left"></i> Anterior</button>`;
 
-      // Números de página com elipsis
+      // NÃºmeros de pÃ¡gina com elipsis
       const pages = buildPageNumbers(currentPage, totalPages);
       pages.forEach(p => {
         if (p === '...') {
-          html += '<span class="page-ellipsis">…</span>';
+          html += '<span class="page-ellipsis">â€¦</span>';
         } else {
           html += `<button class="${p === currentPage ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`;
         }
       });
 
-      // Próxima
+      // PrÃ³xima
       html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
-        Próxima <i class="fas fa-chevron-right"></i></button>`;
+        PrÃ³xima <i class="fas fa-chevron-right"></i></button>`;
 
       ctrl.innerHTML = html;
     }
@@ -682,11 +684,11 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ═══════════════════════════════════════════════
-    // RENDERIZAÇÃO DA TABELA
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // RENDERIZAÃ‡ÃƒO DA TABELA
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     function renderTable() {
-      if (_deletionInProgress) { console.log('⏸️ renderTable bloqueado — exclusão em andamento'); return; }
+      if (_deletionInProgress) { console.log('â¸ï¸ renderTable bloqueado â€” exclusÃ£o em andamento'); return; }
       const pageData = getPageData();
       const body = $body();
 
@@ -706,7 +708,7 @@
             <td>${c.plano}</td>
             <td><span class="badge ${statusClass(c.status)}">${c.status}</span></td>
             <td>${c.vendedor}</td>
-            <td><a class="btn btn-outline-primary btn-sm" href="../pages/edicao-contrato.html?numero=${encodeURIComponent(c.numero)}">
+            <td><a class="btn btn-outline-primary btn-sm" href="../pages/edicao-contrato.html?numero=${encodeURIComponent(c.numero)}" onclick="sessionStorage.setItem('currentContractNumero', '${c.numero}')">
               <i class="fas fa-edit" style="margin-right:6px;"></i>Gerir</a></td>
           </tr>`;
         }).join('');
@@ -721,9 +723,9 @@
         : `Mostrando ${start}-${end} de ${filteredData.length} registros${searchActive ? ' (filtrados)' : ''}`;
     }
 
-    // ═══════════════════════════════════════════════
-    // SELEÇÃO / BULK ACTIONS
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // SELEÃ‡ÃƒO / BULK ACTIONS
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     function toggleRow(numero, checked) {
       if (checked) selectedRows.add(numero); else selectedRows.delete(numero);
       // Highlight visual
@@ -767,9 +769,9 @@
       syncMasterCheckbox();
     }
 
-    // ═══════════════════════════════════════════════
-    // MODAL DE CONFIRMAÇÃO + EXCLUSÃO CASCATA
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // MODAL DE CONFIRMAÃ‡ÃƒO + EXCLUSÃƒO CASCATA
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     function openDeleteModal() {
       const count = selectedRows.size;
@@ -798,9 +800,9 @@
       setTimeout(() => toast.remove(), 4000);
     }
 
-    // ═══════════════════════════════════════════════
-    // EXCLUSÃO ATÔMICA — SINGLE WRITEBATCH
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // EXCLUSÃƒO ATÃ”MICA â€” SINGLE WRITEBATCH
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     async function confirmBulkDelete() {
       const btn = document.getElementById('btnConfirmDelete');
       btn.disabled = true;
@@ -809,12 +811,12 @@
       const frozenIds = [...selectedRows];
       const totalToDelete = frozenIds.length;
 
-      console.log(`🔒 EXCLUSÃO INICIADA — ${totalToDelete} itens congelados:`, frozenIds);
+      console.log(`ðŸ”’ EXCLUSÃƒO INICIADA â€” ${totalToDelete} itens congelados:`, frozenIds);
 
       const mt = window.multitenantConfig;
       if (!mt || !mt.getActiveCompany()) {
         closeDeleteModal();
-        showToast('Erro: empresa ativa não disponível.', 'error');
+        showToast('Erro: empresa ativa nÃ£o disponÃ­vel.', 'error');
         return;
       }
 
@@ -828,7 +830,7 @@
         let failCount = 0;
 
         // Processamento sequencial/Promise.all para simular batch
-        // Nota: A abstração multitenant não suporta batch, então usamos operações individuais
+        // Nota: A abstraÃ§Ã£o multitenant nÃ£o suporta batch, entÃ£o usamos operaÃ§Ãµes individuais
         const tasks = frozenIds.map(async (numero) => {
           const contract = allData.find(c => c.numero === numero);
           if (!contract) return;
@@ -838,7 +840,7 @@
             if (contract.firestoreSource === 'contratos' && contract.firestoreId) {
               await contractsCol.doc(contract.firestoreId).delete();
             }
-            // Se estiver dentro de uma família
+            // Se estiver dentro de uma famÃ­lia
             else if (contract.firestoreSource === 'familia' && contract.familyId) {
               const famSnap = await familiasCol.doc(contract.familyId).get();
               if (famSnap.exists) {
@@ -849,7 +851,7 @@
                 await familiasCol.doc(contract.familyId).update({ contratos: updatedContratos });
               }
             }
-            // Limpeza de localStorage se necessário
+            // Limpeza de localStorage se necessÃ¡rio
             const editKey = `CONTRACT_EDIT_${numero}`;
             if (localStorage.getItem(editKey)) localStorage.removeItem(editKey);
 
@@ -874,22 +876,22 @@
         closeDeleteModal();
 
         if (failCount > 0) {
-          showToast(`${successCount} excluídos, ${failCount} falharam.`, 'warning');
+          showToast(`${successCount} excluÃ­dos, ${failCount} falharam.`, 'warning');
         } else {
-          showToast(`${totalToDelete} contrato(s) excluído(s) com sucesso!`, 'success');
+          showToast(`${totalToDelete} contrato(s) excluÃ­do(s) com sucesso!`, 'success');
         }
 
       } catch (error) {
-        console.error('❌ Erro na exclusão:', error);
+        console.error('âŒ Erro na exclusÃ£o:', error);
         _deletionInProgress = false;
         closeDeleteModal();
         showToast('Erro ao excluir: ' + error.message, 'error');
       }
     }
 
-    // ═══════════════════════════════════════════════
-    // BUSCA + ATUALIZAÇÃO COMPLETA
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // BUSCA + ATUALIZAÃ‡ÃƒO COMPLETA
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     function applySearch(data) {
       const q = String($search().value || '').trim().toLowerCase();
       if (!q) return data;
@@ -897,16 +899,16 @@
     }
 
     function applySearchAndRender() {
-      if (_deletionInProgress) { console.log('⏸️ applySearchAndRender bloqueado — exclusão em andamento'); return; }
+      if (_deletionInProgress) { console.log('â¸ï¸ applySearchAndRender bloqueado â€” exclusÃ£o em andamento'); return; }
       filteredData = applySearch(allData);
       currentPage = 1;
       renderTable();
       renderPagination();
     }
 
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // LOADING DE DADOS (6 FONTES)
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     async function loadFromContratosFirestore() {
       try {
         const mt = window.multitenantConfig;
@@ -928,7 +930,7 @@
           contratos.forEach(ct => list.push(toContract({ ...ct, firestoreSource: 'familia', familyId: doc.id }, fam)));
         });
         return list;
-      } catch (e) { console.warn('Falha ao carregar contratos via famílias (Firestore):', e); return null; }
+      } catch (e) { console.warn('Falha ao carregar contratos via famÃ­lias (Firestore):', e); return null; }
     }
 
     function loadFromLocalFamilias() {
@@ -969,9 +971,9 @@
       try {
         const mt = window.multitenantConfig;
         if (!mt || !mt.initialized) return null;
-        // No Supabase, 'contratos' sem empresa_id não existe estruturalmente na ponte multitenant
+        // No Supabase, 'contratos' sem empresa_id nÃ£o existe estruturalmente na ponte multitenant
         // mas podemos tentar simular se houver uma tabela global.
-        // Por enquanto, mantemos vazio se não houver contexto.
+        // Por enquanto, mantemos vazio se nÃ£o houver contexto.
         return null;
       } catch (e) { return null; }
     }
@@ -985,7 +987,7 @@
     }
 
     async function loadAll() {
-      console.log('🔍 Iniciando carregamento de contratos...');
+      console.log('ðŸ” Iniciando carregamento de contratos...');
       try {
         const [a, b, e, f] = await Promise.all([
           loadFromContratosFirestore(),
@@ -996,7 +998,7 @@
         const c = loadFromLocalFamilias();
         const d = loadFromLocalContractEdits();
 
-        console.log('📦 contratos:', a?.length || 0, '| familias:', b?.length || 0,
+        console.log('ðŸ“¦ contratos:', a?.length || 0, '| familias:', b?.length || 0,
           '| local:', c?.length || 0, '| edits:', d?.length || 0,
           '| global-c:', e?.length || 0, '| global-f:', f?.length || 0);
 
@@ -1008,21 +1010,21 @@
         });
 
         allData = Array.from(dedup.values());
-        console.log('✅ Total após dedupe:', allData.length);
+        console.log('âœ… Total apÃ³s dedupe:', allData.length);
 
         applySearchAndRender();
 
         // Busca reativa
         $search().addEventListener('input', () => applySearchAndRender());
       } catch (err) {
-        console.error('❌ Erro de carregamento:', err);
+        console.error('âŒ Erro de carregamento:', err);
         allData = []; applySearchAndRender();
       }
     }
 
-    // ═══════════════════════════════════════════════
-    // INICIALIZAÇÃO AUTOSSUFICIENTE
-    // ═══════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // INICIALIZAÃ‡ÃƒO AUTOSSUFICIENTE
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     let _loadAllExecuted = false;
 
     function resolveCompanyId() {
@@ -1064,14 +1066,14 @@
     });
   </script>
 
-  <!-- Modal de Confirmação de Exclusão -->
+  <!-- Modal de ConfirmaÃ§Ã£o de ExclusÃ£o -->
   <div id="deleteModal" class="modal-overlay" onclick="if(event.target===this)closeDeleteModal()">
     <div class="modal-card">
       <div class="modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
-      <div class="modal-title">Confirmar Exclusão</div>
+      <div class="modal-title">Confirmar ExclusÃ£o</div>
       <div class="modal-desc">
-        Você está prestes a excluir <strong><span id="deleteCount">0</span> contrato(s)</strong>.<br>
-        Esta ação <strong>não pode ser desfeita</strong> e também removerá as referências destes contratos nas famílias
+        VocÃª estÃ¡ prestes a excluir <strong><span id="deleteCount">0</span> contrato(s)</strong>.<br>
+        Esta aÃ§Ã£o <strong>nÃ£o pode ser desfeita</strong> e tambÃ©m removerÃ¡ as referÃªncias destes contratos nas famÃ­lias
         associadas.
       </div>
       <div class="modal-actions">

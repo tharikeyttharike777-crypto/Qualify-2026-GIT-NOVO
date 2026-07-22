@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Pesquisar Pets - Gestão de Planos</title>
+    <title>Pesquisar Pets - GestÃ£o de Planos</title>
     <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
@@ -17,6 +18,8 @@
         rel="stylesheet">
     <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
     <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -42,12 +45,12 @@
                 <div class="logo">
                     <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
                         style="margin-right: 8px;">
-                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                    <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
                 </div>
             </div>
             <div class="header-center">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                     <i class="fas fa-search search-icon"></i>
                     <div id="search-results" class="search-results"></div>
                 </div>
@@ -58,12 +61,12 @@
                     <span class="notification-badge">9</span>
                 </div>
                 <div class="user-info">
-                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                    <!-- InformaÃ§Ãµes do usuÃ¡rio serÃ£o inseridas aqui pelo auth-manager -->
                 </div>
 
-                <!-- Menu de Usuário -->
+                <!-- Menu de UsuÃ¡rio -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio"
                         aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
@@ -78,17 +81,17 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Meu Perfil</span>
-                                    <span class="dropdown-item-subtitle">Configurações pessoais</span>
+                                    <span class="dropdown-item-subtitle">ConfiguraÃ§Ãµes pessoais</span>
                                 </div>
                             </a>
 
-                            <!-- Item 2: Configurações -->
+                            <!-- Item 2: ConfiguraÃ§Ãµes -->
                             <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
                                 <div class="dropdown-item-icon">
                                     <i class="fas fa-cog"></i>
                                 </div>
                                 <div class="dropdown-item-content">
-                                    <span class="dropdown-item-title">Configurações</span>
+                                    <span class="dropdown-item-title">ConfiguraÃ§Ãµes</span>
                                     <span class="dropdown-item-subtitle">Ajustes do sistema</span>
                                 </div>
                             </a>
@@ -103,7 +106,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Ajuda</span>
-                                    <span class="dropdown-item-subtitle">Suporte e documentação</span>
+                                    <span class="dropdown-item-subtitle">Suporte e documentaÃ§Ã£o</span>
                                 </div>
                             </a>
 
@@ -118,7 +121,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Sair</span>
-                                    <span class="dropdown-item-subtitle">Encerrar sessão</span>
+                                    <span class="dropdown-item-subtitle">Encerrar sessÃ£o</span>
                                 </div>
                             </a>
                         </div>
@@ -149,7 +152,7 @@
                             <li><a href="dashboard.html">Dashboard</a></li>
                             <li><a href="inadimplentes.html">Inadimplentes</a></li>
                             <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                            <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                             <li><a href="controle-caixas.html">Controle de caixas</a></li>
                             <li><a href="contas-receber.html">Contas a receber</a></li>
 
@@ -166,8 +169,8 @@
                         <ul class="submenu">
                             <li><a href="contratos.html">Ativos</a></li>
                             <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                            <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                            <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                            <li><a href="renegociacao-cobrancas.html">RenegociaÃ§Ã£o</a></li>
                             <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                             <li><a href="cancelados.html">Cancelados</a></li>
                         </ul>
@@ -181,8 +184,8 @@
                             <i class="fas fa-chevron-down arrow-icon"></i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
-                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentaÃ§Ãµes</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                             <li><a href="contas-pagar.html">Contas a pagar</a></li>
                             <li><a href="resumo-dia.html">Resumo do dia</a></li>
                             <li><a href="comissionamento.html">Comissionamento</a></li>
@@ -190,15 +193,15 @@
                         </ul>
                     </li>
 
-                    <!-- Famílias -->
+                    <!-- FamÃ­lias -->
                     <li class="menu-item has-submenu">
                         <a href="#" class="menu-link">
                             <i class="icon-family"></i>
-                            <span class="menu-text">Famílias</span>
+                            <span class="menu-text">FamÃ­lias</span>
                             <i class="fas fa-chevron-down arrow-icon"></i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                            <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                             <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
                             <li><a href="pesquisar-pets.html" class="active">Pesquisar Pets</a></li>
                             <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -217,7 +220,7 @@
                     <i class="fas fa-filter"></i> Filtrar
                 </button>
                 <button class="btn btn-options" id="optionsBtn">
-                    <i class="fas fa-cog"></i> Opções
+                    <i class="fas fa-cog"></i> OpÃ§Ãµes
                 </button>
             </div>
             <div class="filter-status">
@@ -225,7 +228,7 @@
             </div>
             <div class="filter-search" style="margin-left:auto;display:flex;align-items:center;gap:8px;">
                 <input type="text" id="petSearch" class="search-input"
-                    placeholder="Buscar pet por nome, família, raça..." aria-label="Buscar pet" />
+                    placeholder="Buscar pet por nome, famÃ­lia, raÃ§a..." aria-label="Buscar pet" />
                 <i class="fas fa-search" aria-hidden="true"></i>
             </div>
         </div>
@@ -251,13 +254,13 @@
                         <th class="checkbox-col">
                             <input type="checkbox" id="selectAll">
                         </th>
-                        <th class="actions-col">Opções</th>
+                        <th class="actions-col">OpÃ§Ãµes</th>
                         <th class="photo-col">Foto</th>
-                        <th class="family-col">Família</th>
+                        <th class="family-col">FamÃ­lia</th>
                         <th class="document-col">Documento</th>
                         <th class="name-col">Nome</th>
-                        <th class="species-col">Espécie</th>
-                        <th class="breed-col">Raça</th>
+                        <th class="species-col">EspÃ©cie</th>
+                        <th class="breed-col">RaÃ§a</th>
                         <th class="coat-col">Pelagem</th>
                         <th class="gender-col">Sexo</th>
                         <th class="weight-col">Peso</th>
@@ -585,4 +588,5 @@
 </body>
 
 </html>
+
 

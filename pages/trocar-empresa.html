@@ -1,20 +1,23 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trocar Empresa - QUALIFY 2.0</title>
     <link rel="stylesheet" href="../assets/css/styles.css">
     <link rel="stylesheet" href="../assets/css/header.css">
     <link rel="stylesheet" href="../assets/css/trocar-empresa.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
-    <!-- Cabeçalho -->
+    <!-- CabeÃ§alho -->
     <header class="header">
         <div class="header-left">
-            <button id="voltarBtn" class="btn-voltar">← Voltar</button>
+            <button id="voltarBtn" class="btn-voltar">â† Voltar</button>
         </div>
         <div class="header-center">
             <h1>Trocar Empresa</h1>
@@ -27,7 +30,7 @@
     <!-- Corpo Principal -->
     <main class="main-content">
         <div class="content-area">
-            <!-- Botão Nova Empresa -->
+            <!-- BotÃ£o Nova Empresa -->
             <div class="nova-empresa-section">
                 <button id="novaEmpresaBtn" class="btn-nova-empresa">+ Nova Empresa</button>
             </div>
@@ -38,11 +41,11 @@
                 <p>Carregando empresas...</p>
             </div>
 
-            <!-- Área de Empresas Existentes -->
+            <!-- Ãrea de Empresas Existentes -->
             <div class="empresas-section" style="display:none;">
                 <h2>Empresas Existentes</h2>
                 <div id="empresasGrid" class="empresas-grid">
-                    <!-- Empresas serão carregadas aqui -->
+                    <!-- Empresas serÃ£o carregadas aqui -->
                 </div>
                 <div id="nenhumaEmpresa" class="nenhuma-empresa" style="display: none;">
                     <p>Nenhuma empresa encontrada. Crie sua primeira empresa!</p>
@@ -140,7 +143,7 @@
                     '<h3>' + (emp.name || 'Sem nome') + '</h3>' +
                     '<p class="empresa-cnpj">' + (emp.cnpj || '') + '</p>' +
                     '<p class="empresa-cidade">' + (emp.city || '') + '</p>' +
-                    '<span class="empresa-tipo">' + (emp.tipo === 'owner' ? 'Proprietário' : 'Membro') + '</span>' +
+                    '<span class="empresa-tipo">' + (emp.tipo === 'owner' ? 'ProprietÃ¡rio' : 'Membro') + '</span>' +
                     (localStorage.getItem('activeCompanyId') === emp.id ? '<span class="empresa-ativa">ATIVA</span>' : '') +
                     '</div>' +
                     '<div class="empresa-actions">' +
@@ -186,16 +189,16 @@
         }
 
         async function deletarEmpresa(empresaId) {
-            if (!confirm('Excluir esta empresa? Ação irreversível.')) return;
+            if (!confirm('Excluir esta empresa? AÃ§Ã£o irreversÃ­vel.')) return;
             const resp = await window.supabase.from('empresas').delete().eq('id', empresaId);
             if (resp.error) { alert('Erro ao excluir: ' + resp.error.message); return; }
-            alert('Empresa excluída!');
+            alert('Empresa excluÃ­da!');
             carregarEmpresas();
         }
 
         async function salvarNovaEmpresa(e) {
             e.preventDefault();
-            if (!currentUser) { alert('Você não está logado!'); return; }
+            if (!currentUser) { alert('VocÃª nÃ£o estÃ¡ logado!'); return; }
             const nome = document.getElementById('input-nome-empresa').value.trim();
             const cnpj = document.getElementById('input-cnpj').value.trim();
             const cidade = document.getElementById('input-cidade').value.trim();
@@ -220,14 +223,14 @@
         }
 
         async function initPage() {
-            // Aguarda o supabase-client.js inicializar (máx 3s)
+            // Aguarda o supabase-client.js inicializar (mÃ¡x 3s)
             let waited = 0;
             while (!window.supabase && waited < 3000) {
                 await new Promise(r => setTimeout(r, 100));
                 waited += 100;
             }
             if (!window.supabase) {
-                alert('Erro: Supabase não carregado. Verifique sua conexão.');
+                alert('Erro: Supabase nÃ£o carregado. Verifique sua conexÃ£o.');
                 return;
             }
 
@@ -262,8 +265,9 @@
         document.addEventListener('DOMContentLoaded', initPage);
     </script>
 
-    <!-- Font Awesome para ícones -->
+    <!-- Font Awesome para Ã­cones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </body>
 
 </html>
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -8,16 +8,16 @@
     <!-- ERRO SUPPRESSION: Se o erro "Verifique se a empresa" aparecer, mate-o silenciosamente -->
     <script>
         window.onerror = function (msg, url, line) {
-            if (typeof msg === 'string' && (msg.includes('Verifique se a empresa') || msg.includes('Contrato não localizado'))) {
-                console.warn('⚠️ Erro fantasma suprimido:', msg);
+            if (typeof msg === 'string' && (msg.includes('Verifique se a empresa') || msg.includes('Contrato nÃ£o localizado'))) {
+                console.warn('âš ï¸ Erro fantasma suprimido:', msg);
                 return true; // Impede o erro de aparecer no console/alert
             }
         };
-        // Sobrescreve alert também, só por garantia
+        // Sobrescreve alert tambÃ©m, sÃ³ por garantia
         const originalAlert = window.alert;
         window.alert = function (msg) {
-            if (typeof msg === 'string' && (msg.includes('Verifique se a empresa') || msg.includes('Contrato não localizado'))) {
-                console.warn('⚠️ Alert fantasma suprimido:', msg);
+            if (typeof msg === 'string' && (msg.includes('Verifique se a empresa') || msg.includes('Contrato nÃ£o localizado'))) {
+                console.warn('âš ï¸ Alert fantasma suprimido:', msg);
                 return;
             }
             return originalAlert(msg);
@@ -25,7 +25,7 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Edição de Contrato</title>
+    <title>EdiÃ§Ã£o de Contrato</title>
     <link rel="stylesheet" href="../assets/css/styles.css" />
     <!-- Header & Sidebar styles para replicar o index -->
     <link rel="stylesheet" href="../assets/css/sidebar-menu.css" />
@@ -78,12 +78,14 @@
     <script src="../assets/js/core/supabase-client.js?v=clean_final"></script>
     <script src="../assets/js/core/multitenant-config.js"></script>
 
-    <!-- Scripts do header (funcionalidades de busca e menu do usuário) -->
+    <!-- Scripts do header (funcionalidades de busca e menu do usuÃ¡rio) -->
     <script src="../assets/js/core/user-menu.js" defer></script>
     <script src="../assets/js/utils/header-search.js" defer></script>
     <script src="../assets/js/core/sidebar-menu.js" defer></script>
     <script src="../assets/js/features/sidebar.js" defer></script>
     <script src="../assets/js/utils/navigation-fix.js" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -96,12 +98,12 @@
             <div class="logo">
                 <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
                     style="margin-right: 8px;">
-                <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
             </div>
         </div>
         <div class="header-center">
             <div class="search-container">
-                <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                 <i class="fas fa-search search-icon"></i>
                 <div id="search-results" class="search-results"></div>
             </div>
@@ -113,7 +115,7 @@
             </div>
             <div class="user-info"></div>
             <div class="user-menu-container">
-                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio"
                     aria-expanded="false">
                     <i class="fas fa-user-circle"></i>
                 </button>
@@ -131,7 +133,7 @@
                         <a href="configuracoes-bancarias.html" class="dropdown-item" role="menuitem"
                             data-action="banking">
                             <i class="fas fa-university"></i>
-                            <span>Integrações Bancárias</span>
+                            <span>IntegraÃ§Ãµes BancÃ¡rias</span>
                         </a>
                         <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="account">
                             <i class="fas fa-wallet"></i>
@@ -140,11 +142,11 @@
                         <a href="area-associado-login.html" class="dropdown-item" role="menuitem"
                             data-action="associate-area" target="_blank">
                             <i class="fas fa-external-link-alt"></i>
-                            <span>Área do Associado</span>
+                            <span>Ãrea do Associado</span>
                         </a>
                         <a href="catalogo-planos.html" class="dropdown-item" role="menuitem" data-action="catalog">
                             <i class="fas fa-book"></i>
-                            <span>Catálogo de Planos</span>
+                            <span>CatÃ¡logo de Planos</span>
                         </a>
                         <div class="dropdown-separator"></div>
                         <button class="dropdown-item logout-item" id="logoutBtn" role="menuitem">
@@ -158,7 +160,7 @@
         </div>
     </header>
 
-    <!-- Menu lateral para o botão hambúrguer -->
+    <!-- Menu lateral para o botÃ£o hambÃºrguer -->
     <nav id="sidebar" class="sidebar">
         <div class="sidebar-header">
             <h3>Menu</h3>
@@ -166,7 +168,7 @@
         </div>
         <div class="sidebar-content">
             <div class="sidebar-user-info">
-                <p class="user-email-display">Usuário: <span id="userDisplaySidebar">Nenhum usuário</span></p>
+                <p class="user-email-display">UsuÃ¡rio: <span id="userDisplaySidebar">Nenhum usuÃ¡rio</span></p>
                 <p class="company-display">Empresa: <span id="empresaDisplaySidebar">Nenhuma empresa ativa</span></p>
             </div>
             <ul class="sidebar-menu">
@@ -174,7 +176,7 @@
                     <a href="#" class="menu-link">
                         <i class="icon-star"></i>
                         <span class="menu-text">Mais usados</span>
-                        <i class="arrow-icon">▼</i>
+                        <i class="arrow-icon">â–¼</i>
                     </a>
                     <ul class="submenu">
                         <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
@@ -182,7 +184,7 @@
                         <li><a href="../pages/dashboard.html">Dashboard</a></li>
                         <li><a href="inadimplentes.html">Inadimplentes</a></li>
                         <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                        <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                         <li><a href="controle-caixas.html">Controle de caixas</a></li>
                         <li><a href="contas-receber.html">Contas a receber</a></li>
                         <li><a href="vendas.html">Vendas</a></li>
@@ -192,13 +194,13 @@
                     <a href="#" class="menu-link">
                         <i class="icon-contract"></i>
                         <span class="menu-text">Contratos</span>
-                        <i class="arrow-icon">▼</i>
+                        <i class="arrow-icon">â–¼</i>
                     </a>
                     <ul class="submenu">
                         <li><a href="contratos.html">Ativos</a></li>
                         <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">RenegociaÃ§Ã£o</a></li>
                         <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                         <li><a href="cancelados.html">Cancelados</a></li>
                     </ul>
@@ -207,11 +209,11 @@
                     <a href="#" class="menu-link">
                         <i class="icon-money"></i>
                         <span class="menu-text">Financeiro</span>
-                        <i class="arrow-icon">▼</i>
+                        <i class="arrow-icon">â–¼</i>
                     </a>
                     <ul class="submenu">
                         <li><a href="contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                     </ul>
                 </li>
             </ul>
@@ -226,16 +228,16 @@
             <span id="holderName" class="value">Carregando...</span>
             <span class="divider">|</span>
             <span class="label">CPF:</span>
-            <span id="holderCpf" class="value" data-cpf="">—</span>
+            <span id="holderCpf" class="value" data-cpf="">â€”</span>
         </div>
         <div class="page-header">
             <div class="page-title">
-                <h2 id="pageTitle">Edição do contrato</h2>
+                <h2 id="pageTitle">EdiÃ§Ã£o do contrato</h2>
                 <span id="statusIcon" class="status-icon" title="Status"></span>
 
             </div>
             <div class="header-actions">
-                <!-- BOTÃO VOLTAR - CORRIGIDO PARA RESETAR FILTROS -->
+                <!-- BOTÃƒO VOLTAR - CORRIGIDO PARA RESETAR FILTROS -->
                 <a href="contratos.html?reset=true" id="btnVoltarContratos" class="btn btn-secondary"
                     style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                     <i class="fas fa-arrow-left"></i> Voltar para Contratos
@@ -244,26 +246,26 @@
                     <button class="btn btn-secondary"><i class="fas fa-file"></i> Documentos</button>
                     <div class="dropdown-menu">
                         <div class="dropdown-item" id="docContrato">Contrato <i class="fas fa-file-pdf"></i></div>
-                        <a class="dropdown-item" id="docArea" href="../pages/area-associado.html" target="_blank">Área
+                        <a class="dropdown-item" id="docArea" href="../pages/area-associado.html" target="_blank">Ãrea
                             do Associado <i class="fas fa-external-link-alt"></i></a>
                         <div class="dropdown-item" id="docCarteirinha">Carteirinha <i class="fas fa-id-card"></i></div>
                         <div class="dropdown-item" id="docGerenciar">Gerenciar documentos <i
                                 class="fas fa-folder-open"></i></div>
                     </div>
                 </div>
-                <!-- Botão Salvar removido -->
+                <!-- BotÃ£o Salvar removido -->
                 <div id="dropdownOptions" class="dropdown">
-                    <button class="btn btn-secondary"><i class="fas fa-ellipsis-h"></i> Opções</button>
+                    <button class="btn btn-secondary"><i class="fas fa-ellipsis-h"></i> OpÃ§Ãµes</button>
                     <div class="dropdown-menu">
                         <div class="dropdown-item" id="optEmitir">Emitir <i class="fas fa-file-pdf"></i></div>
                         <div class="dropdown-item" id="optCancelar">Cancelar <i class="fas fa-ban"></i></div>
-                        <div class="dropdown-item" id="optRenovar">Renovar Carências <i class="fas fa-rotate"></i></div>
+                        <div class="dropdown-item" id="optRenovar">Renovar CarÃªncias <i class="fas fa-rotate"></i></div>
                         <div class="dropdown-item" id="optCompartilhar">Compartilhar Link <i
                                 class="fas fa-share-alt"></i></div>
                         <div class="dropdown-item" id="optDuplicar">Duplicar contrato <i class="fas fa-copy"></i></div>
                         <div class="dropdown-item" id="optExportar">Exportar PDF <i class="fas fa-file-export"></i>
                         </div>
-                        <div class="dropdown-item" id="optHistorico">Histórico de alterações <i
+                        <div class="dropdown-item" id="optHistorico">HistÃ³rico de alteraÃ§Ãµes <i
                                 class="fas fa-history"></i></div>
                         <div class="dropdown-item disabled" id="optReativar" title="Em breve">Reativar Contrato</div>
                     </div>
@@ -272,33 +274,99 @@
         </div>
 
 
-        <div class="inline-info">
-            <span class="info-item"><span class="info-label">Número do contrato</span><span id="ivNumero"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Data do contrato</span><span id="ivDataContrato"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Plano</span><span id="ivPlano"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Tipo de cobrança</span><span id="ivTipo"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Valor da mensalidade</span><span id="ivValor"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Data de desativação</span><span id="ivDesativacao"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Situação</span><span id="ivSituacao"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Em carência?</span><span id="ivEmCarencia"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Vencido?</span><span id="ivVencido"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Qtd. parcelas</span><span id="ivQtdParcelas"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Primeira parcela</span><span id="ivPrimeiraParcela"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Última parcela</span><span id="ivUltimaParcela"
-                    class="info-value">—</span></span>
-            <span class="info-item"><span class="info-label">Total recebido</span><span id="ivTotalRecebido"
-                    class="info-value">—</span></span>
+        <!-- Resumo do Contrato - Cards Modernos -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; margin-top: 16px;">
+            <!-- Card: Detalhes do Plano -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                    <i class="fas fa-file-contract" style="color: #3b82f6;"></i>
+                    <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Detalhes do Plano</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">NÂº Contrato</span>
+                        <span id="ivNumero" style="display: block; font-size: 14px; font-weight: 600; color: #0f172a;">â€”</span>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Data Contrato</span>
+                        <span id="ivDataContrato" style="display: block; font-size: 14px; font-weight: 600; color: #0f172a;">â€”</span>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Plano Atual</span>
+                        <span id="ivPlano" style="display: block; font-size: 14px; font-weight: 600; color: #0f172a;">â€”</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: InformaÃ§Ãµes Financeiras -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                    <i class="fas fa-money-bill-wave" style="color: #10b981;"></i>
+                    <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Financeiro</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">CobranÃ§a</span>
+                        <span id="ivTipo" style="display: block; font-size: 14px; font-weight: 600; color: #0f172a;">â€”</span>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Mensalidade</span>
+                        <span id="ivValor" style="display: block; font-size: 14px; font-weight: 600; color: #10b981;">â€”</span>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">1Âª Parcela</span>
+                        <span id="ivPrimeiraParcela" style="display: block; font-size: 14px; font-weight: 500; color: #334155;">â€”</span>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Ãšltima Parcela</span>
+                        <span id="ivUltimaParcela" style="display: block; font-size: 14px; font-weight: 500; color: #334155;">â€”</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Status e Indicadores -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                    <i class="fas fa-chart-pie" style="color: #f59e0b;"></i>
+                    <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Status Operacional</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">SituaÃ§Ã£o</span>
+                        <span id="ivSituacao" style="display: block; font-size: 14px; font-weight: 700; color: #0f172a;">â€”</span>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Vencido?</span>
+                        <span id="ivVencido" style="display: block; font-size: 14px; font-weight: 600; color: #ef4444;">â€”</span>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Em CarÃªncia?</span>
+                        <span id="ivEmCarencia" style="display: block; font-size: 14px; font-weight: 500; color: #f59e0b;">â€”</span>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">DesativaÃ§Ã£o</span>
+                        <span id="ivDesativacao" style="display: block; font-size: 14px; font-weight: 500; color: #334155;">â€”</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: BalanÃ§o Total -->
+            <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #334155; border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); color: white;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px;">
+                    <i class="fas fa-wallet" style="color: #60a5fa;"></i>
+                    <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #f8fafc;">BalanÃ§o Total</h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Total Recebido</span>
+                        <span id="ivTotalRecebido" style="display: block; font-size: 22px; font-weight: 700; color: #4ade80;">â€”</span>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Parcelas Pagas</span>
+                        <span id="ivQtdParcelas" style="display: inline-block; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px;">â€”</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Duas colunas -->
@@ -307,28 +375,28 @@
                 <h3>Dados do Contrato</h3>
                 <div class="contract-grid">
                     <div class="kv">
-                        <span class="kv-label">Número do contrato</span>
-                        <span id="cvNumero" class="kv-value">—</span>
+                        <span class="kv-label">NÃºmero do contrato</span>
+                        <span id="cvNumero" class="kv-value">â€”</span>
                     </div>
                     <div class="kv">
                         <span class="kv-label">Data do contrato</span>
-                        <span id="cvDataContrato" class="kv-value">—</span>
+                        <span id="cvDataContrato" class="kv-value">â€”</span>
                     </div>
                     <div class="kv">
                         <span class="kv-label">Plano</span>
-                        <span id="cvPlano" class="kv-value">—</span>
+                        <span id="cvPlano" class="kv-value">â€”</span>
                     </div>
                     <div class="kv">
-                        <span class="kv-label">Tipo de cobrança</span>
-                        <span id="cvTipo" class="kv-value">—</span>
+                        <span class="kv-label">Tipo de cobranÃ§a</span>
+                        <span id="cvTipo" class="kv-value">â€”</span>
                     </div>
                     <div class="kv">
                         <span class="kv-label">Valor da mensalidade</span>
-                        <span id="cvValor" class="kv-value">—</span>
+                        <span id="cvValor" class="kv-value">â€”</span>
                     </div>
                     <div class="kv">
-                        <span class="kv-label">Data de desativação</span>
-                        <span id="cvDesativacao" class="kv-value">—</span>
+                        <span class="kv-label">Data de desativaÃ§Ã£o</span>
+                        <span id="cvDesativacao" class="kv-value">â€”</span>
                     </div>
                 </div>
             </div>
@@ -337,32 +405,32 @@
                 <h3>Resumo Financeiro</h3>
                 <div class="summary-grid">
                     <div class="summary-item">
-                        <span class="summary-label">Situação</span>
-                        <span id="svSituacao" class="chip">—</span>
+                        <span class="summary-label">SituaÃ§Ã£o</span>
+                        <span id="svSituacao" class="chip">â€”</span>
                     </div>
                     <div class="summary-item">
-                        <span class="summary-label">Em carência?</span>
-                        <span id="svEmCarencia" class="summary-value">—</span>
+                        <span class="summary-label">Em carÃªncia?</span>
+                        <span id="svEmCarencia" class="summary-value">â€”</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">Vencido?</span>
-                        <span id="svVencido" class="summary-value">—</span>
+                        <span id="svVencido" class="summary-value">â€”</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">Qtd. parcelas</span>
-                        <span id="svQtdParcelas" class="summary-value">—</span>
+                        <span id="svQtdParcelas" class="summary-value">â€”</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">Primeira parcela</span>
-                        <span id="svPrimeiraParcela" class="summary-value">—</span>
+                        <span id="svPrimeiraParcela" class="summary-value">â€”</span>
                     </div>
                     <div class="summary-item">
-                        <span class="summary-label">Última parcela</span>
-                        <span id="svUltimaParcela" class="summary-value">—</span>
+                        <span class="summary-label">Ãšltima parcela</span>
+                        <span id="svUltimaParcela" class="summary-value">â€”</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">Total recebido</span>
-                        <span id="svTotalRecebido" class="summary-value">—</span>
+                        <span id="svTotalRecebido" class="summary-value">â€”</span>
                     </div>
                 </div>
             </div>
@@ -376,7 +444,7 @@
                         <tr>
                             <th>Nome</th>
                             <th>Parentesco</th>
-                            <th>Ações</th>
+                            <th>AÃ§Ãµes</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -389,7 +457,7 @@
                         <tr>
                             <th>Nome</th>
                             <th>Parentesco</th>
-                            <th>Ações</th>
+                            <th>AÃ§Ãµes</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -397,9 +465,9 @@
             </div>
         </div>
 
-        <!-- Seção Financeira -->
+        <!-- SeÃ§Ã£o Financeira -->
         <div class="tabs">
-            <div class="tab active" data-tab="cobrancas">Cobranças</div>
+            <div class="tab active" data-tab="cobrancas">CobranÃ§as</div>
             <div class="tab" data-tab="familiares">Familiares</div>
             <div class="tab" data-tab="eventos">Eventos</div>
             <div class="tab" data-tab="lembretes">Lembretes</div>
@@ -407,51 +475,80 @@
 
         </div>
         <div class="tab-content" id="tabsContent">
-            <!-- Conteúdo: Cobranças -->
+            <!-- ConteÃºdo: CobranÃ§as -->
             <div id="tab-cobrancas">
-                <div class="page-header" style="grid-template-columns: 1fr auto;">
-                    <h3 style="margin:0">Cobranças</h3>
-                    <button id="btnAddCharge" class="btn btn-primary"><i class="fas fa-plus"></i> Adicionar
-                        cobrança</button>
+                <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="background-color: #e7f1ff; padding: 10px; border-radius: 8px; color: #0d6efd; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-file-invoice-dollar" style="font-size: 20px;"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #212529;">GestÃ£o de CobranÃ§as</h3>
+                            <p style="margin: 4px 0 0; font-size: 13px; color: #6c757d;">Acompanhe faturas em aberto e histÃ³rico de pagamentos</p>
+                        </div>
+                    </div>
+                    <button id="btnAddCharge" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 16px; box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);">
+                        <i class="fas fa-plus"></i> Adicionar cobranÃ§a
+                    </button>
                 </div>
 
-                <h4>Em Aberto</h4>
-                <table id="tblAbertas" class="table-fixed" style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#f8f9fa;">
-                            <th style="width:60px; padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">
-                                Tipo</th>
-                            <th style="width:100px; padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">
-                                Vencimento</th>
-                            <th style="width:100px; padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">
-                                Valor</th>
-                            <th style="width:100px; padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">
-                                Status</th>
-                            <th style="padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <!-- Tabela Em Aberto -->
+                <div class="border rounded-lg bg-white shadow-sm overflow-hidden" style="margin-bottom: 24px; border: 1px solid #dee2e6; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                    <div class="px-4 py-3 border-b flex justify-between items-center" style="background-color: #fff8e1; border-bottom: 1px solid #ffecb3; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="flex items-center gap-2" style="display: flex; align-items: center; gap: 8px;">
+                            <div class="p-1.5 rounded-md" style="background-color: #ffecb3; color: #f57f17; padding: 6px; border-radius: 6px; display: flex;"><i class="fas fa-clock"></i></div>
+                            <div>
+                                <h4 class="font-bold text-sm m-0" style="color: #f57f17; font-weight: 700; margin: 0; font-size: 14px;">Em Aberto</h4>
+                                <p class="text-xs m-0" style="color: #fbc02d; margin: 0; font-size: 12px;">Faturas aguardando pagamento ou vencidas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto" style="overflow-x: auto;">
+                        <table id="tblAbertas" class="w-full text-sm text-left table-fixed" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                            <thead class="bg-gray-50 text-gray-500 font-medium border-b" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+                                <tr>
+                                    <th class="p-3 text-center" style="width:10%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">Tipo</th>
+                                    <th class="p-3 text-center" style="width:20%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">Vencimento</th>
+                                    <th class="p-3 text-center" style="width:20%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">Valor</th>
+                                    <th class="p-3 text-center" style="width:20%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">Status</th>
+                                    <th class="p-3 text-center" style="width:30%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">AÃ§Ãµes</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
 
-                <h4 style="margin-top:16px;">Pagos</h4>
-                <table id="tblPagas" class="table-fixed" style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#f8f9fa;">
-                            <th style="width:60px; padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">
-                                Tipo</th>
-                            <th style="width:120px; padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">
-                                Data Pgto</th>
-                            <th style="width:100px; padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">
-                                Valor</th>
-                            <th style="padding:10px; text-align:center; border-bottom:2px solid #dee2e6;">Método</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <!-- Tabela Pagos -->
+                <div class="border rounded-lg bg-white shadow-sm overflow-hidden" style="border: 1px solid #dee2e6; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                    <div class="px-4 py-3 border-b flex justify-between items-center" style="background-color: #e8f5e9; border-bottom: 1px solid #c8e6c9; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="flex items-center gap-2" style="display: flex; align-items: center; gap: 8px;">
+                            <div class="p-1.5 rounded-md" style="background-color: #c8e6c9; color: #2e7d32; padding: 6px; border-radius: 6px; display: flex;"><i class="fas fa-check-circle"></i></div>
+                            <div>
+                                <h4 class="font-bold text-sm m-0" style="color: #2e7d32; font-weight: 700; margin: 0; font-size: 14px;">HistÃ³rico de Pagamentos</h4>
+                                <p class="text-xs m-0" style="color: #4caf50; margin: 0; font-size: 12px;">Faturas jÃ¡ pagas ou confirmadas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto" style="overflow-x: auto;">
+                        <table id="tblPagas" class="w-full text-sm text-left table-fixed" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                            <thead class="bg-gray-50 text-gray-500 font-medium border-b" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+                                <tr>
+                                    <th class="p-3 text-center" style="width:15%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">Tipo</th>
+                                    <th class="p-3 text-center" style="width:20%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">Data Pgto</th>
+                                    <th class="p-3 text-center" style="width:20%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">Valor</th>
+                                    <th class="p-3 text-center" style="width:25%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">MÃ©todo</th>
+                                    <th class="p-3 text-center" style="width:20%; padding: 12px; font-weight: 600; color: #495057; text-align: center;">AÃ§Ãµes</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div id="tab-familiares" style="display:none;">
-                <!-- Header da aba Familiares removido (barra de pesquisa e botões sem funcionalidade) -->
+                <!-- Header da aba Familiares removido (barra de pesquisa e botÃµes sem funcionalidade) -->
                 <div class="border rounded-lg bg-white shadow-sm overflow-hidden">
                     <div class="bg-green-50 px-4 py-3 border-b border-green-100 flex justify-between items-center">
                         <div class="flex items-center gap-2">
@@ -469,12 +566,12 @@
                         <table class="w-full text-sm text-left table-fixed">
                             <thead class="bg-gray-50 text-gray-500 font-medium border-b">
                                 <tr>
-                                    <th class="col-10 p-3 text-center">Ação</th>
+                                    <th class="col-10 p-3 text-center">AÃ§Ã£o</th>
                                     <th class="col-30 p-3 text-left">Nome Completo</th>
                                     <th class="col-15 p-3 text-center">Parentesco</th>
                                     <th class="col-10 p-3 text-center">Idade</th>
                                     <th class="col-15 p-3 text-center">Status</th>
-                                    <th class="col-20 p-3 text-center">Carência</th>
+                                    <th class="col-20 p-3 text-center">CarÃªncia</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-vinculados">
@@ -493,15 +590,15 @@
                     <div class="h-px bg-gray-200 w-full"></div>
                 </div>
 
-                <!-- Tabela de Não Vinculados (membros da família que NÃO estão neste contrato) -->
+                <!-- Tabela de NÃ£o Vinculados (membros da famÃ­lia que NÃƒO estÃ£o neste contrato) -->
                 <div class="border rounded-lg bg-white shadow-sm overflow-hidden">
                     <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
                         <div class="flex items-center gap-2">
                             <div class="bg-gray-200 p-1.5 rounded-md text-gray-600"><i class="fas fa-user-clock"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-gray-700 text-sm m-0">Não Vinculados ao Contrato</h4>
-                                <p class="text-xs text-gray-500 m-0">Membros da família disponíveis para adicionar</p>
+                                <h4 class="font-bold text-gray-700 text-sm m-0">NÃ£o Vinculados ao Contrato</h4>
+                                <p class="text-xs text-gray-500 m-0">Membros da famÃ­lia disponÃ­veis para adicionar</p>
                             </div>
                         </div>
                         <span id="badge-disponiveis"
@@ -511,18 +608,18 @@
                         <table class="w-full text-sm text-left table-fixed">
                             <thead class="bg-gray-50 text-gray-500 font-medium border-b">
                                 <tr>
-                                    <th class="col-10 p-3 text-center">Ação</th>
+                                    <th class="col-10 p-3 text-center">AÃ§Ã£o</th>
                                     <th class="col-30 p-3 text-left">Nome Completo</th>
                                     <th class="col-15 p-3 text-center">Parentesco</th>
                                     <th class="col-10 p-3 text-center">Idade</th>
                                     <th class="col-15 p-3 text-center">Status</th>
-                                    <th class="col-20 p-3 text-center">Carência</th>
+                                    <th class="col-20 p-3 text-center">CarÃªncia</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-disponiveis">
                                 <tr>
                                     <td colspan="6" class="p-6 text-center text-gray-400">
-                                        <i class="fas fa-info-circle"></i> Todos os membros da família estão vinculados
+                                        <i class="fas fa-info-circle"></i> Todos os membros da famÃ­lia estÃ£o vinculados
                                         a este contrato
                                     </td>
                                 </tr>
@@ -535,17 +632,17 @@
             <div id="tab-eventos" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                     <h3 style="margin:0">Eventos</h3>
-                    <span style="font-size:12px; color:#94a3b8;"><i class="fas fa-info-circle"></i> Log imutável de
-                        ações automáticas</span>
+                    <span style="font-size:12px; color:#94a3b8;"><i class="fas fa-info-circle"></i> Log imutÃ¡vel de
+                        aÃ§Ãµes automÃ¡ticas</span>
                 </div>
                 <table id="tblEventos" class="simple-table table-fixed">
                     <thead>
                         <tr>
                             <th class="col-20 text-center">Data/Hora</th>
                             <th class="col-15 text-center">Tipo</th>
-                            <th class="col-30 text-left">Descrição</th>
+                            <th class="col-30 text-left">DescriÃ§Ã£o</th>
                             <th class="col-15 text-center">Valor</th>
-                            <th class="col-20 text-center">Método</th>
+                            <th class="col-20 text-center">MÃ©todo</th>
                         </tr>
                     </thead>
                     <tbody id="tbodyEventos">
@@ -562,9 +659,9 @@
             <div id="tab-lembretes" style="display:none;">
                 <h3 style="margin-bottom:12px;">Lembretes</h3>
                 <div class="form-row" style="margin-bottom:16px;">
-                    <div class="form-group"><label>Título</label><input id="remTitle" type="text"
+                    <div class="form-group"><label>TÃ­tulo</label><input id="remTitle" type="text"
                             placeholder="Ex: Ligar para o cliente" /></div>
-                    <div class="form-group" style="grid-column:1 / -1"><label>Descrição</label><textarea id="remDesc"
+                    <div class="form-group" style="grid-column:1 / -1"><label>DescriÃ§Ã£o</label><textarea id="remDesc"
                             rows="2" placeholder="Detalhes do lembrete..."></textarea></div>
                     <div class="form-group"><button id="btnAddReminder" class="btn btn-primary"><i
                                 class="fas fa-plus"></i> Adicionar</button></div>
@@ -572,10 +669,10 @@
                 <table id="tblReminders" class="simple-table table-fixed">
                     <thead>
                         <tr>
-                            <th class="col-25 text-left">Título</th>
-                            <th class="col-35 text-left">Descrição</th>
+                            <th class="col-25 text-left">TÃ­tulo</th>
+                            <th class="col-35 text-left">DescriÃ§Ã£o</th>
                             <th class="col-20 text-center">Criado em</th>
-                            <th class="col-20 text-center">Ações</th>
+                            <th class="col-20 text-center">AÃ§Ãµes</th>
                         </tr>
                     </thead>
                     <tbody id="tbodyLembretes">
@@ -583,7 +680,7 @@
                             <td colspan="4" style="text-align:center; padding:40px 20px; color:#94a3b8;">
                                 <i class="fas fa-sticky-note"
                                     style="font-size:28px; margin-bottom:8px; display:block; color:#cbd5e1;"></i>
-                                Nenhum lembrete criado. Use o formulário acima para adicionar.
+                                Nenhum lembrete criado. Use o formulÃ¡rio acima para adicionar.
                             </td>
                         </tr>
                     </tbody>
@@ -597,7 +694,7 @@
                             <th class="col-35 text-left">Nome do Arquivo</th>
                             <th class="col-15 text-center">Tipo</th>
                             <th class="col-25 text-center">Gerado em</th>
-                            <th class="col-25 text-center">Ação</th>
+                            <th class="col-25 text-center">AÃ§Ã£o</th>
                         </tr>
                     </thead>
                     <tbody id="tbodyArquivos">
@@ -614,11 +711,11 @@
         </div>
     </div>
 
-    <!-- Modal: Adicionar Cobranças -->
+    <!-- Modal: Adicionar CobranÃ§as -->
     <div id="modalAddCharge" class="modal-backdrop" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true">
             <header>
-                <strong>Adicionar Cobranças</strong>
+                <strong>Adicionar CobranÃ§as</strong>
                 <button id="closeAddCharge" class="btn btn-secondary" aria-label="Fechar"><i
                         class="fas fa-times"></i></button>
             </header>
@@ -639,12 +736,12 @@
                         <input id="mcCpfPagador" type="text" placeholder="000.000.000-00" maxlength="14" />
                     </div>
                     <div class="form-group">
-                        <label>Método de cobrança</label>
+                        <label>MÃ©todo de cobranÃ§a</label>
                         <select id="mcMetodo" class="form-control" style="background: #f8f9fa;">
                             <option value="pix">PIX</option>
-                            <option value="pix_automatico">PIX Automático</option>
-                            <option value="boleto">Boleto Bancário</option>
-                            <option value="cartao">Cartão de Crédito</option>
+                            <option value="pix_automatico">PIX AutomÃ¡tico</option>
+                            <option value="boleto">Boleto BancÃ¡rio</option>
+                            <option value="cartao">CartÃ£o de CrÃ©dito</option>
                             <option value="money">Dinheiro (Manual)</option>
                         </select>
                     </div>
@@ -656,9 +753,9 @@
                     </div>
                 </div>
 
-                <!-- Campos de Endereço para PIX/Boleto -->
+                <!-- Campos de EndereÃ§o para PIX/Boleto -->
                 <h4 style="margin: 16px 0 8px; color: var(--secondary-text); font-size: 14px;">
-                    <i class="fas fa-map-marker-alt"></i> Endereço do Pagador
+                    <i class="fas fa-map-marker-alt"></i> EndereÃ§o do Pagador
                 </h4>
                 <div class="form-row">
                     <div class="form-group" style="flex: 0 0 120px;">
@@ -670,8 +767,8 @@
                         <input id="mcLogradouro" type="text" placeholder="Rua, Av, etc." />
                     </div>
                     <div class="form-group" style="flex: 0 0 80px;">
-                        <label>Número</label>
-                        <input id="mcNumero" type="text" placeholder="Nº" />
+                        <label>NÃºmero</label>
+                        <input id="mcNumero" type="text" placeholder="NÂº" />
                     </div>
                 </div>
                 <div class="form-row">
@@ -702,7 +799,7 @@
         </div>
     </div>
 
-    <!-- Modal: Confirmação de Cancelamento -->
+    <!-- Modal: ConfirmaÃ§Ã£o de Cancelamento -->
     <div id="modalCancelar" class="modal-backdrop" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true">
             <header>
@@ -746,7 +843,7 @@
                             <th>Nome</th>
                             <th>Tamanho</th>
                             <th>Tipo</th>
-                            <th>Ações</th>
+                            <th>AÃ§Ãµes</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -799,11 +896,11 @@
         </div>
     </div>
 
-    <!-- Modal: Histórico de alterações -->
+    <!-- Modal: HistÃ³rico de alteraÃ§Ãµes -->
     <div id="modalHistory" class="modal-backdrop" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true">
             <header>
-                <strong>Histórico de alterações</strong>
+                <strong>HistÃ³rico de alteraÃ§Ãµes</strong>
                 <button id="closeHistory" class="btn btn-secondary" aria-label="Fechar"><i
                         class="fas fa-times"></i></button>
             </header>
@@ -826,7 +923,7 @@
     <!-- Dropdown Toggle Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Dropdowns: Documentos e Opções
+            // Dropdowns: Documentos e OpÃ§Ãµes
             const dropdowns = document.querySelectorAll('.dropdown');
 
             dropdowns.forEach(dropdown => {
@@ -834,7 +931,7 @@
                 const menu = dropdown.querySelector('.dropdown-menu');
 
                 if (btn && menu) {
-                    // Toggle ao clicar no botão
+                    // Toggle ao clicar no botÃ£o
                     btn.addEventListener('click', function (e) {
                         e.stopPropagation();
 
@@ -956,12 +1053,13 @@
         }
     </style>
 
-    <script src="../assets/js/features/edicao-contrato.js?v=FAMILIA_FIX_V13"></script>
+    <script src="../assets/js/features/edicao-contrato.js?v=FAMILIA_FIX_V14"></script>
     <script src="../assets/js/features/cobrancas-manager.js?v=PIX_SAFETY_LOCK_V7"></script>
 
-    <!-- Script SAFE MODE removido - estava destruindo sessão do Firebase Auth ao deletar IndexedDB -->
-    <!-- A autenticação do Firebase agora persiste corretamente entre recarregamentos de página -->
+    <!-- Script SAFE MODE removido - estava destruindo sessÃ£o do Firebase Auth ao deletar IndexedDB -->
+    <!-- A autenticaÃ§Ã£o do Firebase agora persiste corretamente entre recarregamentos de pÃ¡gina -->
 </body>
 
 </html>
+
 

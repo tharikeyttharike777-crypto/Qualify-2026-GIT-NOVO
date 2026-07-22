@@ -477,10 +477,10 @@ async function attachContractWatcher(numeroUrl) {
     // Tenta recuperar ID da empresa
     const companyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
 
-    console.log(`📍 Company ID: ${companyId || 'NENHUM'}`);
-
     const numeroString = String(numeroUrl).trim();
     const numeroNumber = parseInt(numeroUrl);
+    
+    console.log(`📍 Buscando Contrato: companyId=${companyId || 'NENHUM'}, numeroString='${numeroString}'`);
 
     try {
         // Busca Relacional no Supabase (Contrato + Família em um único Select)
@@ -489,9 +489,13 @@ async function attachContractWatcher(numeroUrl) {
             .select('*, familias(*)')
             .eq('company_id', companyId);
 
-        // Busca por número exato ou ID
-        if (!isNaN(numeroNumber)) {
-            query = query.or(`numero.eq.${numeroString},numero.eq.${numeroString.replace(/^0+/, '')},id.eq.${numeroUrl}`);
+        // Busca por número exato ou ID evitando erro de UUID
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(numeroString);
+        
+        if (isUUID) {
+            query = query.or(`numero.eq.${numeroString},id.eq.${numeroString}`);
+        } else if (!isNaN(numeroNumber)) {
+            query = query.or(`numero.eq.${numeroString},numero.eq.${numeroString.replace(/^0+/, '')}`);
         } else {
             query = query.eq('numero', numeroString);
         }
@@ -501,8 +505,6 @@ async function attachContractWatcher(numeroUrl) {
         if (error) throw error;
 
         if (data) {
-            
-
             // Adaptar objeto retornado para a estrutura esperada pela interface legada
             const contratoOriginal = {
                 ...data,
@@ -522,7 +524,50 @@ async function attachContractWatcher(numeroUrl) {
             // Ativa o Realtime para este contrato
             setupSupabaseRealtime(data.id);
         } else {
-            console.warn("⚠️ Contrato não localizado no banco relacional.");
+            console.warn("⚠️ Contrato não localizado no banco relacional. Tentando fallback local...");
+            
+            // FALLBACK LOCAL
+            try {
+                const familiasRaw = localStorage.getItem('familias');
+                if (familiasRaw) {
+                    const familiasArray = JSON.parse(familiasRaw);
+                    let foundFamily = null;
+                    let foundContract = null;
+                    
+                    for (const fam of familiasArray) {
+                        if (fam.contratos && Array.isArray(fam.contratos)) {
+                            const ct = fam.contratos.find(c => String(c.numero || c.id) === numeroString || String(c.numero || c.id).replace(/^0+/, '') === String(numeroNumber));
+                            if (ct) {
+                                foundFamily = fam;
+                                foundContract = ct;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (foundContract && foundFamily) {
+                        console.log("✅ Contrato localizado no localStorage (modo offline/fallback)!");
+                        const mockData = {
+                            ...foundContract,
+                            id: foundContract.id || foundContract.numero,
+                            numero: foundContract.numero || foundContract.id,
+                            familiaId: foundFamily.id,
+                            _familyData: foundFamily
+                        };
+                        window.currentContract = mockData;
+                        window.currentFamily = foundFamily;
+                        atualizarInterfaceGlobal(mockData, foundFamily);
+                        if (typeof window.renderizarTabelaFamiliares === 'function') {
+                            window.renderizarTabelaFamiliares(foundFamily);
+                        }
+                        showToastEC('Contrato carregado do cache local.', 'info');
+                        return;
+                    }
+                }
+            } catch (fallbackErr) {
+                console.error("Erro no fallback local:", fallbackErr);
+            }
+            
             showToastEC('Contrato não localizado.', 'error');
         }
 
@@ -874,7 +919,15 @@ function setupSupabaseRealtime(contractId) {
             // O botão Voltar agora usa o onclick definido no HTML (contratos.html)
 
             const params = new URLSearchParams(window.location.search);
-            const numero = params.get('numero');
+            let numero = params.get('numero');
+            
+            if (!numero || numero === 'undefined' || numero === 'null') {
+                numero = sessionStorage.getItem('currentContractNumero');
+            }
+            if (numero === 'undefined' || numero === 'null') {
+                numero = null;
+            }
+
             if (numero) {
                 attachContractWatcher(numero);
 
@@ -890,6 +943,12 @@ function setupSupabaseRealtime(contractId) {
                 }, 500);
                 // Timeout de segurança
                 setTimeout(() => clearInterval(waitForContract), 15000);
+            } else {
+                console.warn('Nenhum número de contrato informado.');
+                showToastEC('Nenhum contrato selecionado para edição.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'contratos.html';
+                }, 2500);
             }
 
             // Mata funções velhas

@@ -9,27 +9,19 @@ class SearchSystem {
         this.searchResults = null;
         this.pages = [
             // Mais usados
-            { name: 'Pesquisa Simplificada', url: 'pages/pesquisa-simplificada.html', category: 'Mais usados' },
             { name: 'Dashboard', url: 'pages/dashboard.html', category: 'Mais usados' },
             { name: 'Dashboard Principal', url: 'index.html', category: 'Mais usados' },
             { name: 'Inadimplentes', url: 'pages/inadimplentes.html', category: 'Mais usados' },
-            { name: 'DRE Gerencial', url: 'pages/dre-gerencial.html', category: 'Mais usados' },
-            { name: 'Métricas Estratégicas', url: 'pages/metricas-estrategicas.html', category: 'Mais usados' },
-            { name: 'Controle de Caixas', url: 'pages/controle-caixas.html', category: 'Mais usados' },
-            { name: 'Contas a Receber', url: 'pages/contas-receber.html', category: 'Mais usados' },
-            { name: 'Vendas', url: 'pages/vendas.html', category: 'Mais usados' },
+            { name: 'Vendas de Produtos', url: 'pages/vendas-produtos.html', category: 'Mais usados' },
+            
+            // Financeiro
+            { name: 'Gestão Financeira', url: 'pages/lista-cobranca.html', category: 'Financeiro' },
             
             // Contratos
             { name: 'Contratos', url: 'pages/contratos.html', category: 'Contratos' },
-            { name: 'Contratos Ativos', url: 'pages/contratos-ativos.html', category: 'Contratos' },
-            { name: 'Mensalidades', url: 'pages/contratos-mensalidades.html', category: 'Contratos' },
-            { name: 'Renovações Pendentes', url: 'pages/renovacoes-pendentes.html', category: 'Contratos' },
             { name: 'Renegociação', url: 'pages/renegociacao-cobrancas.html', category: 'Contratos' },
-            { name: 'Adimplentes', url: 'pages/contratos-adimplentes.html', category: 'Contratos' },
-            { name: 'Cancelados', url: 'pages/cancelados.html', category: 'Contratos' },
             
             // Financeiro
-            { name: 'Cobranças', url: 'pages/cobrancas.html', category: 'Financeiro' },
             { name: 'Lista de Cobrança', url: 'pages/lista-cobranca.html', category: 'Financeiro' },
             { name: 'Contas a Pagar', url: 'pages/contas-pagar.html', category: 'Financeiro' },
             // Comissionamento removido
@@ -40,13 +32,11 @@ class SearchSystem {
             { name: 'Pesquisar Pets', url: 'pages/pesquisar-pets.html', category: 'Pesquisas' },
             
             // Relatórios
-            { name: 'Resumo do Dia', url: 'pages/resumo-dia.html', category: 'Relatórios' },
             { name: 'Aniversariantes', url: 'pages/aniversariantes.html', category: 'Relatórios' },
-            { name: 'Metas', url: 'pages/metas.html', category: 'Relatórios' },
             { name: 'Minhas Movimentações', url: 'pages/minhas-movimentacoes.html', category: 'Relatórios' },
             
             // Serviços
-            { name: 'Ordens de Serviço', url: 'pages/ordens-servico.html', category: 'Serviços' },
+            { name: 'Minhas Movimentações', url: 'pages/minhas-movimentacoes.html', category: 'Relatórios' }
             
             // Outros
             { name: 'Nova Família', url: 'pages/nova-familia.html', category: 'Cadastros' },

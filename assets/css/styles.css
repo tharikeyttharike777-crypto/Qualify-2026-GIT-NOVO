@@ -652,42 +652,71 @@ body {
 
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    /* Usa auto-fill para impedir que cards solitários se estiquem pela tela toda */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
 .card {
-    background: #2196F3;
+    /* O bonito azul de volta, mas com um gradiente moderno e premium */
+    background: linear-gradient(135deg, #1E88E5, #1565C0);
     color: white;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 24px 20px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     gap: 15px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px rgba(21, 101, 192, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efeito de brilho sutil ao passar o mouse */
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    transition: all 0.5s ease;
 }
 
 .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(21, 101, 192, 0.4);
+}
+
+.card:hover::after {
+    left: 200%;
 }
 
 .card i {
-    font-size: 24px;
-    width: 40px;
-    height: 40px;
+    font-size: 28px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.card:hover i {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .card span {
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 /* Responsive Design */
@@ -749,9 +778,6 @@ body {
 html, body { margin: 0; padding: 0; }
 body { overflow-x: hidden; }
 
-/* Garantir largura total das áreas principais */
-.container { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-.main-content { width: 100% !important; max-width: 100% !important; }
 
 /* ===== Configurações: painel full-width ===== */
 .settings-panel {
@@ -846,6 +872,32 @@ body { overflow-x: hidden; }
     
     .menu-toggle {
         display: flex; /* Mostra botão hambúrguer em mobile */
+    }
+}
+
+
+/* ========================================================================= */
+/* CORREÇÃO GLOBAL DE LAYOUT (LARGURA TOTAL COM RESPIRO)                     */
+/* Garante que o conteúdo de todas as páginas aproveite a tela sem grudar    */
+/* ========================================================================= */
+.main-content {
+    margin-left: 0 !important;
+    padding: 30px 40px !important;
+    background-color: #f8f9fa !important;
+    width: auto !important; /* Remove qualquer width 100% que vaze a tela */
+}
+
+.container, 
+.container-fluid, 
+.main-container {
+    margin: 0 !important;
+    padding: 0 !important; 
+    max-width: 100% !important;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 15px !important;
     }
 }
 

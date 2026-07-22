@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Renegociação de Cobranças - QUALIFY</title>
+    <title>RenegociaÃ§Ã£o de CobranÃ§as - QUALIFY</title>
     <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
@@ -17,6 +18,8 @@
         rel="stylesheet">
     <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
     <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -42,12 +45,12 @@
                 <div class="logo">
                     <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
                         style="margin-right: 8px;">
-                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                    <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
                 </div>
             </div>
             <div class="header-center">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                     <i class="fas fa-search search-icon"></i>
                     <div id="search-results" class="search-results"></div>
                 </div>
@@ -58,12 +61,12 @@
                     <span class="notification-badge">9</span>
                 </div>
                 <div class="user-info">
-                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                    <!-- InformaÃ§Ãµes do usuÃ¡rio serÃ£o inseridas aqui pelo auth-manager -->
                 </div>
 
-                <!-- Menu de Usuário -->
+                <!-- Menu de UsuÃ¡rio -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio"
                         aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
@@ -149,7 +152,7 @@
                             <li><a href="dashboard.html">Dashboard</a></li>
                             <li><a href="inadimplentes.html">Inadimplentes</a></li>
                             <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                            <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                             <li><a href="controle-caixas.html">Controle de caixas</a></li>
                             <li><a href="contas-receber.html">Contas a receber</a></li>
 
@@ -166,8 +169,8 @@
                         <ul class="submenu">
                             <li><a href="contratos.html">Ativos</a></li>
                             <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                            <li><a href="renegociacao-cobrancas.html" class="active">Renegociação</a></li>
+                            <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                            <li><a href="renegociacao-cobrancas.html" class="active">RenegociaÃ§Ã£o</a></li>
                             <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                             <li><a href="cancelados.html">Cancelados</a></li>
                         </ul>
@@ -181,8 +184,8 @@
                             <i class="arrow-icon">?</i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
-                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentaÃ§Ãµes</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                             <li><a href="contas-pagar.html">Contas a pagar</a></li>
                             <li><a href="resumo-dia.html">Resumo do dia</a></li>
                             <li><a href="comissionamento.html">Comissionamento</a></li>
@@ -194,12 +197,12 @@
                     <li class="menu-item has-submenu">
                         <a href="#" class="menu-link">
                             <i class="icon-family"></i>
-                            <span class="menu-text">Famílias</span>
+                            <span class="menu-text">FamÃ­lias</span>
                             <i class="arrow-icon">?</i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="nova-familia.html">Nova família</a></li>
-                            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                            <li><a href="nova-familia.html">Nova famÃ­lia</a></li>
+                            <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                             <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
                             <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
                             <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -209,7 +212,7 @@
             </div>
         </nav>
 
-        <!-- Overlay para fechar o menu em dispositivos móveis -->
+        <!-- Overlay para fechar o menu em dispositivos mÃ³veis -->
 
         <main class="main-content">
 
@@ -225,13 +228,13 @@
                             <span>Todos os contratos</span>
                         </div>
                         <div class="dropdown-item" onclick="applyFilter('high_debt')">
-                            <span>Alta inadimplência (>300 dias)</span>
+                            <span>Alta inadimplÃªncia (>300 dias)</span>
                         </div>
                         <div class="dropdown-item" onclick="applyFilter('medium_debt')">
-                            <span>Média inadimplência (100-300 dias)</span>
+                            <span>MÃ©dia inadimplÃªncia (100-300 dias)</span>
                         </div>
                         <div class="dropdown-item" onclick="applyFilter('low_debt')">
-                            <span>Baixa inadimplência (<100 dias)</span>
+                            <span>Baixa inadimplÃªncia (<100 dias)</span>
                         </div>
                         <div class="dropdown-item" onclick="applyFilter('high_value')">
                             <span>Alto valor em aberto (>R$ 500)</span>
@@ -247,7 +250,7 @@
 
             <div class="search-section">
                 <input type="text" id="renegociacaoSearch" class="search-input"
-                    placeholder="Buscar por titular, plano, vendedor ou nº do contrato..."
+                    placeholder="Buscar por titular, plano, vendedor ou nÂº do contrato..."
                     aria-label="Buscar contratos">
             </div>
 
@@ -256,15 +259,15 @@
                 <table class="renegotiation-table">
                     <thead>
                         <tr>
-                            <th>Opções</th>
-                            <th>Nº</th>
+                            <th>OpÃ§Ãµes</th>
+                            <th>NÂº</th>
                             <th>Data do contrato</th>
                             <th>Titular</th>
                             <th>Plano</th>
                             <th>Vendedor</th>
                             <th>Qtd. em aberto</th>
                             <th>Total em aberto</th>
-                            <th>Inadimplência</th>
+                            <th>InadimplÃªncia</th>
                         </tr>
                     </thead>
                     <tbody id="renegotiationTableBody">
@@ -273,7 +276,7 @@
                 </table>
 
                 <div class="no-data hidden" id="noDataMessage">
-                    <p>Nenhum contrato encontrado para renegociação.</p>
+                    <p>Nenhum contrato encontrado para renegociaÃ§Ã£o.</p>
                 </div>
             </div>
 
@@ -284,10 +287,10 @@
                 </div>
 
                 <div class="pagination-controls">
-                    <button class="pagination-btn" id="firstPageBtn" title="Primeira página">
+                    <button class="pagination-btn" id="firstPageBtn" title="Primeira pÃ¡gina">
                         <i class="icon-first"></i>
                     </button>
-                    <button class="pagination-btn" id="prevPageBtn" title="Página anterior">
+                    <button class="pagination-btn" id="prevPageBtn" title="PÃ¡gina anterior">
                         <i class="icon-prev"></i>
                     </button>
 
@@ -295,10 +298,10 @@
                         <!-- N?meros das p?ginas ser?o inseridos via JavaScript -->
                     </div>
 
-                    <button class="pagination-btn" id="nextPageBtn" title="Próxima página">
+                    <button class="pagination-btn" id="nextPageBtn" title="PrÃ³xima pÃ¡gina">
                         <i class="icon-next"></i>
                     </button>
-                    <button class="pagination-btn" id="lastPageBtn" title="Última página">
+                    <button class="pagination-btn" id="lastPageBtn" title="Ãšltima pÃ¡gina">
                         <i class="icon-last"></i>
                     </button>
                 </div>
@@ -371,7 +374,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancelRenegotiationBtn">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="confirmRenegotiationBtn">Confirmar
-                        Renegociação</button>
+                        RenegociaÃ§Ã£o</button>
                 </div>
             </div>
         </div>

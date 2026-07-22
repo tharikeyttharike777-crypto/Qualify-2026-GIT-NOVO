@@ -512,10 +512,19 @@ function handleDeleteFamily(familyId) {
         showToast('ID de família inválido', 'error');
         return;
     }
-    if (!confirm('Tem certeza que deseja excluir este cadastro? Esta ação não pode ser desfeita.')) {
-        return;
-    }
+    
     (async () => {
+        const confirmed = await window.swalConfirm(
+            'Excluir Cadastro', 
+            'Tem certeza que deseja excluir este cadastro? Esta ação não pode ser desfeita.', 
+            'warning', 
+            'Sim, excluir!', 
+            'Cancelar'
+        );
+        if (!confirmed) {
+            return;
+        }
+
         // Obtém empresa ativa
         let companyId = null;
         try {
@@ -936,7 +945,14 @@ async function confirmBulkDeleteFamilias() {
     const totalToDelete = selectedRows.size;
     if (totalToDelete === 0) return;
 
-    if (!confirm(`TEM CERTEZA? Você está prestes a excluir ${totalToDelete} família(s) e TODOS os seus contratos e associados vinculados via Supabase Cascade. Esta ação é irreversível!`)) {
+    const confirmed = await window.swalConfirm(
+        'TEM CERTEZA?', 
+        `Você está prestes a excluir ${totalToDelete} família(s) e TODOS os seus contratos e associados vinculados via Supabase Cascade. Esta ação é irreversível!`, 
+        'error', 
+        'Sim, excluir em lote!', 
+        'Cancelar'
+    );
+    if (!confirmed) {
         return;
     }
 

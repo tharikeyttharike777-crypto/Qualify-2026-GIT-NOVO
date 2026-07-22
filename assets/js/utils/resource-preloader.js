@@ -265,12 +265,26 @@
     }
 
     /**
+     * Define o Favicon globalmente
+     */
+    function setupFavicon() {
+        if (!document.querySelector('link[rel="icon"]')) {
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            link.type = 'image/png';
+            link.href = 'https://cdn-icons-png.flaticon.com/512/6819/6819264.png';
+            document.head.appendChild(link);
+        }
+    }
+
+    /**
      * Inicialização principal
      */
     function init() {
         console.log('🚀 Iniciando otimização de recursos...');
 
         // Executa otimizações imediatamente
+        setupFavicon();
         optimizePerformance();
         optimizeFonts();
 

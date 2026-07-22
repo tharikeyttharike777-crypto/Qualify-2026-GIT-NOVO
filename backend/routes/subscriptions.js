@@ -48,10 +48,17 @@ router.post('/criar-link', async (req, res) => {
                 name: nomeCliente || 'Cliente Assinante',
                 cpfCnpj: cpfCnpj,
                 email: email,
-                phone: telefone
+                phone: telefone,
+                address: req.body.endereco && req.body.endereco.cep ? {
+                    zipcode: req.body.endereco.cep.replace(/\D/g, ''),
+                    street: req.body.endereco.logradouro || 'N/A',
+                    number: req.body.endereco.numero || 'S/N',
+                    neighborhood: req.body.endereco.bairro || 'N/A',
+                    city: req.body.endereco.cidade || 'N/A',
+                    state: req.body.endereco.uf || 'SP'
+                } : undefined
             },
             value: parseFloat(value),
-            // A Woovi calcula o cycle internamente ou você pode estender a API se precisar mapear o cycle
             description: description || 'Assinatura Qualify'
         });
 

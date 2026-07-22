@@ -87,20 +87,37 @@ async function criarAssinatura(config, dados) {
 
     const valorEmCentavos = Math.round(parseFloat(dados.value) * 100);
 
+    const hoje = new Date();
+    const diaHoje = hoje.getDate();
+    
+    // Se a API exigir dayGenerateCharge igual ao dia atual para PAYMENT_ON_APPROVAL
+    const dayGenerateCharge = diaHoje; 
+    const dayDue = 5; // 5 dias para o cliente pagar a partir da geração
+    
     const payload = {
         value: valorEmCentavos,
+        type: 'PIX_RECURRING',
+        frequency: 'MONTHLY',
+        dayGenerateCharge: 5,
+        dayDue: 5,
+        comment: dados.description || 'Assinatura Mensal',
         customer: {
             name: dados.customer.name,
             taxID: dados.customer.cpfCnpj.replace(/\D/g, ''),
+            ...(dados.customer.address && { address: dados.customer.address })
         },
-        globalID: uuidv4(), // Identificador único da assinatura (semelhante ao correlationID)
+        pixRecurringOptions: {
+            journey: 'ONLY_RECURRENCY',
+            retryPolicy: 'NON_PERMITED'
+        },
+        globalID: uuidv4(), // Identificador único da assinatura
     };
 
     if (dados.customer.email) payload.customer.email = dados.customer.email;
     if (dados.customer.phone) payload.customer.phone = dados.customer.phone.replace(/\D/g, '');
 
     try {
-        const response = await axios.post(`${WOOVI_API_URL}/api/v1/subscription`, payload, {
+        const response = await axios.post(`${WOOVI_API_URL}/api/v1/subscriptions`, payload, {
             headers: {
                 'Authorization': appId,
                 'Content-Type': 'application/json'
@@ -127,7 +144,7 @@ async function consultarAssinatura(config, id) {
     }
 
     try {
-        const response = await axios.get(`${WOOVI_API_URL}/api/v1/subscription/${id}`, {
+        const response = await axios.get(`${WOOVI_API_URL}/api/v1/subscriptions/${id}`, {
             headers: {
                 'Authorization': appId
             }

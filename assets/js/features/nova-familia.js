@@ -50,8 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeForm();
     setupEventListeners();
     setupFormValidation();
-    // Estado de edição: apenas quando há parâmetro ?id= na URL.
-    // Se não houver, limpamos qualquer estado antigo para garantir novo cadastro.
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const idFromUrl = urlParams.get('id');
@@ -59,9 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (idFromUrl) {
             // Se tem ID na URL, é edição: salva para persistência
             localStorage.setItem('editFamilyId', String(idFromUrl));
-        } else {
-            // Se NÃO tem ID na URL, é NOVO cadastro: limpa qualquer lixo anterior
-            localStorage.removeItem('editFamilyId');
         }
     } catch (e) {
         // continua normalmente
@@ -112,9 +107,13 @@ async function prefillIfEditing() {
     try {
         // Entra em modo edição SOMENTE se houver ID via parâmetro de URL
         const params = new URLSearchParams(window.location.search);
-        // Fallback adicional para casos onde o botão "Editar" não anexou ?id
         const idFromUrl = params.get('id');
-        const editId = String(idFromUrl || '').trim();
+        let editId = String(idFromUrl || '').trim();
+        
+        if (!editId) {
+            editId = String(localStorage.getItem('editFamilyId') || '').trim();
+        }
+
         if (!editId) {
             return; // novo cadastro, não fazer prefill
         }
@@ -127,7 +126,13 @@ async function prefillIfEditing() {
         // Se não encontrou localmente, tenta buscar do Supabase
         if (!familia) {
             try {
-                const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+                let companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+                if (!companyId) {
+                    try {
+                        const ac = JSON.parse(localStorage.getItem('activeCompany'));
+                        if (ac && ac.id) companyId = ac.id;
+                    } catch(e) {}
+                }
                 if (companyId && window.supabase) {
                     const { data, error } = await window.supabase
                         .from('familias')
@@ -165,7 +170,13 @@ async function prefillIfEditing() {
         // Busca titular no Supabase caso não exista localmente
         if (!titularAssoc) {
             try {
-                const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+                let companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+                if (!companyId) {
+                    try {
+                        const ac = JSON.parse(localStorage.getItem('activeCompany'));
+                        if (ac && ac.id) companyId = ac.id;
+                    } catch(e) {}
+                }
                 if (companyId && window.supabase) {
                     const { data, error } = await window.supabase
                         .from('associados')
@@ -1472,13 +1483,11 @@ async function confirmarSalvarContrato() {
 
     // Tentar salvar a família automaticamente para garantir que o contrato tenha um "pai"
     try {
-        
         await saveFamilyInternal();
         console.log('Família salva automaticamente.');
-    } catch (e) {
-        console.warn('Erro ao salvar família automaticamente (contrato será criado mas família pode não estar salva):', e);
-        // Não bloqueia, mas avisa
-        alert('Atenção: O contrato foi criado, mas houve um erro ao salvar os dados da família. Verifique se todos os campos obrigatórios estão preenchidos.');
+    } catch (error) {
+        window.swalAlert('Atenção', 'O contrato foi criado, mas houve um erro ao salvar os dados da família. Verifique se todos os campos obrigatórios estão preenchidos.', 'warning');
+        console.error('Erro ao salvar família junto com o contrato:', error);
     }
 
     try {
@@ -1970,7 +1979,12 @@ function abrirResumoContrato(id) {
 function acessarContratoCompleto() {
     if (!contratoResumoAtual) return;
     try {
-        const num = contratoResumoAtual.numero;
+        const num = contratoResumoAtual.numero || contratoResumoAtual.id;
+        if (!num || num === 'undefined' || num === 'null') {
+            showMessage('Número do contrato inválido ou não encontrado.', 'error');
+            return;
+        }
+        sessionStorage.setItem('currentContractNumero', num);
         window.location.href = `/pages/edicao-contrato.html?numero=${encodeURIComponent(num)}`;
     } catch (e) {
         console.warn('Falha ao redirecionar para edição do contrato:', e);
@@ -2332,10 +2346,20 @@ async function salvarFamilia(evt) {
                 button.disabled = false;
                 clearFormProtection(); // Desativa aviso de perda de dados
                 showMessage('Família criada para edição e salva com sucesso!', 'success');
-                setTimeout(() => {
-                    try { localStorage.removeItem('editFamilyId'); } catch (e) { }
-                    window.location.href = 'pesquisar-familias.html';
-                }, 1200);
+                const mode = window.__saveMode || 'exit';
+                if (mode === 'stay') {
+                    if (button) {
+                        button.classList.remove('loading');
+                        button.disabled = false;
+                        if (originalBtnText) button.innerHTML = originalBtnText;
+                    }
+                } else {
+                    setTimeout(() => {
+                        try { localStorage.removeItem('editFamilyId'); } catch (e) { }
+                        window.location.href = 'pesquisar-familias.html';
+                    }, 1200);
+                }
+                window.__saving = false;
                 return;
             }
             const familia = familias[idx];
@@ -2480,19 +2504,73 @@ async function salvarFamilia(evt) {
             // Persistir titular e dependentes no Supabase (modo edição)
             try {
                 if (window.supabase) {
+                    // Mapear associado para snake_case apenas nas chaves estrangeiras
+                    const mapAssociadoToDB = (asc) => ({
+                        id: asc.id,
+                        familia_id: asc.familiaId,
+                        company_id: asc.companyId || companyId,
+                        tipo: asc.tipo,
+                        nome: asc.nome,
+                        cpf: asc.cpf,
+                        rg: asc.rg,
+                        dataNascimento: asc.dataNascimento,
+                        telefone: asc.telefone,
+                        celular: asc.celular,
+                        genero: asc.genero,
+                        email: asc.email,
+                        endereco: asc.endereco,
+                        foto: asc.foto,
+                        seguradora: asc.seguradora,
+                        dataCadastro: asc.dataCadastro,
+                        status: asc.status
+                    });
+
                     // Atualiza titular (upsert)
                     const titularPersist = associados.find(a => String(a.familiaId) === String(editId) && a.tipo === 'titular');
                     if (titularPersist) {
-                        await window.supabase
-                            .from('associados')
-                            .upsert({ ...titularPersist, company_id: companyId });
+                        const isTitularUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(titularPersist.id);
+                        const mappedTitular = mapAssociadoToDB({ ...titularPersist, companyId: companyId });
+                        if (isTitularUUID) {
+                            await window.supabase.from('associados').upsert(mappedTitular);
+                        } else {
+                            delete mappedTitular.id;
+                            await window.supabase.from('associados').insert(mappedTitular);
+                        }
                     }
 
-                    // Supabase não tem Batch nativo como o Firestore, mas podemos fazer upsert de array
-                    if (dependentesAtualizados.length > 0) {
-                        await window.supabase
-                            .from('associados')
-                            .upsert(dependentesAtualizados.map(d => ({ ...d, company_id: companyId })));
+                    // Upsert dos associados (dependentes)
+                    const dependentesParaSupabase = (familia.dependentes || []).map(d => {
+                        const originalDep = associados.find(a => a.nome === d.nome && a.tipo === 'dependente' && String(a.familiaId) === String(editId));
+                        const idPreservado = originalDep ? originalDep.id : null;
+                        const depId = idPreservado || generateId();
+                        return {
+                            id: depId,
+                            familiaId: String(editId),
+                            companyId: companyId,
+                            tipo: 'dependente',
+                            nome: d.nome,
+                            cpf: d.cpf,
+                            rg: d.rg,
+                            dataNascimento: d.dataNascimento,
+                            telefone: d.telefone,
+                            email: d.email,
+                            endereco: familia.endereco,
+                            parentesco: d.parentesco,
+                            seguradora: d.seguradora || '',
+                            dataCadastro: new Date().toISOString(),
+                            status: 'ativo'
+                        };
+                    });
+
+                    for (const dep of dependentesParaSupabase) {
+                        const isDepUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(dep.id);
+                        const mappedDep = mapAssociadoToDB(dep);
+                        if (isDepUUID) {
+                            await window.supabase.from('associados').upsert(mappedDep);
+                        } else {
+                            delete mappedDep.id;
+                            await window.supabase.from('associados').insert(mappedDep);
+                        }
                     }
 
                     // Upsert dos contratos
@@ -2502,13 +2580,15 @@ async function salvarFamilia(evt) {
                             const numeroRaw = contrato.numero || contrato.id || '';
                             const numeroLimpo = String(numeroRaw).replace(/\D/g, '');
                             const numeroNumerico = numeroLimpo ? parseInt(numeroLimpo, 10) : Date.now();
+                            const isContratoUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(contrato.id);
+                            
                             const contratoDoc = {
                                 numero: String(numeroRaw || numeroNumerico),
-                                plano: contrato.plano || '',
                                 status: 'ativo',
-                                company_id: company_id,
+                                company_id: companyId,
                                 familia_id: String(editId),
                                 metadata: {
+                                    plano: contrato.plano || '',
                                     date: contrato.dataInicio || new Date().toLocaleDateString('pt-BR'),
                                     titular: titularData.nome,
                                     cpf: titularData.cpf || '',
@@ -2518,9 +2598,13 @@ async function salvarFamilia(evt) {
                                     participants: Array.isArray(contrato.participants) ? contrato.participants : []
                                 }
                             };
-                            await window.supabase
-                                .from('contratos')
-                                .upsert(contratoDoc);
+                            
+                            if (isContratoUUID) {
+                                contratoDoc.id = contrato.id;
+                                await window.supabase.from('contratos').upsert(contratoDoc);
+                            } else {
+                                await window.supabase.from('contratos').insert(contratoDoc);
+                            }
                         }
                     }
                 }
@@ -2544,10 +2628,8 @@ async function salvarFamilia(evt) {
         }
 
         // Gerar ID ÚNICO para evitar sobrescrita de famílias
-        // CORRIGIDO: Antes usava CPF como base, causando sobrescrita quando CPF era igual ou vazio
-        const timestamp = Date.now();
-        const randomPart = Math.random().toString(36).substring(2, 10);
-        const familiaId = `fam_${companyId}_${timestamp}_${randomPart}`;
+        // CORRIGIDO: Agora usa UUID válido para compatibilidade com o Supabase
+        const familiaId = generateId();
 
         // Manter ID do associado como aleatório para compatibilidade existente
         const associadoId = generateId();
@@ -2626,10 +2708,32 @@ async function salvarFamilia(evt) {
                     });
                 if (errorFamilia) throw errorFamilia;
 
+                // Mapear associado para snake_case apenas nas chaves estrangeiras
+                const mapAssociadoToDB = (asc) => ({
+                    id: asc.id,
+                    familia_id: asc.familiaId,
+                    company_id: asc.companyId || companyId,
+                    tipo: asc.tipo,
+                    nome: asc.nome,
+                    cpf: asc.cpf,
+                    rg: asc.rg,
+                    dataNascimento: asc.dataNascimento,
+                    telefone: asc.telefone,
+                    celular: asc.celular,
+                    genero: asc.genero,
+                    email: asc.email,
+                    endereco: asc.endereco,
+                    foto: asc.foto,
+                    seguradora: asc.seguradora,
+                    dataCadastro: asc.dataCadastro,
+                    status: asc.status
+                });
+
                 // Criar associado (titular)
-                await window.supabase
+                const { error: errorTitular } = await window.supabase
                     .from('associados')
-                    .insert({ ...associado, company_id: companyId });
+                    .insert(mapAssociadoToDB(associado));
+                if (errorTitular) throw errorTitular;
 
                 // Criar contratos
                 const contratosLista = Array.isArray(familiaData.contratos) ? familiaData.contratos : [];
@@ -2637,13 +2741,16 @@ async function salvarFamilia(evt) {
                     const numeroRaw = contrato.numero || contrato.id || '';
                     const numeroLimpo = String(numeroRaw).replace(/\D/g, '');
                     const numeroNumerico = numeroLimpo ? parseInt(numeroLimpo, 10) : Date.now();
+                    const isContratoUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(contrato.id);
+                    
                     const contratoDoc = {
+                        id: isContratoUUID ? contrato.id : generateId(),
                         numero: String(numeroRaw || numeroNumerico),
-                        plano: contrato.plano || '',
                         status: 'ativo',
                         company_id: companyId,
                         familia_id: String(familiaId),
                         metadata: {
+                            plano: contrato.plano || '',
                             date: contrato.dataInicio || new Date().toLocaleDateString('pt-BR'),
                             titular: titularData.nome,
                             cpf: titularData.cpf || '',
@@ -2653,14 +2760,15 @@ async function salvarFamilia(evt) {
                             participants: Array.isArray(contrato.participants) ? contrato.participants : []
                         }
                     };
-                    await window.supabase
+                    const { error: errorContrato } = await window.supabase
                         .from('contratos')
                         .insert(contratoDoc);
+                    if (errorContrato) throw errorContrato;
                 }
             }
         } catch (e) {
             console.error('Falha ao salvar família/titular/contratos no Supabase:', e);
-            alert("ERRO DO BANCO DE DADOS: " + (e.message || JSON.stringify(e)) + "\n\n(Tire um print desse erro e envie para o suporte)");
+            window.swalAlert("Erro do Banco de Dados", (e.message || JSON.stringify(e)) + "\n\n(Tire um print desse erro e envie para o suporte)", "error");
             window.__saving = false;
             return; // Bloqueia a continuação para não dar falso positivo
         }
@@ -2690,9 +2798,29 @@ async function salvarFamilia(evt) {
             // Também persiste no Supabase
             try {
                 if (window.supabase) {
-                    await window.supabase
+                    const mappedDep = {
+                        id: dependenteAssociado.id,
+                        familia_id: dependenteAssociado.familiaId,
+                        company_id: dependenteAssociado.companyId,
+                        tipo: dependenteAssociado.tipo,
+                        nome: dependenteAssociado.nome,
+                        cpf: dependenteAssociado.cpf,
+                        rg: dependenteAssociado.rg,
+                        dataNascimento: dependenteAssociado.dataNascimento,
+                        telefone: dependenteAssociado.telefone,
+                        celular: dependenteAssociado.celular,
+                        genero: dependenteAssociado.genero,
+                        email: dependenteAssociado.email,
+                        endereco: dependenteAssociado.endereco,
+                        foto: dependenteAssociado.foto,
+                        seguradora: dependenteAssociado.seguradora,
+                        dataCadastro: dependenteAssociado.dataCadastro,
+                        status: dependenteAssociado.status
+                    };
+                    const { error } = await window.supabase
                         .from('associados')
-                        .insert({ ...dependenteAssociado, company_id: companyId });
+                        .insert(mappedDep);
+                    if (error) throw error;
                 }
             } catch (e) {
                 console.warn('Falha ao salvar dependente no Supabase:', e);
@@ -2711,6 +2839,13 @@ async function salvarFamilia(evt) {
                 button.disabled = false;
                 if (originalBtnText) button.innerHTML = originalBtnText;
             }
+            // Transição para modo de edição para evitar duplicações se o usuário salvar novamente
+            try {
+                localStorage.setItem('editFamilyId', familiaId);
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('id', familiaId);
+                window.history.replaceState({}, '', '?' + urlParams.toString());
+            } catch (e) {}
         } else {
             // Mantém botão travado e redireciona
             setTimeout(() => {
@@ -2731,22 +2866,23 @@ async function salvarFamilia(evt) {
     window.__saving = false;
 }
 
-function salvarFamiliaStay(evt) {
+async function salvarFamiliaStay(evt) {
     try { window.__saveMode = 'stay'; } catch (_) { }
-    salvarFamilia(evt);
+    await salvarFamilia(evt);
     try { window.__saveMode = null; } catch (_) { }
 }
 
-function salvarFamiliaExit(evt) {
+async function salvarFamiliaExit(evt) {
     try { window.__saveMode = 'exit'; } catch (_) { }
-    salvarFamilia(evt);
+    await salvarFamilia(evt);
     try { window.__saveMode = null; } catch (_) { }
 }
 
 try { window.salvarFamiliaStay = salvarFamiliaStay; } catch (_) { }
 
-function cancelarFormulario() {
-    if (confirm('Tem certeza que deseja cancelar? Todos os dados não salvos serão perdidos.')) {
+async function cancelarFormulario() {
+    const confirmed = await window.swalConfirm('Cancelar Edição', 'Tem certeza que deseja cancelar? Todos os dados não salvos serão perdidos.', 'warning', 'Sim, cancelar', 'Voltar');
+    if (confirmed) {
         window.location.href = '../index.html';
     }
 }
@@ -2901,7 +3037,13 @@ function coletarDadosTitular() {
 }
 
 function generateId() {
-    return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 
 // ===== Sequenciamento de IDs (7 dígitos) =====

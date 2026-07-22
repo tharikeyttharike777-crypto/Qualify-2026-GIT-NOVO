@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Pesquisar Associados - Gestão de Planos</title>
+    <title>Pesquisar Associados - GestÃ£o de Planos</title>
     <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
@@ -17,10 +18,12 @@
         rel="stylesheet">
     <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
     <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
-    <!-- Firebase compat libs e configuração (necessários para Firestore) -->
+    <!-- Firebase compat libs e configuraÃ§Ã£o (necessÃ¡rios para Firestore) -->
     <!-- Supabase SDK e Cliente -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="page-pesquisar-associados">
@@ -46,12 +49,12 @@
                 <div class="logo">
                     <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
                         style="margin-right: 8px;">
-                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                    <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
                 </div>
             </div>
             <div class="header-center">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                     <i class="fas fa-search search-icon"></i>
                     <div id="search-results" class="search-results"></div>
                 </div>
@@ -82,7 +85,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Meu Perfil</span>
-                                    <span class="dropdown-item-subtitle">Configurações pessoais</span>
+                                    <span class="dropdown-item-subtitle">ConfiguraÃ§Ãµes pessoais</span>
                                 </div>
                             </a>
 
@@ -92,7 +95,7 @@
                                     <i class="fas fa-cog"></i>
                                 </div>
                                 <div class="dropdown-item-content">
-                                    <span class="dropdown-item-title">Configurações</span>
+                                    <span class="dropdown-item-title">ConfiguraÃ§Ãµes</span>
                                     <span class="dropdown-item-subtitle">Ajustes do sistema</span>
                                 </div>
                             </a>
@@ -107,7 +110,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Ajuda</span>
-                                    <span class="dropdown-item-subtitle">Suporte e documentação</span>
+                                    <span class="dropdown-item-subtitle">Suporte e documentaÃ§Ã£o</span>
                                 </div>
                             </a>
 
@@ -122,7 +125,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Sair</span>
-                                    <span class="dropdown-item-subtitle">Encerrar sessão</span>
+                                    <span class="dropdown-item-subtitle">Encerrar sessÃ£o</span>
                                 </div>
                             </a>
                         </div>
@@ -153,7 +156,7 @@
                             <li><a href="dashboard.html">Dashboard</a></li>
                             <li><a href="inadimplentes.html">Inadimplentes</a></li>
                             <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                            <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                             <li><a href="controle-caixas.html">Controle de caixas</a></li>
                             <li><a href="contas-receber.html">Contas a receber</a></li>
 
@@ -170,7 +173,7 @@
                         <ul class="submenu">
                             <li><a href="contratos.html">Ativos</a></li>
                             <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
+                            <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
                             <li><a href="renegociacao-cobrancas.html">Renegocia??o</a></li>
                             <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                             <li><a href="cancelados.html">Cancelados</a></li>
@@ -185,8 +188,8 @@
                             <i class="arrow-icon fas fa-chevron-down"></i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
-                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentaÃ§Ãµes</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                             <li><a href="contas-pagar.html">Contas a pagar</a></li>
                             <li><a href="resumo-dia.html">Resumo do dia</a></li>
                             <li><a href="comissionamento.html">Comissionamento</a></li>
@@ -198,12 +201,12 @@
                     <li class="menu-item has-submenu">
                         <a href="#" class="menu-link">
                             <i class="icon-family"></i>
-                            <span class="menu-text">Famílias</span>
+                            <span class="menu-text">FamÃ­lias</span>
                             <i class="arrow-icon fas fa-chevron-down"></i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="nova-familia.html">Nova família</a></li>
-                            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                            <li><a href="nova-familia.html">Nova famÃ­lia</a></li>
+                            <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                             <li><a href="pesquisar-associados.html" class="active">Pesquisar associados</a></li>
                             <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
                             <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -222,7 +225,7 @@
                     <span class="icon"><i class="fas fa-filter"></i></span> Filtrar
                 </button>
                 <button class="btn btn-options" id="optionsBtn">
-                    <span class="icon"><i class="fas fa-sliders-h"></i></span> Opções
+                    <span class="icon"><i class="fas fa-sliders-h"></i></span> OpÃ§Ãµes
                 </button>
             </div>
             <div class="filter-status">
@@ -247,7 +250,7 @@
                 <table class="data-table" id="associadosTable">
                     <thead>
                         <tr>
-                            <th class="col-options">Opções</th>
+                            <th class="col-options">OpÃ§Ãµes</th>
                             <th class="col-id">ID</th>
                             <th class="col-nome">Nome</th>
                             <th class="col-idade">Idade</th>
@@ -566,4 +569,5 @@
 </body>
 
 </html>
+
 

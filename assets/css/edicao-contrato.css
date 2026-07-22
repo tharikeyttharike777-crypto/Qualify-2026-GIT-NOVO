@@ -41,10 +41,10 @@ body {
 }
 
 .container-contrato {
-  max-width: 1200px;
+  max-width: 95%; /* Alterado para ocupar quase toda a tela (margem leve de ~5% de cada lado) */
   margin: 16px auto 28px;
-  padding: 0 18px;
-  box-sizing: border-box;
+  padding: 0 10px;
+  background: transparent;
 }
 
 /* Banner com o titular do contrato */

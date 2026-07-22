@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hard Reset - Sistema QUALIFY</title>
@@ -89,7 +90,7 @@
         }
 
         .items-list li::before {
-            content: "🗑️";
+            content: "ðŸ—‘ï¸";
             position: absolute;
             left: 0;
         }
@@ -173,6 +174,8 @@
             }
         }
     </style>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -187,20 +190,20 @@
         <div class="warning">
             <div class="warning-title">
                 <i class="fas fa-radiation"></i>
-                ATENÇÃO: OPERAÇÃO IRREVERSÍVEL
+                ATENÃ‡ÃƒO: OPERAÃ‡ÃƒO IRREVERSÃVEL
             </div>
-            <p style="margin-bottom: 1rem;">Esta ação vai limpar TODOS os dados do sistema:</p>
+            <p style="margin-bottom: 1rem;">Esta aÃ§Ã£o vai limpar TODOS os dados do sistema:</p>
             <ul class="items-list">
                 <li>LocalStorage (dados salvos localmente)</li>
-                <li>SessionStorage (sessão atual)</li>
+                <li>SessionStorage (sessÃ£o atual)</li>
                 <li>Cookies do navegador</li>
                 <li>Cache HTTP</li>
                 <li>IndexedDB</li>
                 <li>Service Workers</li>
-                <li>Autenticação Firebase (logout)</li>
+                <li>AutenticaÃ§Ã£o Firebase (logout)</li>
             </ul>
             <p style="margin-top: 1rem; font-weight: bold;">
-                ⚠️ Você será DESLOGADO e redirecionado para a tela de login!
+                âš ï¸ VocÃª serÃ¡ DESLOGADO e redirecionado para a tela de login!
             </p>
         </div>
 
@@ -227,13 +230,13 @@
             line.className = 'console-line';
 
             const icons = {
-                info: '🔵',
-                success: '✅',
-                error: '❌',
-                warning: '⚠️'
+                info: 'ðŸ”µ',
+                success: 'âœ…',
+                error: 'âŒ',
+                warning: 'âš ï¸'
             };
 
-            line.textContent = `${icons[type] || '🔵'} ${message}`;
+            line.textContent = `${icons[type] || 'ðŸ”µ'} ${message}`;
             statusConsole.appendChild(line);
             statusConsole.scrollTop = statusConsole.scrollHeight;
         }
@@ -243,7 +246,7 @@
             btnReset.disabled = true;
             btnReset.innerHTML = '<span class="loading"></span> Executando...';
 
-            log('🔥 INICIANDO HARD RESET DO SISTEMA...', 'warning');
+            log('ðŸ”¥ INICIANDO HARD RESET DO SISTEMA...', 'warning');
             await new Promise(r => setTimeout(r, 500));
 
             const results = {};
@@ -335,19 +338,19 @@
 
             await new Promise(r => setTimeout(r, 500));
 
-            // Relatório final
+            // RelatÃ³rio final
             const allSuccess = Object.values(results).every(v => v === true);
 
             if (allSuccess) {
-                log('🎉 HARD RESET CONCLUÍDO COM SUCESSO!', 'success');
-                log('🔄 Redirecionando para login em 3 segundos...', 'warning');
+                log('ðŸŽ‰ HARD RESET CONCLUÃDO COM SUCESSO!', 'success');
+                log('ðŸ”„ Redirecionando para login em 3 segundos...', 'warning');
 
                 setTimeout(() => {
                     window.location.href = '../login.html';
                 }, 3000);
             } else {
-                log('⚠️ HARD RESET PARCIAL - Alguns itens falharam', 'warning');
-                log('🔄 Redirecionando para login em 5 segundos...', 'warning');
+                log('âš ï¸ HARD RESET PARCIAL - Alguns itens falharam', 'warning');
+                log('ðŸ”„ Redirecionando para login em 5 segundos...', 'warning');
 
                 setTimeout(() => {
                     window.location.href = '../login.html';
@@ -357,9 +360,9 @@
 
         btnReset.addEventListener('click', async () => {
             const confirmed = confirm(
-                '⚠️ ÚLTIMA CONFIRMAÇÃO\n\n' +
+                'âš ï¸ ÃšLTIMA CONFIRMAÃ‡ÃƒO\n\n' +
                 'Tem ABSOLUTA CERTEZA que deseja limpar TUDO?\n\n' +
-                'Esta ação NÃO pode ser desfeita!'
+                'Esta aÃ§Ã£o NÃƒO pode ser desfeita!'
             );
 
             if (confirmed) {
@@ -370,4 +373,5 @@
 </body>
 
 </html>
+
 

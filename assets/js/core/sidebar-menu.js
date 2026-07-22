@@ -1,19 +1,4 @@
-(function(){
-    try {
-        var path = (window.location.pathname || '');
-        if (path && !/\.html$/i.test(path)) {
-            var m = path.match(/^\/pages\/([^\/]+)$/i);
-            if (m && m[1]) {
-                var target = '/pages/' + m[1] + '.html';
-                fetch(target, { method: 'HEAD' }).then(function(res){
-                    if (res && res.ok) {
-                        window.location.replace(target);
-                    }
-                }).catch(function(){});
-            }
-        }
-    } catch (_) {}
-})();
+
 /**
  * SIDEBAR MODERNO - JavaScript
  * Sistema de navegação lateral moderno e responsivo
@@ -49,12 +34,6 @@ document.addEventListener('DOMContentLoaded', function(){
         }
         var link = li.querySelector('.menu-link');
         if (link) link.addEventListener('click', function(e){ e.preventDefault(); li.classList.toggle('expanded'); });
-
-        // Atualizar links antigos de "Contratos Ativos" para "Contratos"
-        Array.from(document.querySelectorAll('a[href*="contratos-ativos.html"]')).forEach(function(a){
-            a.setAttribute('href', a.href.replace('contratos-ativos.html','contratos.html'));
-            if (/Ativos/i.test(a.textContent||'')) { a.textContent = (a.textContent||'').replace(/Ativos/i, 'Contratos'); }
-        });
     } catch(_) {}
 });
 
@@ -255,17 +234,11 @@ class ModernSidebar {
             });
             if (!commonSubmenu) return;
 
-            // Lista padrão (com "Produtos" incluído no menu geral)
             const required = [
-                { href: '/pages/pesquisa-simplificada.html', label: 'Pesquisa simplificada' },
                 { href: '/pages/pesquisa-planos.html', label: 'Pesquisa de Planos' },
                 { href: '/pages/produtos.html', label: 'Produtos' },
                 { href: '/pages/dashboard.html', label: 'Dashboard' },
-                { href: '/pages/inadimplentes.html', label: 'Inadimplentes' },
-                { href: '/pages/dre-gerencial.html', label: 'DRE Gerencial' },
-                { href: '/pages/metricas-estrategicas.html', label: 'Métricas Estratégicas' },
-                { href: '/pages/controle-caixas.html', label: 'Controle de caixas' },
-                { href: '/pages/contas-receber.html', label: 'Contas a receber' }
+                { href: '/pages/inadimplentes.html', label: 'Inadimplentes' }
             ];
             // Reconstrói o submenu do zero com os itens padrão (remove entradas aleatórias)
             while (commonSubmenu.firstChild) commonSubmenu.removeChild(commonSubmenu.firstChild);
@@ -337,22 +310,13 @@ class ModernSidebar {
 
             // Contratos
             ensureGroup('Contratos', 'icon-contract', [
-                { href: 'contratos-ativos.html', label: 'Ativos' },
-                { href: 'contratos-mensalidades.html', label: 'Mensalidades' },
-                { href: 'renovacoes-pendentes.html', label: 'Renovações pendentes' },
-                { href: 'renegociacao-cobrancas.html', label: 'Renegociação' },
-                { href: 'contratos-adimplentes.html', label: 'Adimplentes' },
-                { href: 'cancelados.html', label: 'Cancelados' },
+                { href: 'contratos.html', label: 'Todos os Contratos' },
+                { href: 'renegociacao-cobrancas.html', label: 'Renegociação' }
             ]);
 
             // Financeiro
             ensureGroup('Financeiro', 'icon-money', [
-                { href: 'minhas-movimentacoes.html', label: 'Minhas movimentações' },
-                { href: 'lista-cobranca.html', label: 'Lista de cobrança' },
-                { href: 'contas-pagar.html', label: 'Contas a pagar' },
-                { href: 'resumo-dia.html', label: 'Resumo do dia' },
-                { href: 'comissionamento.html', label: 'Comissionamento' },
-                { href: 'metas.html', label: 'Metas' },
+                { href: 'lista-cobranca.html', label: 'Gestão Financeira' }
             ]);
 
             // Famílias (se ausente por completo)
@@ -432,39 +396,21 @@ class ModernSidebar {
 
             // Grupo: Mais usados
             createGroup('Mais usados', 'icon-star', [
-                { href: '/pages/pesquisa-simplificada.html', label: 'Pesquisa simplificada' },
                 { href: '/pages/pesquisa-planos.html', label: 'Pesquisa de Planos' },
                 { href: '/pages/produtos.html', label: 'Produtos' },
                 { href: '/pages/dashboard.html', label: 'Dashboard' },
-                { href: '/pages/inadimplentes.html', label: 'Inadimplentes' },
-                { href: '/pages/dre-gerencial.html', label: 'DRE Gerencial' },
-                { href: '/pages/metricas-estrategicas.html', label: 'Métricas Estratégicas' },
-                { href: '/pages/controle-caixas.html', label: 'Controle de caixas' },
-                { href: '/pages/contas-receber.html', label: 'Contas a receber' }
+                { href: '/pages/inadimplentes.html', label: 'Inadimplentes' }
             ]);
 
             // Grupo: Contratos
             createGroup('Contratos', 'icon-contract', [
-                // Removido: Visão geral (/pages/contratos.html)
-                { href: '/pages/contratos-ativos.html', label: 'Ativos' },
-                { href: '/pages/contratos-mensalidades.html', label: 'Mensalidades' },
-                { href: '/pages/renovacoes-pendentes.html', label: 'Renovações pendentes' },
-                { href: '/pages/renegociacao-cobrancas.html', label: 'Renegociação' },
-                { href: '/pages/contratos-adimplentes.html', label: 'Adimplentes' },
-                { href: '/pages/cancelados.html', label: 'Cancelados' }
+                { href: '/pages/contratos.html', label: 'Todos os Contratos' },
+                { href: '/pages/renegociacao-cobrancas.html', label: 'Renegociação' }
             ]);
 
             // Grupo: Financeiro
             createGroup('Financeiro', 'icon-money', [
-                { href: '/pages/minhas-movimentacoes.html', label: 'Minhas movimentações' },
-                // Removido: Extrato (/pages/extrato.html)
-                { href: '/pages/lista-cobranca.html', label: 'Lista de cobrança' },
-                { href: '/pages/contas-pagar.html', label: 'Contas a pagar' },
-                { href: '/pages/contas-receber.html', label: 'Contas a receber' },
-                { href: '/pages/resumo-dia.html', label: 'Resumo do dia' },
-                { href: '/pages/metas.html', label: 'Metas' },
-                // Removido: Chargebacks (/pages/chargebacks.html)
-                { href: '/pages/inadimplentes.html', label: 'Inadimplentes' }
+                { href: '/pages/lista-cobranca.html', label: 'Gestão Financeira' }
             ]);
 
             // Grupo: Famílias
@@ -786,13 +732,16 @@ class ModernSidebar {
         if (!this.sidebar) return;
         
         this.sidebar.classList.add('open', 'menu-aberto');
+        document.body.classList.add('sidebar-open');
         if (this.overlay) {
             this.overlay.classList.add('active');
         }
         this.isOpen = true;
         
-        // Previne scroll do body
-        document.body.style.overflow = 'hidden';
+        // Previne scroll do body apenas no mobile
+        if (window.innerWidth <= 768) {
+            document.body.style.overflow = 'hidden';
+        }
         
         // Foco no primeiro link
         const firstLink = this.sidebar.querySelector('.menu-link, .nav-link');
@@ -810,6 +759,7 @@ class ModernSidebar {
         if (!this.sidebar) return;
         
         this.sidebar.classList.remove('open', 'menu-aberto');
+        document.body.classList.remove('sidebar-open');
         if (this.overlay) {
             this.overlay.classList.remove('active');
         }

@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Transferências - Gestão Financeira</title>
+    <title>TransferÃªncias - GestÃ£o Financeira</title>
 
     <!-- CSS Links -->
     <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
@@ -61,6 +62,8 @@
         }
     </style>
     <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -72,12 +75,12 @@
             <div class="logo">
                 <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
                     style="margin-right: 8px;">
-                <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
             </div>
         </div>
         <div class="header-center">
             <div class="search-container">
-                <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                 <i class="fas fa-search search-icon"></i>
                 <div id="search-results" class="search-results"></div>
             </div>
@@ -88,12 +91,12 @@
                 <span class="notification-badge">9</span>
             </div>
             <div class="user-info">
-                <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                <!-- InformaÃ§Ãµes do usuÃ¡rio serÃ£o inseridas aqui pelo auth-manager -->
             </div>
 
-            <!-- Menu de Usuário -->
+            <!-- Menu de UsuÃ¡rio -->
             <div class="user-menu-container">
-                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio"
                     aria-expanded="false">
                     <i class="fas fa-user-circle"></i>
                 </button>
@@ -108,17 +111,17 @@
                             </div>
                             <div class="dropdown-item-content">
                                 <span class="dropdown-item-title">Meu Perfil</span>
-                                <span class="dropdown-item-subtitle">Configurações pessoais</span>
+                                <span class="dropdown-item-subtitle">ConfiguraÃ§Ãµes pessoais</span>
                             </div>
                         </a>
 
-                        <!-- Item 2: Configura��es -->
+                        <!-- Item 2: Configuraï¿½ï¿½es -->
                         <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
                             <div class="dropdown-item-icon">
                                 <i class="fas fa-cog"></i>
                             </div>
                             <div class="dropdown-item-content">
-                                <span class="dropdown-item-title">Configurações</span>
+                                <span class="dropdown-item-title">ConfiguraÃ§Ãµes</span>
                                 <span class="dropdown-item-subtitle">Ajustes do sistema</span>
                             </div>
                         </a>
@@ -133,7 +136,7 @@
                             </div>
                             <div class="dropdown-item-content">
                                 <span class="dropdown-item-title">Ajuda</span>
-                                <span class="dropdown-item-subtitle">Suporte e documentação</span>
+                                <span class="dropdown-item-subtitle">Suporte e documentaÃ§Ã£o</span>
                             </div>
                         </a>
 
@@ -148,7 +151,7 @@
                             </div>
                             <div class="dropdown-item-content">
                                 <span class="dropdown-item-title">Sair</span>
-                                <span class="dropdown-item-subtitle">Encerrar sessão</span>
+                                <span class="dropdown-item-subtitle">Encerrar sessÃ£o</span>
                             </div>
                         </a>
                     </div>
@@ -177,7 +180,7 @@
                         <li><a href="dashboard.html">Dashboard</a></li>
                         <li><a href="inadimplentes.html">Inadimplentes</a></li>
                         <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                        <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                         <li><a href="controle-caixas.html">Controle de caixas</a></li>
                         <li><a href="contas-receber.html">Contas a receber</a></li>
                         <li><a href="vendas.html">Vendas</a></li>
@@ -194,8 +197,8 @@
                     <ul class="submenu">
                         <li><a href="contratos.html">Ativos</a></li>
                         <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">RenegociaÃ§Ã£o</a></li>
                         <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                         <li><a href="cancelados.html">Cancelados</a></li>
 
@@ -211,25 +214,25 @@
                     </a>
                     <ul class="submenu">
                         <li><a href="contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="lista-cobranca.html">Lista de cobran�a</a></li>
+                        <li><a href="lista-cobranca.html">Lista de cobranï¿½a</a></li>
                         <li><a href="comissionamento.html">Comissionamento</a></li>
                         <li><a href="resumo-dia.html">Resumo do dia</a></li>
-                        <li><a href="minhas-movimentacoes.html">Minhas movimenta��es</a></li>
+                        <li><a href="minhas-movimentacoes.html">Minhas movimentaï¿½ï¿½es</a></li>
                         <li><a href="metas.html">Metas</a></li>
-                        <li><a href="ordens-servico.html">Ordens de servi�o</a></li>
+                        <li><a href="ordens-servico.html">Ordens de serviï¿½o</a></li>
                     </ul>
                 </li>
 
-                <!-- Famílias -->
+                <!-- FamÃ­lias -->
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="icon-family"></i>
-                        <span class="menu-text">Fam�lias</span>
+                        <span class="menu-text">Famï¿½lias</span>
                         <i class="arrow-icon">?</i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="nova-familia.html">Nova família</a></li>
-                        <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                        <li><a href="nova-familia.html">Nova famÃ­lia</a></li>
+                        <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                         <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
                         <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
                         <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -247,11 +250,11 @@
     <main class="main-content">
         <div class="placeholder-container">
             <i class="fas fa-exchange-alt placeholder-icon"></i>
-            <h1 class="mb-4">Transferências</h1>
-            <p class="lead mb-4">Esta página está em desenvolvimento e será implementada em breve.</p>
+            <h1 class="mb-4">TransferÃªncias</h1>
+            <p class="lead mb-4">Esta pÃ¡gina estÃ¡ em desenvolvimento e serÃ¡ implementada em breve.</p>
             <p class="text-muted mb-4">
-                Aqui você poderá realizar transferências bancárias,
-                incluindo PIX, TED, DOC e outras modalidades de transferência.
+                Aqui vocÃª poderÃ¡ realizar transferÃªncias bancÃ¡rias,
+                incluindo PIX, TED, DOC e outras modalidades de transferÃªncia.
             </p>
             <button class="btn btn-back" onclick="history.back()">
                 <i class="fas fa-arrow-left me-2"></i>Voltar
@@ -266,7 +269,7 @@
 
     <!-- Script Melhorado do Accordion -->
     <script>
-        // Fun��o melhorada para inicializar o accordion
+        // Funï¿½ï¿½o melhorada para inicializar o accordion
         function initializeImprovedAccordion() {
             console.log('?? Inicializando accordion melhorado...');
 
@@ -277,7 +280,7 @@
                 console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
 
                 submenuItems.forEach((menuItem, index) => {
-                    // Encontra o link clic�vel dentro do item
+                    // Encontra o link clicï¿½vel dentro do item
                     const menuLink = menuItem.querySelector('.menu-link, a');
                     const submenu = menuItem.querySelector('.submenu');
                     const arrowIcon = menuItem.querySelector('.arrow-icon');
@@ -306,9 +309,9 @@
                             menuItem.classList.toggle('expanded');
 
                             const isExpanded = menuItem.classList.contains('expanded');
-                            console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra�do'}`);
+                            console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraï¿½do'}`);
 
-                            // Atualiza o �cone da seta se existir
+                            // Atualiza o ï¿½cone da seta se existir
                             if (arrowIcon) {
                                 arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
                             }
@@ -316,7 +319,7 @@
 
                         console.log(`? Evento vinculado ao item ${index + 1}`);
                     } else {
-                        console.warn(`?? Item ${index + 1} n�o tem link ou submenu v�lido`);
+                        console.warn(`?? Item ${index + 1} nï¿½o tem link ou submenu vï¿½lido`);
                     }
                 });
 
@@ -331,7 +334,7 @@
             initializeImprovedAccordion();
         }
 
-        // Tamb�m disponibiliza globalmente para re-inicializa��o manual
+        // Tambï¿½m disponibiliza globalmente para re-inicializaï¿½ï¿½o manual
         window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
     <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
@@ -343,36 +346,36 @@
 
 
 
-    <!-- Corre��o Completa do Sidebar com Accordion -->
+    <!-- Correï¿½ï¿½o Completa do Sidebar com Accordion -->
     <script>
         (function () {
             'use strict';
 
             // Aguardar que todos os scripts sejam carregados
             function initializeSidebar() {
-                console.log('?? Inicializando corre��o completa do sidebar...');
+                console.log('?? Inicializando correï¿½ï¿½o completa do sidebar...');
 
                 const menuToggle = document.getElementById('menu-toggle');
                 const sidebar = document.getElementById('sidebar');
                 const overlay = document.getElementById('sidebar-overlay');
 
                 if (!menuToggle) {
-                    console.error('? Bot�o do menu n�o encontrado!');
+                    console.error('? Botï¿½o do menu nï¿½o encontrado!');
                     return;
                 }
 
                 if (!sidebar) {
-                    console.error('? Sidebar n�o encontrado!');
+                    console.error('? Sidebar nï¿½o encontrado!');
                     return;
                 }
 
-                console.log('? Elementos encontrados - aplicando corre��o...');
+                console.log('? Elementos encontrados - aplicando correï¿½ï¿½o...');
 
                 // Limpar todos os event listeners existentes
                 const newMenuToggle = menuToggle.cloneNode(true);
                 menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
 
-                // Fun��o para abrir o sidebar
+                // Funï¿½ï¿½o para abrir o sidebar
                 function openSidebar() {
                     sidebar.classList.add('open', 'menu-aberto');
                     sidebar.style.transform = 'translateX(0)';
@@ -385,7 +388,7 @@
                     console.log('?? Sidebar aberto');
                 }
 
-                // Fun��o para fechar o sidebar
+                // Funï¿½ï¿½o para fechar o sidebar
                 function closeSidebar() {
                     sidebar.classList.remove('open', 'menu-aberto');
                     sidebar.style.transform = 'translateX(-100%)';
@@ -398,7 +401,7 @@
                     console.log('?? Sidebar fechado');
                 }
 
-                // Event listener para o bot�o do menu
+                // Event listener para o botï¿½o do menu
                 newMenuToggle.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -438,7 +441,7 @@
                     }
                 });
 
-                // Event listener para bot�o de fechar (se existir)
+                // Event listener para botï¿½o de fechar (se existir)
                 const closeButton = document.getElementById('sidebar-close') ||
                     document.querySelector('.sidebar-close') ||
                     document.querySelector('#sidebar .close-btn');
@@ -446,7 +449,7 @@
                     closeButton.addEventListener('click', function (e) {
                         e.preventDefault();
                         closeSidebar();
-                        console.log('?? Sidebar fechado via bot�o fechar');
+                        console.log('?? Sidebar fechado via botï¿½o fechar');
                     });
                 }
 
@@ -501,7 +504,7 @@
                 // Garantir que o sidebar inicie fechado
                 closeSidebar();
 
-                console.log('? Corre��o completa do sidebar aplicada com sucesso!');
+                console.log('? Correï¿½ï¿½o completa do sidebar aplicada com sucesso!');
             }
 
             // Inicializar quando o DOM estiver pronto

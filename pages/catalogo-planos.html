@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Catálogo de Planos - Qualify</title>
+    <title>CatÃ¡logo de Planos - Qualify</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250127003" rel="stylesheet">
@@ -19,6 +20,8 @@
     <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
     <link href="../assets/css/catalogo-planos.css?v=20250127003" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -32,12 +35,12 @@
             <div class="logo">
                 <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
                     style="margin-right: 8px;">
-                <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
             </div>
         </div>
         <div class="header-center">
             <div class="search-container">
-                <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                 <i class="fas fa-search search-icon"></i>
                 <div id="search-results" class="search-results"></div>
             </div>
@@ -48,12 +51,12 @@
                 <span class="notification-badge">9</span>
             </div>
             <div class="user-info">
-                <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                <!-- InformaÃ§Ãµes do usuÃ¡rio serÃ£o inseridas aqui pelo auth-manager -->
             </div>
 
             <!-- Menu de Usu?rio -->
             <div class="user-menu-container">
-                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio"
                     aria-expanded="false">
                     <i class="fas fa-user-circle"></i>
                 </button>
@@ -75,10 +78,10 @@
                             <span>Trocar de Empresa</span>
                         </a>
 
-                        <!-- Item 3: Configurações -->
+                        <!-- Item 3: ConfiguraÃ§Ãµes -->
                         <a href="configuracoes.html" class="dropdown-item" role="menuitem" data-action="settings">
                             <i class="fas fa-cog"></i>
-                            <span>Configurações</span>
+                            <span>ConfiguraÃ§Ãµes</span>
                         </a>
 
                         <!-- Item 4: Minha Conta -->
@@ -87,17 +90,17 @@
                             <span>Minha Conta</span>
                         </a>
 
-                        <!-- Item 5: Área do Associado -->
+                        <!-- Item 5: Ãrea do Associado -->
                         <a href="area-associado-login.html" class="dropdown-item" role="menuitem"
                             data-action="associate-area" target="_blank">
                             <i class="fas fa-external-link-alt"></i>
-                            <span>Área do Associado</span>
+                            <span>Ãrea do Associado</span>
                         </a>
 
-                        <!-- Item 6: Catálogo de Planos -->
+                        <!-- Item 6: CatÃ¡logo de Planos -->
                         <a href="catalogo-planos.html" class="dropdown-item" role="menuitem" data-action="catalog">
                             <i class="fas fa-book"></i>
-                            <span>Catálogo de Planos</span>
+                            <span>CatÃ¡logo de Planos</span>
                         </a>
 
                         <!-- Separador -->
@@ -123,16 +126,16 @@
 
         <div class="sidebar-content">
             <ul class="sidebar-menu">
-                <!-- Administração -->
+                <!-- AdministraÃ§Ã£o -->
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="fas fa-cogs"></i>
-                        <span class="menu-text">Administração</span>
+                        <span class="menu-text">AdministraÃ§Ã£o</span>
                         <i class="arrow-icon">?</i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="admin-planos.html">Gestão de Planos</a></li>
-                        <li><a href="catalogo-planos.html" class="active">Catálogo Público</a></li>
+                        <li><a href="admin-planos.html">GestÃ£o de Planos</a></li>
+                        <li><a href="catalogo-planos.html" class="active">CatÃ¡logo PÃºblico</a></li>
                         <li><a href="dashboard.html">Dashboard</a></li>
                     </ul>
                 </li>
@@ -150,7 +153,7 @@
                         <li><a href="dashboard.html">Dashboard</a></li>
                         <li><a href="inadimplentes.html">Inadimplentes</a></li>
                         <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                        <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                         <li><a href="controle-caixas.html">Controle de caixas</a></li>
                         <li><a href="contas-receber.html">Contas a receber</a></li>
                         <li><a href="vendas.html">Vendas</a></li>
@@ -167,8 +170,8 @@
                     <ul class="submenu">
                         <li><a href="contratos.html">Ativos</a></li>
                         <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">RenegociaÃ§Ã£o</a></li>
                         <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                         <li><a href="cancelados.html">Cancelados</a></li>
 
@@ -184,25 +187,25 @@
                     </a>
                     <ul class="submenu">
                         <li><a href="contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                         <li><a href="comissionamento.html">Comissionamento</a></li>
                         <li><a href="resumo-dia.html">Resumo do dia</a></li>
-                        <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                        <li><a href="minhas-movimentacoes.html">Minhas movimentaÃ§Ãµes</a></li>
                         <li><a href="metas.html">Metas</a></li>
-                        <li><a href="ordens-servico.html">Ordens de serviço</a></li>
+                        <li><a href="ordens-servico.html">Ordens de serviÃ§o</a></li>
                     </ul>
                 </li>
 
-                <!-- Famílias -->
+                <!-- FamÃ­lias -->
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="icon-family"></i>
-                        <span class="menu-text">Famílias</span>
+                        <span class="menu-text">FamÃ­lias</span>
                         <i class="arrow-icon">?</i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="nova-familia.html">Nova família</a></li>
-                        <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                        <li><a href="nova-familia.html">Nova famÃ­lia</a></li>
+                        <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                         <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
                         <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
                         <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -218,7 +221,7 @@
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Carregando...</span>
             </div>
-            <p class="mt-3">Carregando catálogo...</p>
+            <p class="mt-3">Carregando catÃ¡logo...</p>
         </div>
     </div>
 
@@ -247,7 +250,7 @@
                                         <i class="fas fa-th me-2"></i>Todos
                                     </button>
                                     <button class="btn btn-filter" data-category="saude">
-                                        <i class="fas fa-heartbeat me-2"></i>Saúde
+                                        <i class="fas fa-heartbeat me-2"></i>SaÃºde
                                     </button>
                                     <button class="btn btn-filter" data-category="psicologia">
                                         <i class="fas fa-brain me-2"></i>Psicologia
@@ -286,12 +289,12 @@
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Carregando planos...</span>
                 </div>
-                <p class="mt-3 text-muted">Carregando planos disponíveis...</p>
+                <p class="mt-3 text-muted">Carregando planos disponÃ­veis...</p>
             </div>
         </div>
     </main>
 
-    <!-- Footer removido por solicitação -->
+    <!-- Footer removido por solicitaÃ§Ã£o -->
 
     <!-- Modal de Detalhes do Plano -->
     <div class="modal fade" id="planDetailsModal" tabindex="-1">
@@ -321,11 +324,11 @@
         <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <i class="fas fa-info-circle text-primary me-2"></i>
-                <strong class="me-auto">Notificação</strong>
+                <strong class="me-auto">NotificaÃ§Ã£o</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
             </div>
             <div class="toast-body">
-                <!-- Conteúdo dinâmico -->
+                <!-- ConteÃºdo dinÃ¢mico -->
             </div>
         </div>
     </div>
@@ -344,7 +347,7 @@
 
     <!-- Script Melhorado do Accordion -->
     <script>
-        // Função melhorada para inicializar o accordion
+        // FunÃ§Ã£o melhorada para inicializar o accordion
         function initializeImprovedAccordion() {
             console.log('Inicializando accordion melhorado...');
 
@@ -384,7 +387,7 @@
                             menuItem.classList.toggle('expanded');
 
                             const isExpanded = menuItem.classList.contains('expanded');
-                            console.log(`Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+                            console.log(`Item ${index + 1} ${isExpanded ? 'expandido' : 'contraÃ­do'}`);
 
                             // Atualiza o ?cone da seta se existir
                             if (arrowIcon) {
@@ -394,7 +397,7 @@
 
                         console.log(`Evento vinculado ao item ${index + 1}`);
                     } else {
-                        console.warn(`Item ${index + 1} não tem link ou submenu válido`);
+                        console.warn(`Item ${index + 1} nÃ£o tem link ou submenu vÃ¡lido`);
                     }
                 });
 
@@ -409,7 +412,7 @@
             initializeImprovedAccordion();
         }
 
-        // Também disponibiliza globalmente para re-inicialização manual
+        // TambÃ©m disponibiliza globalmente para re-inicializaÃ§Ã£o manual
         window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
     <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
@@ -422,7 +425,7 @@
 
 
 
-    <!-- Correção Completa do Sidebar com Accordion -->
+    <!-- CorreÃ§Ã£o Completa do Sidebar com Accordion -->
     <script>
         (function () {
             'use strict';

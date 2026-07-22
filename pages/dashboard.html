@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -19,6 +20,8 @@
     <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js?v=20250127003"></script>
     <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -32,12 +35,12 @@
                 <div class="logo">
                     <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24"
                         style="margin-right: 8px;">
-                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                    <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
                 </div>
             </div>
             <div class="header-center">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                     <i class="fas fa-search search-icon"></i>
                     <div id="search-results" class="search-results"></div>
                 </div>
@@ -48,12 +51,12 @@
                     <span class="notification-badge">9</span>
                 </div>
                 <div class="user-info">
-                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                    <!-- InformaÃ§Ãµes do usuÃ¡rio serÃ£o inseridas aqui pelo auth-manager -->
                 </div>
 
-                <!-- Menu de Usuário -->
+                <!-- Menu de UsuÃ¡rio -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário"
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio"
                         aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
@@ -74,10 +77,10 @@
                                 <span>Trocar de Empresa</span>
                             </a>
 
-                            <!-- Item 3: Configurações -->
+                            <!-- Item 3: ConfiguraÃ§Ãµes -->
                             <a href="configuracoes.html" class="dropdown-item" role="menuitem" data-action="settings">
                                 <i class="fas fa-cog"></i>
-                                <span>Configurações</span>
+                                <span>ConfiguraÃ§Ãµes</span>
                             </a>
 
                             <!-- Item 4: Minha Conta (com submenu) -->
@@ -95,7 +98,7 @@
                                         <span>Chargebacks</span>
                                     </a>
                                     <a href="transferencia.html" class="submenu-item" role="menuitem">
-                                        <span>Transferência</span>
+                                        <span>TransferÃªncia</span>
                                     </a>
                                     <a href="minha-conta.html" class="submenu-item" role="menuitem">
                                         <span>Minha Conta</span>
@@ -103,17 +106,17 @@
                                 </div>
                             </div>
 
-                            <!-- Item 5: Área do Associado -->
+                            <!-- Item 5: Ãrea do Associado -->
                             <a href="area-associado-login.html" class="dropdown-item" role="menuitem"
                                 data-action="associate-area" target="_blank">
                                 <i class="fas fa-external-link-alt"></i>
-                                <span>Área do Associado</span>
+                                <span>Ãrea do Associado</span>
                             </a>
 
-                            <!-- Item 6: Catálogo de Planos -->
+                            <!-- Item 6: CatÃ¡logo de Planos -->
                             <a href="catalogo-planos.html" class="dropdown-item" role="menuitem" data-action="catalog">
                                 <i class="fas fa-book"></i>
-                                <span>Catálogo de Planos</span>
+                                <span>CatÃ¡logo de Planos</span>
                             </a>
 
                             <!-- Separador -->
@@ -129,7 +132,7 @@
                 </div>
 
                 <div class="logout-container">
-                    <!-- Botão de logout será inserido aqui pelo auth-manager -->
+                    <!-- BotÃ£o de logout serÃ¡ inserido aqui pelo auth-manager -->
                 </div>
             </div>
         </header>
@@ -148,7 +151,7 @@
                         <a href="#" class="menu-link">
                             <i class="icon-star"></i>
                             <span class="menu-text">Mais usados</span>
-                            <i class="arrow-icon">▼</i>
+                            <i class="arrow-icon">â–¼</i>
                         </a>
                         <ul class="submenu">
                             <li><a href="../pages/pesquisa-simplificada.html">Pesquisa simplificada</a></li>
@@ -156,7 +159,7 @@
                             <li><a href="../pages/dashboard.html" class="active">Dashboard</a></li>
                             <li><a href="../pages/inadimplentes.html">Inadimplentes</a></li>
                             <li><a href="../pages/dre-gerencial.html">DRE Gerencial</a></li>
-                            <li><a href="../pages/metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                            <li><a href="../pages/metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                             <li><a href="../pages/controle-caixas.html">Controle de caixas</a></li>
                             <li><a href="../pages/contas-receber.html">Contas a receber</a></li>
 
@@ -168,13 +171,13 @@
                         <a href="#" class="menu-link">
                             <i class="icon-contract"></i>
                             <span class="menu-text">Contratos</span>
-                            <i class="arrow-icon">▼</i>
+                            <i class="arrow-icon">â–¼</i>
                         </a>
                         <ul class="submenu">
                             <li><a href="contratos.html">Ativos</a></li>
                             <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                            <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                            <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                            <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                            <li><a href="renegociacao-cobrancas.html">RenegociaÃ§Ã£o</a></li>
                             <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                             <li><a href="cancelados.html">Cancelados</a></li>
                         </ul>
@@ -185,11 +188,11 @@
                         <a href="#" class="menu-link">
                             <i class="icon-money"></i>
                             <span class="menu-text">Financeiro</span>
-                            <i class="arrow-icon">▼</i>
+                            <i class="arrow-icon">â–¼</i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
-                            <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                            <li><a href="minhas-movimentacoes.html">Minhas movimentaÃ§Ãµes</a></li>
+                            <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                             <li><a href="contas-pagar.html">Contas a pagar</a></li>
                             <li><a href="resumo-dia.html">Resumo do dia</a></li>
                             <li><a href="comissionamento.html">Comissionamento</a></li>
@@ -197,15 +200,15 @@
                         </ul>
                     </li>
 
-                    <!-- Famílias -->
+                    <!-- FamÃ­lias -->
                     <li class="menu-item has-submenu">
                         <a href="#" class="menu-link">
                             <i class="icon-family"></i>
-                            <span class="menu-text">Famílias</span>
-                            <i class="arrow-icon">▼</i>
+                            <span class="menu-text">FamÃ­lias</span>
+                            <i class="arrow-icon">â–¼</i>
                         </a>
                         <ul class="submenu">
-                            <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                            <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                             <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
                             <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
                             <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -215,14 +218,14 @@
             </div>
         </nav>
 
-        <!-- Overlay para fechar o menu em dispositivos móveis -->
+        <!-- Overlay para fechar o menu em dispositivos mÃ³veis -->
         <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
         <!-- Main Content -->
         <main class="main-content">
             <!-- Breadcrumb -->
             <div class="breadcrumb">
-                <span>Página Principal</span>
+                <span>PÃ¡gina Principal</span>
                 <i class="fas fa-chevron-right"></i>
                 <span class="active">Dashboard</span>
             </div>
@@ -231,15 +234,15 @@
             <div class="page-header">
                 <h1>Dashboard</h1>
 
-                <!-- Top Action Bar removida conforme solicitação -->
+                <!-- Top Action Bar removida conforme solicitaÃ§Ã£o -->
 
                 <div class="dashboard-filters">
                     <div class="filter-group">
-                        <label>Período de referência:</label>
+                        <label>PerÃ­odo de referÃªncia:</label>
                         <input type="date" id="startDate" value="[Data]">
                     </div>
                     <div class="filter-group">
-                        <label>Data de referência:</label>
+                        <label>Data de referÃªncia:</label>
                         <input type="date" id="endDate" value="[Data]">
                     </div>
                     <div class="filter-group">
@@ -256,7 +259,7 @@
                     <button class="btn-clear" id="clearFilters">
                         <i class="fas fa-times"></i> Limpar filtros
                     </button>
-                    <!-- Botão Exportar reposicionado para junto dos filtros -->
+                    <!-- BotÃ£o Exportar reposicionado para junto dos filtros -->
                     <button class="btn-filter" id="exportKPIs">
                         <i class="fas fa-file-excel"></i> Exportar
                     </button>
@@ -268,12 +271,12 @@
                 <div class="kpi-header">
                     <h2>Indicadores Principais</h2>
                     <div class="kpi-actions">
-                        <!-- Botões de ação dos KPIs ajustados: "Comparar" removido e "Exportar" movido para os filtros -->
+                        <!-- BotÃµes de aÃ§Ã£o dos KPIs ajustados: "Comparar" removido e "Exportar" movido para os filtros -->
                     </div>
                 </div>
             </div>
 
-            <!-- Cards de Métricas (sem dados exemplares) -->
+            <!-- Cards de MÃ©tricas (sem dados exemplares) -->
             <div class="metrics-cards">
                 <div class="metric-card green">
                     <div class="metric-icon">
@@ -281,7 +284,7 @@
                     </div>
                     <div class="metric-info">
                         <h3>Contratos ativos</h3>
-                        <span class="metric-value" data-metric="contratos-ativos">—</span>
+                        <span class="metric-value" data-metric="contratos-ativos">â€”</span>
                     </div>
                 </div>
                 <div class="metric-card blue">
@@ -290,7 +293,7 @@
                     </div>
                     <div class="metric-info">
                         <h3>Total de contratos</h3>
-                        <span class="metric-value" data-metric="total-contratos">—</span>
+                        <span class="metric-value" data-metric="total-contratos">â€”</span>
                     </div>
                 </div>
                 <div class="metric-card orange">
@@ -299,7 +302,7 @@
                     </div>
                     <div class="metric-info">
                         <h3>Inadimplentes</h3>
-                        <span class="metric-value" data-metric="inadimplentes">—</span>
+                        <span class="metric-value" data-metric="inadimplentes">â€”</span>
                     </div>
                 </div>
                 <div class="metric-card red">
@@ -308,7 +311,7 @@
                     </div>
                     <div class="metric-info">
                         <h3>Receita mensal</h3>
-                        <span class="metric-value" data-metric="receita-mensal">—</span>
+                        <span class="metric-value" data-metric="receita-mensal">â€”</span>
                     </div>
                 </div>
             </div>
@@ -317,13 +320,13 @@
             <div class="charts-grid" style="display: none;">
                 <div class="empty-state">
                     <i class="fas fa-chart-line"></i>
-                    <h3>Nenhum dado disponível para os gráficos</h3>
+                    <h3>Nenhum dado disponÃ­vel para os grÃ¡ficos</h3>
                     <p>Ajuste os filtros acima para visualizar.</p>
                 </div>
                 <!-- Receitas Chart -->
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h3>Gráfico de Receitas</h3>
+                        <h3>GrÃ¡fico de Receitas</h3>
                         <div class="chart-legend">
                             <span class="legend-item">
                                 <span class="legend-color blue"></span>
@@ -336,14 +339,14 @@
                     </div>
                 </div>
 
-                <!-- Inadimplência Chart -->
+                <!-- InadimplÃªncia Chart -->
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h3>Inadimplência</h3>
+                        <h3>InadimplÃªncia</h3>
                         <div class="chart-legend">
                             <span class="legend-item">
                                 <span class="legend-color purple"></span>
-                                Inadimplência (%)
+                                InadimplÃªncia (%)
                             </span>
                         </div>
                     </div>
@@ -359,7 +362,7 @@
                         <div class="chart-legend">
                             <span class="legend-item">
                                 <span class="legend-color blue"></span>
-                                Valor Médio
+                                Valor MÃ©dio
                             </span>
                         </div>
                     </div>
@@ -439,33 +442,33 @@
     <div id="filtersModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Filtros Avançados</h3>
+                <h3>Filtros AvanÃ§ados</h3>
                 <span class="close" id="closeFiltersModal">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="modal-tabs">
-                    <button class="tab-button active" data-tab="quick-filters">Filtros Rápidos</button>
-                    <button class="tab-button" data-tab="advanced-filters">Filtros Avançados</button>
-                    <button class="tab-button" data-tab="date-range">Período</button>
-                    <button class="tab-button" data-tab="comparison">Comparação</button>
+                    <button class="tab-button active" data-tab="quick-filters">Filtros RÃ¡pidos</button>
+                    <button class="tab-button" data-tab="advanced-filters">Filtros AvanÃ§ados</button>
+                    <button class="tab-button" data-tab="date-range">PerÃ­odo</button>
+                    <button class="tab-button" data-tab="comparison">ComparaÃ§Ã£o</button>
                 </div>
 
                 <div class="tab-content active" id="quick-filters">
                     <div class="filter-section">
-                        <h4>Filtros Rápidos</h4>
+                        <h4>Filtros RÃ¡pidos</h4>
                         <div class="filter-grid">
                             <div class="filter-item">
-                                <label>Período Pré-definido:</label>
+                                <label>PerÃ­odo PrÃ©-definido:</label>
                                 <select id="quickPeriod">
                                     <option value="today">Hoje</option>
                                     <option value="week">Esta Semana</option>
-                                    <option value="month">Este Mês</option>
+                                    <option value="month">Este MÃªs</option>
                                     <option value="quarter">Este Trimestre</option>
                                     <option value="year">Este Ano</option>
                                 </select>
                             </div>
                             <div class="filter-item">
-                                <label>Tipo de Visualização:</label>
+                                <label>Tipo de VisualizaÃ§Ã£o:</label>
                                 <select id="viewType">
                                     <option value="summary">Resumo</option>
                                     <option value="detailed">Detalhado</option>
@@ -478,7 +481,7 @@
 
                 <div class="tab-content" id="advanced-filters">
                     <div class="filter-section">
-                        <h4>Filtros Avançados</h4>
+                        <h4>Filtros AvanÃ§ados</h4>
                         <div class="filter-grid">
                             <div class="filter-item">
                                 <label>Planos:</label>
@@ -501,8 +504,8 @@
                             <div class="filter-item">
                                 <label>Faixa de Valor:</label>
                                 <div class="range-inputs">
-                                    <input type="number" id="minValue" placeholder="Valor mínimo">
-                                    <input type="number" id="maxValue" placeholder="Valor máximo">
+                                    <input type="number" id="minValue" placeholder="Valor mÃ­nimo">
+                                    <input type="number" id="maxValue" placeholder="Valor mÃ¡ximo">
                                 </div>
                             </div>
                         </div>
@@ -511,7 +514,7 @@
 
                 <div class="tab-content" id="date-range">
                     <div class="filter-section">
-                        <h4>Configuração de Período</h4>
+                        <h4>ConfiguraÃ§Ã£o de PerÃ­odo</h4>
                         <div class="filter-grid">
                             <div class="filter-item">
                                 <label>Data Inicial:</label>
@@ -526,7 +529,7 @@
                                 <select id="groupBy">
                                     <option value="day">Por Dia</option>
                                     <option value="week">Por Semana</option>
-                                    <option value="month">Por Mês</option>
+                                    <option value="month">Por MÃªs</option>
                                     <option value="quarter">Por Trimestre</option>
                                 </select>
                             </div>
@@ -536,18 +539,18 @@
 
                 <div class="tab-content" id="comparison">
                     <div class="filter-section">
-                        <h4>Comparação de Períodos</h4>
+                        <h4>ComparaÃ§Ã£o de PerÃ­odos</h4>
                         <div class="filter-grid">
                             <div class="filter-item">
                                 <label>Comparar com:</label>
                                 <select id="compareWith">
-                                    <option value="previous-period">Período Anterior</option>
-                                    <option value="same-period-last-year">Mesmo Período Ano Passado</option>
-                                    <option value="custom">Período Personalizado</option>
+                                    <option value="previous-period">PerÃ­odo Anterior</option>
+                                    <option value="same-period-last-year">Mesmo PerÃ­odo Ano Passado</option>
+                                    <option value="custom">PerÃ­odo Personalizado</option>
                                 </select>
                             </div>
                             <div class="filter-item comparison-dates" style="display: none;">
-                                <label>Período de Comparação:</label>
+                                <label>PerÃ­odo de ComparaÃ§Ã£o:</label>
                                 <div class="range-inputs">
                                     <input type="date" id="compareStartDate">
                                     <input type="date" id="compareEndDate">
@@ -568,20 +571,20 @@
     <div id="optionsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Opções do Dashboard</h3>
+                <h3>OpÃ§Ãµes do Dashboard</h3>
                 <span class="close" id="closeOptionsModal">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="modal-tabs">
-                    <button class="tab-button active" data-tab="display-options">Visualização</button>
-                    <button class="tab-button" data-tab="chart-options">Gráficos</button>
-                    <button class="tab-button" data-tab="export-options">Exportação</button>
-                    <button class="tab-button" data-tab="notifications">Notificações</button>
+                    <button class="tab-button active" data-tab="display-options">VisualizaÃ§Ã£o</button>
+                    <button class="tab-button" data-tab="chart-options">GrÃ¡ficos</button>
+                    <button class="tab-button" data-tab="export-options">ExportaÃ§Ã£o</button>
+                    <button class="tab-button" data-tab="notifications">NotificaÃ§Ãµes</button>
                 </div>
 
                 <div class="tab-content active" id="display-options">
                     <div class="options-section">
-                        <h4>Configurações de Visualização</h4>
+                        <h4>ConfiguraÃ§Ãµes de VisualizaÃ§Ã£o</h4>
                         <div class="option-item">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="showKPIs" checked>
@@ -593,18 +596,18 @@
                             <label class="checkbox-label">
                                 <input type="checkbox" id="showCharts">
                                 <span class="checkmark"></span>
-                                Mostrar Gráficos
+                                Mostrar GrÃ¡ficos
                             </label>
                         </div>
                         <div class="option-item">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="autoRefresh">
                                 <span class="checkmark"></span>
-                                Atualização Automática
+                                AtualizaÃ§Ã£o AutomÃ¡tica
                             </label>
                         </div>
                         <div class="option-item">
-                            <label>Intervalo de Atualização:</label>
+                            <label>Intervalo de AtualizaÃ§Ã£o:</label>
                             <select id="refreshInterval">
                                 <option value="30">30 segundos</option>
                                 <option value="60">1 minuto</option>
@@ -617,20 +620,20 @@
 
                 <div class="tab-content" id="chart-options">
                     <div class="options-section">
-                        <h4>Configurações dos Gráficos</h4>
+                        <h4>ConfiguraÃ§Ãµes dos GrÃ¡ficos</h4>
                         <div class="chart-visibility">
                             <div class="option-item">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="showReceitas" checked>
                                     <span class="checkmark"></span>
-                                    Gráfico de Receitas
+                                    GrÃ¡fico de Receitas
                                 </label>
                             </div>
                             <div class="option-item">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="showInadimplencia" checked>
                                     <span class="checkmark"></span>
-                                    Gráfico de Inadimplência
+                                    GrÃ¡fico de InadimplÃªncia
                                 </label>
                             </div>
                             <div class="option-item">
@@ -653,7 +656,7 @@
 
                 <div class="tab-content" id="export-options">
                     <div class="options-section">
-                        <h4>Opções de Exportação</h4>
+                        <h4>OpÃ§Ãµes de ExportaÃ§Ã£o</h4>
                         <div class="export-actions">
                             <button class="btn-export" id="exportPDF">
                                 <i class="fas fa-file-pdf"></i> Exportar PDF
@@ -680,7 +683,7 @@
                                     <label class="checkbox-label">
                                         <input type="checkbox" id="includeCharts" checked>
                                         <span class="checkmark"></span>
-                                        Gráficos
+                                        GrÃ¡ficos
                                     </label>
                                     <label class="checkbox-label">
                                         <input type="checkbox" id="includeFilters">
@@ -695,12 +698,12 @@
 
                 <div class="tab-content" id="notifications">
                     <div class="options-section">
-                        <h4>Configurações de Notificações</h4>
+                        <h4>ConfiguraÃ§Ãµes de NotificaÃ§Ãµes</h4>
                         <div class="option-item">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="enableNotifications">
                                 <span class="checkmark"></span>
-                                Habilitar Notificações
+                                Habilitar NotificaÃ§Ãµes
                             </label>
                         </div>
                         <div class="option-item">
@@ -721,8 +724,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" id="resetOptions">Restaurar Padrão</button>
-                <button class="btn-primary" id="saveOptions">Salvar Configurações</button>
+                <button class="btn-secondary" id="resetOptions">Restaurar PadrÃ£o</button>
+                <button class="btn-primary" id="saveOptions">Salvar ConfiguraÃ§Ãµes</button>
             </div>
         </div>
     </div>
@@ -731,7 +734,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../assets/js/core/supabase-client.js?v=20250127003" defer></script>
 
-    <!-- Utilitário de retry de rede -->
+    <!-- UtilitÃ¡rio de retry de rede -->
     <script src="../assets/js/utils/network-retry.js"></script>
 
     <!-- Scripts de compatibilidade para hospedagem -->
@@ -747,18 +750,18 @@
 
     <!-- Script Melhorado do Accordion -->
     <script>
-        // Função melhorada para inicializar o accordion
+        // FunÃ§Ã£o melhorada para inicializar o accordion
         function initializeImprovedAccordion() {
-            console.log('🔄 Inicializando accordion melhorado...');
+            console.log('ðŸ”„ Inicializando accordion melhorado...');
 
             // Aguarda um pouco para garantir que todos os elementos estejam prontos
             setTimeout(() => {
                 // Seleciona todos os itens de submenu
                 const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
-                console.log(`📊 Encontrados ${submenuItems.length} itens de submenu`);
+                console.log(`ðŸ“Š Encontrados ${submenuItems.length} itens de submenu`);
 
                 submenuItems.forEach((menuItem, index) => {
-                    // Encontra o link clicável dentro do item
+                    // Encontra o link clicÃ¡vel dentro do item
                     const menuLink = menuItem.querySelector('.menu-link, a');
                     const submenu = menuItem.querySelector('.submenu');
                     const arrowIcon = menuItem.querySelector('.arrow-icon');
@@ -773,7 +776,7 @@
                             e.preventDefault();
                             e.stopPropagation();
 
-                            console.log(`🖱️ Clique no item ${index + 1}`);
+                            console.log(`ðŸ–±ï¸ Clique no item ${index + 1}`);
 
                             // Fecha todos os outros submenus
                             const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
@@ -787,21 +790,21 @@
                             menuItem.classList.toggle('expanded');
 
                             const isExpanded = menuItem.classList.contains('expanded');
-                            console.log(`${isExpanded ? '📂' : '📁'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+                            console.log(`${isExpanded ? 'ðŸ“‚' : 'ðŸ“'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraÃ­do'}`);
 
-                            // Atualiza o ícone da seta se existir
+                            // Atualiza o Ã­cone da seta se existir
                             if (arrowIcon) {
                                 arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
                             }
                         });
 
-                        console.log(`✅ Evento vinculado ao item ${index + 1}`);
+                        console.log(`âœ… Evento vinculado ao item ${index + 1}`);
                     } else {
-                        console.warn(`⚠️ Item ${index + 1} não tem link ou submenu válido`);
+                        console.warn(`âš ï¸ Item ${index + 1} nÃ£o tem link ou submenu vÃ¡lido`);
                     }
                 });
 
-                console.log('✅ Accordion melhorado inicializado com sucesso!');
+                console.log('âœ… Accordion melhorado inicializado com sucesso!');
             }, 100);
         }
 
@@ -812,7 +815,7 @@
             initializeImprovedAccordion();
         }
 
-        // Também disponibiliza globalmente para re-inicialização manual
+        // TambÃ©m disponibiliza globalmente para re-inicializaÃ§Ã£o manual
         window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
     <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
@@ -822,36 +825,36 @@
 
 
 
-    <!-- Correção Completa do Sidebar com Accordion -->
+    <!-- CorreÃ§Ã£o Completa do Sidebar com Accordion -->
     <script>
         (function () {
             'use strict';
 
             // Aguardar que todos os scripts sejam carregados
             function initializeSidebar() {
-                console.log('🔧 Inicializando correção completa do sidebar...');
+                console.log('ðŸ”§ Inicializando correÃ§Ã£o completa do sidebar...');
 
                 const menuToggle = document.getElementById('menu-toggle');
                 const sidebar = document.getElementById('sidebar');
                 const overlay = document.getElementById('sidebar-overlay');
 
                 if (!menuToggle) {
-                    console.error('❌ Botão do menu não encontrado!');
+                    console.error('âŒ BotÃ£o do menu nÃ£o encontrado!');
                     return;
                 }
 
                 if (!sidebar) {
-                    console.error('❌ Sidebar não encontrado!');
+                    console.error('âŒ Sidebar nÃ£o encontrado!');
                     return;
                 }
 
-                console.log('✅ Elementos encontrados - aplicando correção...');
+                console.log('âœ… Elementos encontrados - aplicando correÃ§Ã£o...');
 
                 // Limpar todos os event listeners existentes
                 const newMenuToggle = menuToggle.cloneNode(true);
                 menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
 
-                // Função para abrir o sidebar
+                // FunÃ§Ã£o para abrir o sidebar
                 function openSidebar() {
                     sidebar.classList.add('open', 'menu-aberto');
                     sidebar.style.transform = 'translateX(0)';
@@ -861,10 +864,10 @@
                         overlay.style.display = 'block';
                     }
                     document.body.style.overflow = 'hidden';
-                    console.log('🔓 Sidebar aberto');
+                    console.log('ðŸ”“ Sidebar aberto');
                 }
 
-                // Função para fechar o sidebar
+                // FunÃ§Ã£o para fechar o sidebar
                 function closeSidebar() {
                     sidebar.classList.remove('open', 'menu-aberto');
                     sidebar.style.transform = 'translateX(-100%)';
@@ -874,15 +877,15 @@
                         overlay.style.display = 'none';
                     }
                     document.body.style.overflow = '';
-                    console.log('🔒 Sidebar fechado');
+                    console.log('ðŸ”’ Sidebar fechado');
                 }
 
-                // Event listener para o botão do menu
+                // Event listener para o botÃ£o do menu
                 newMenuToggle.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    console.log('🖱️ Clique no menu detectado');
+                    console.log('ðŸ–±ï¸ Clique no menu detectado');
 
                     const isOpen = sidebar.classList.contains('open') ||
                         sidebar.classList.contains('menu-aberto') ||
@@ -901,7 +904,7 @@
                     overlay.addEventListener('click', function (e) {
                         e.preventDefault();
                         closeSidebar();
-                        console.log('🔒 Sidebar fechado via overlay');
+                        console.log('ðŸ”’ Sidebar fechado via overlay');
                     });
                 }
 
@@ -912,12 +915,12 @@
                             sidebar.classList.contains('menu-aberto');
                         if (isOpen) {
                             closeSidebar();
-                            console.log('🔒 Sidebar fechado via ESC');
+                            console.log('ðŸ”’ Sidebar fechado via ESC');
                         }
                     }
                 });
 
-                // Event listener para botão de fechar (se existir)
+                // Event listener para botÃ£o de fechar (se existir)
                 const closeButton = document.getElementById('sidebar-close') ||
                     document.querySelector('.sidebar-close') ||
                     document.querySelector('#sidebar .close-btn');
@@ -925,13 +928,13 @@
                     closeButton.addEventListener('click', function (e) {
                         e.preventDefault();
                         closeSidebar();
-                        console.log('🔒 Sidebar fechado via botão fechar');
+                        console.log('ðŸ”’ Sidebar fechado via botÃ£o fechar');
                     });
                 }
 
                 // Implementar funcionalidade de accordion
                 const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
-                console.log('🔍 Itens do menu encontrados:', menuItems.length);
+                console.log('ðŸ” Itens do menu encontrados:', menuItems.length);
 
                 menuItems.forEach(function (item) {
                     const link = item.querySelector('.menu-link');
@@ -946,7 +949,7 @@
                             e.preventDefault();
                             e.stopPropagation();
 
-                            console.log('🖱️ Clique no menu:', newLink.textContent.trim());
+                            console.log('ðŸ–±ï¸ Clique no menu:', newLink.textContent.trim());
 
                             // Fechar outros submenus
                             menuItems.forEach(function (otherItem) {
@@ -964,15 +967,15 @@
                             if (isExpanded) {
                                 item.classList.remove('expanded');
                                 submenu.style.display = 'none';
-                                console.log('📁 Submenu fechado:', newLink.textContent.trim());
+                                console.log('ðŸ“ Submenu fechado:', newLink.textContent.trim());
                             } else {
                                 item.classList.add('expanded');
                                 submenu.style.display = 'block';
-                                console.log('📂 Submenu aberto:', newLink.textContent.trim());
+                                console.log('ðŸ“‚ Submenu aberto:', newLink.textContent.trim());
                             }
                         });
 
-                        console.log('✅ Event listener adicionado para:', link.textContent.trim());
+                        console.log('âœ… Event listener adicionado para:', link.textContent.trim());
                     }
                 });
 
@@ -980,7 +983,7 @@
                 // Garantir que o sidebar inicie fechado
                 closeSidebar();
 
-                console.log('✅ Correção completa do sidebar aplicada com sucesso!');
+                console.log('âœ… CorreÃ§Ã£o completa do sidebar aplicada com sucesso!');
             }
 
             // Inicializar quando o DOM estiver pronto
@@ -997,3 +1000,4 @@
 </body>
 
 </html>
+

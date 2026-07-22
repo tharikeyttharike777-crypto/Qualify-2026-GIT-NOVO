@@ -416,7 +416,14 @@
      * Exclui uma cobrança
      */
     window.excluirCobranca = async function (id) {
-        if (!confirm('Tem certeza que deseja EXCLUIR esta cobrança?\nEssa ação não pode ser desfeita.')) {
+        const confirmed = await window.swalConfirm(
+            'Excluir Cobrança', 
+            'Tem certeza que deseja EXCLUIR esta cobrança?\nEssa ação não pode ser desfeita.', 
+            'error', 
+            'Sim, excluir', 
+            'Cancelar'
+        );
+        if (!confirmed) {
             return;
         }
 
@@ -461,7 +468,14 @@
      * Confirma pagamento manual (Baixa Manual)
      */
     window.confirmarPagamentoManual = async function (id, valor) {
-        if (!confirm('Deseja confirmar o pagamento manual desta cobrança?\n\nEsta ação moverá a cobrança para "Pagas".')) {
+        const confirmed = await window.swalConfirm(
+            'Confirmar Pagamento', 
+            'Deseja confirmar o pagamento manual desta cobrança?\n\nEsta ação moverá a cobrança para "Pagas".', 
+            'question', 
+            'Sim, pagar', 
+            'Cancelar'
+        );
+        if (!confirmed) {
             return;
         }
 
@@ -1039,10 +1053,19 @@
             expiracao: 3600 // 1 hora para cobrança imediata
         };
 
+        let token = '';
+        if (window.supabase) {
+            const { data } = await window.supabase.auth.getSession();
+            if (data?.session?.access_token) {
+                token = data.session.access_token;
+            }
+        }
+
         const response = await fetch(`${API_BASE}/pix/cob`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
             body: JSON.stringify(payload)
         });
@@ -1128,11 +1151,19 @@
             },
             contratoNumero: numeroContrato
         };
+        let token = '';
+        if (window.supabase) {
+            const { data } = await window.supabase.auth.getSession();
+            if (data?.session?.access_token) {
+                token = data.session.access_token;
+            }
+        }
 
         const response = await fetch(`${API_BASE}/boleto`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
             body: JSON.stringify(payload)
         });
@@ -1378,9 +1409,20 @@
         // --------------------------------
         console.log('🚀 Payload Final:', payload); // Quero ver isso no console
 
+        let token = '';
+        if (window.supabase) {
+            const { data } = await window.supabase.auth.getSession();
+            if (data?.session?.access_token) {
+                token = data.session.access_token;
+            }
+        }
+
         const response = await fetch(`${API_BASE}/subscriptions/criar-link`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
             body: JSON.stringify(payload)
         });
 
@@ -1473,13 +1515,30 @@
             nextDueDate: vencimento,
             description: mensagem || `Assinatura contrato ${numeroContrato}`,
             cycle: 'MONTHLY',
-            contratoNumero: numeroContrato // Envia para o backend salvar no Firestore
+            contratoNumero: numeroContrato, // Envia para o backend salvar no Firestore
+            endereco: {
+                cep: document.getElementById('mcCep')?.value || '',
+                logradouro: document.getElementById('mcLogradouro')?.value || '',
+                numero: document.getElementById('mcNumero')?.value || '',
+                bairro: document.getElementById('mcBairro')?.value || '',
+                cidade: document.getElementById('mcCidade')?.value || '',
+                uf: document.getElementById('mcUf')?.value || ''
+            }
         };
+
+        let token = '';
+        if (window.supabase) {
+            const { data } = await window.supabase.auth.getSession();
+            if (data?.session?.access_token) {
+                token = data.session.access_token;
+            }
+        }
 
         const response = await fetch(`${API_BASE}/subscriptions/criar-link`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
             body: JSON.stringify(payload)
         });

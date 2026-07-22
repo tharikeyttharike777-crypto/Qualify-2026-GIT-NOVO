@@ -461,18 +461,7 @@
 
     <!-- LOGIN SYSTEM - Carrega o sistema de login estruturado -->
     <script src="assets/js/features/login.js?v=20260716001"></script>
-    <script>
-        (function () {
-            try {
-                var p = (window.location.pathname || '');
-                if (p && !/\.html$/i.test(p) && !/\/$/.test(p)) {
-                    var last = p.split('/').pop();
-                    var target = '/' + last + '.html';
-                    fetch(target, { method: 'HEAD' }).then(function (r) { if (r.ok) { location.replace(target); } });
-                }
-            } catch (_) { }
-        })();
-    </script>
+
 </body>
 
 </html>

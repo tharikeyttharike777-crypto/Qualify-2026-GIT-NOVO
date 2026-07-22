@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="QUALIFY - Sistema completo de gestão empresarial">
-    <meta name="keywords" content="gestão, sistema, empresarial, contratos, dashboard">
+    <meta name="description" content="QUALIFY - Sistema completo de gestÃ£o empresarial">
+    <meta name="keywords" content="gestÃ£o, sistema, empresarial, contratos, dashboard">
     <meta name="author" content="QUALIFY">
     <meta name="robots" content="index, follow">
     <!-- Cache Control Meta Tags -->
@@ -28,7 +29,7 @@
     <link rel="preload" href="../assets/css/sidebar-menu.css?v=20250127003 as="style">
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" as="script">
     
-    <title>QUALIFY - Área do Associado</title>
+    <title>QUALIFY - Ãrea do Associado</title>
     <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/area-associado.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
@@ -37,6 +38,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css?v=20250127003" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <!-- Header -->
@@ -48,24 +51,24 @@
                 </button>
                 <div class="logo">
                     <img src="../assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24" style="margin-right: 8px;">
-                    <span class="logo-text">QUALIFY - Sistema de gestão</span>
+                    <span class="logo-text">QUALIFY - Sistema de gestÃ£o</span>
                 </div>
             </div>
             <div class="header-center">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                     <i class="fas fa-search search-icon"></i>
                     <div id="search-results" class="search-results"></div>
                 </div>
             </div>
             <div class="header-right">
                 <div class="user-info">
-                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                    <!-- InformaÃ§Ãµes do usuÃ¡rio serÃ£o inseridas aqui pelo auth-manager -->
                 </div>
                 
-                <!-- Menu de Usuário -->
+                <!-- Menu de UsuÃ¡rio -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário" aria-expanded="false">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio" aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
                     
@@ -79,17 +82,17 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Meu Perfil</span>
-                                    <span class="dropdown-item-subtitle">Configurações pessoais</span>
+                                    <span class="dropdown-item-subtitle">ConfiguraÃ§Ãµes pessoais</span>
                                 </div>
                             </a>
                             
-                            <!-- Item 2: Configurações -->
+                            <!-- Item 2: ConfiguraÃ§Ãµes -->
                             <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
                                 <div class="dropdown-item-icon">
                                     <i class="fas fa-cog"></i>
                                 </div>
                                 <div class="dropdown-item-content">
-                                    <span class="dropdown-item-title">Configurações</span>
+                                    <span class="dropdown-item-title">ConfiguraÃ§Ãµes</span>
                                     <span class="dropdown-item-subtitle">Ajustes do sistema</span>
                                 </div>
                             </a>
@@ -104,7 +107,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Ajuda</span>
-                                    <span class="dropdown-item-subtitle">Suporte e documentação</span>
+                                    <span class="dropdown-item-subtitle">Suporte e documentaÃ§Ã£o</span>
                                 </div>
                             </a>
                             
@@ -118,7 +121,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Sair</span>
-                                    <span class="dropdown-item-subtitle">Encerrar sessão</span>
+                                    <span class="dropdown-item-subtitle">Encerrar sessÃ£o</span>
                                 </div>
                             </a>
                         </div>
@@ -141,7 +144,7 @@
                     <a href="#" class="menu-link">
                         <i class="icon-star"></i>
                         <span class="menu-text">Mais usados</span>
-                        <i class="arrow-icon">▼</i>
+                        <i class="arrow-icon">â–¼</i>
                     </a>
                     <ul class="submenu">
                         <li><a href="pesquisa-simplificada.html">Pesquisa simplificada</a></li>
@@ -149,7 +152,7 @@
                         <li><a href="dashboard.html">Dashboard</a></li>
                         <li><a href="inadimplentes.html">Inadimplentes</a></li>
                         <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                        <li><a href="metricas-estrategicas.html">Métricas Estratégicas</a></li>
+                        <li><a href="metricas-estrategicas.html">MÃ©tricas EstratÃ©gicas</a></li>
                         <li><a href="controle-caixas.html">Controle de caixas</a></li>
                         <li><a href="contas-receber.html">Contas a receber</a></li>
                         <li><a href="vendas.html">Vendas</a></li>
@@ -161,13 +164,13 @@
                     <a href="#" class="menu-link">
                         <i class="icon-contract"></i>
                         <span class="menu-text">Contratos</span>
-                        <i class="arrow-icon">▼</i>
+                        <i class="arrow-icon">â–¼</i>
                     </a>
                     <ul class="submenu">
                         <li><a href="contratos.html">Ativos</a></li>
                         <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                        <li><a href="renegociacao-cobrancas.html">Renegociação</a></li>
+                        <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">RenegociaÃ§Ã£o</a></li>
                         <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                         <li><a href="cancelados.html">Cancelados</a></li>
                         
@@ -179,29 +182,29 @@
                     <a href="#" class="menu-link">
                         <i class="icon-money"></i>
                         <span class="menu-text">Financeiro</span>
-                        <i class="arrow-icon">▼</i>
+                        <i class="arrow-icon">â–¼</i>
                     </a>
                     <ul class="submenu">
                         <li><a href="contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                         <li><a href="comissionamento.html">Comissionamento</a></li>
                         <li><a href="resumo-dia.html">Resumo do dia</a></li>
-                        <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                        <li><a href="minhas-movimentacoes.html">Minhas movimentaÃ§Ãµes</a></li>
                         <li><a href="metas.html">Metas</a></li>
-                        <li><a href="ordens-servico.html">Ordens de serviço</a></li>
+                        <li><a href="ordens-servico.html">Ordens de serviÃ§o</a></li>
                     </ul>
                 </li>
                 
-                <!-- Famílias -->
+                <!-- FamÃ­lias -->
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="icon-family"></i>
-                        <span class="menu-text">Famílias</span>
-                        <i class="arrow-icon">▼</i>
+                        <span class="menu-text">FamÃ­lias</span>
+                        <i class="arrow-icon">â–¼</i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="nova-familia.html">Nova família</a></li>
-                        <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                        <li><a href="nova-familia.html">Nova famÃ­lia</a></li>
+                        <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                         <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
                 <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
                         <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -218,7 +221,7 @@
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Carregando...</span>
             </div>
-            <p class="mt-3">Carregando informações do associado...</p>
+            <p class="mt-3">Carregando informaÃ§Ãµes do associado...</p>
         </div>
     </div>
 
@@ -227,20 +230,20 @@
         <div class="text-center">
             <i class="fas fa-exclamation-triangle error-icon"></i>
             <h3>Erro ao carregar dados</h3>
-            <p>Não foi possível carregar as informações do associado.</p>
+            <p>NÃ£o foi possÃ­vel carregar as informaÃ§Ãµes do associado.</p>
             <button class="btn btn-warning" id="tryAgainBtn">
                 <i class="fas fa-sync-alt"></i> Tentar novamente
             </button>
         </div>
     </div>
 
-    <!-- Header da Área do Associado -->
+    <!-- Header da Ãrea do Associado -->
     <header class="associado-header">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="welcome-title">Área do Associado</h1>
-                    <p class="welcome-subtitle">Bem-vindo à sua área exclusiva. Gerencie suas informações e acompanhe seus contratos.</p>
+                    <h1 class="welcome-title">Ãrea do Associado</h1>
+                    <p class="welcome-subtitle">Bem-vindo Ã  sua Ã¡rea exclusiva. Gerencie suas informaÃ§Ãµes e acompanhe seus contratos.</p>
                 </div>
                 <div class="col-md-4">
                     <div class="header-actions text-end">
@@ -260,11 +263,11 @@
     <main class="dashboard-container">
         <div class="container">
             <div class="row g-4">
-                <!-- Informações do Usuário -->
+                <!-- InformaÃ§Ãµes do UsuÃ¡rio -->
                 <div class="col-lg-4">
                     <div class="user-info-card">
                         <div class="user-details">
-                            <h4><i class="fas fa-user-circle me-2"></i>Informações Pessoais</h4>
+                            <h4><i class="fas fa-user-circle me-2"></i>InformaÃ§Ãµes Pessoais</h4>
                             <div class="user-meta">
                                 <div class="meta-item">
                                     <i class="fas fa-id-card"></i>
@@ -287,13 +290,13 @@
                         <div class="last-update">
                             <small class="text-muted">
                                 <i class="fas fa-clock"></i>
-                                Última atualização: <span id="lastUpdate">--</span>
+                                Ãšltima atualizaÃ§Ã£o: <span id="lastUpdate">--</span>
                             </small>
                         </div>
                     </div>
                 </div>
 
-                <!-- Informações de Mensalidade -->
+                <!-- InformaÃ§Ãµes de Mensalidade -->
                 <div class="col-lg-8">
                     <div class="section-card mensalidade-card">
                         <div class="card-header">
@@ -302,7 +305,7 @@
                             </h5>
                             <div class="card-actions">
                                 <button class="btn btn-sm btn-outline-light" id="viewHistory">
-                                    <i class="fas fa-history"></i> Histórico
+                                    <i class="fas fa-history"></i> HistÃ³rico
                                 </button>
                                 <button class="btn btn-sm btn-primary" id="payViaPix">
                                     <i class="fas fa-qrcode"></i> Pagar via PIX
@@ -320,7 +323,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="vencimento-info">
-                                            <div class="vencimento-label">Próximo Vencimento</div>
+                                            <div class="vencimento-label">PrÃ³ximo Vencimento</div>
                                             <div class="vencimento-date" id="proximoVencimento">--/--/----</div>
                                         </div>
                                     </div>
@@ -350,13 +353,13 @@
                                 <div class="qr-code-container">
                                     <div class="qr-code" id="qrCodeContainer">
                                         <i class="fas fa-qrcode" style="font-size: 4rem; color: #ccc;"></i>
-                                        <p class="mt-2 text-muted">QR Code será gerado automaticamente</p>
+                                        <p class="mt-2 text-muted">QR Code serÃ¡ gerado automaticamente</p>
                                     </div>
                                 </div>
                                 <div class="pix-copy-section">
-                                    <label class="form-label">Código PIX Copia e Cola:</label>
+                                    <label class="form-label">CÃ³digo PIX Copia e Cola:</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="pixCode" readonly placeholder="Código PIX será gerado...">
+                                        <input type="text" class="form-control" id="pixCode" readonly placeholder="CÃ³digo PIX serÃ¡ gerado...">
                                         <button class="btn btn-outline-primary" type="button" id="copyPixCode">
                                             <i class="fas fa-copy"></i> Copiar
                                         </button>
@@ -367,12 +370,12 @@
                     </div>
                 </div>
 
-                <!-- Links Rápidos -->
+                <!-- Links RÃ¡pidos -->
                 <div class="col-lg-6">
                     <div class="section-card">
                         <div class="card-header">
                             <h5 class="card-title">
-                                <i class="fas fa-external-link-alt me-2"></i>Links Rápidos
+                                <i class="fas fa-external-link-alt me-2"></i>Links RÃ¡pidos
                             </h5>
                         </div>
                         <div class="card-body">
@@ -381,7 +384,7 @@
                                     <i class="fas fa-user me-3"></i>
                                     <div>
                                         <strong>Meu Perfil</strong>
-                                        <small class="d-block text-muted">Visualizar e editar informações pessoais</small>
+                                        <small class="d-block text-muted">Visualizar e editar informaÃ§Ãµes pessoais</small>
                                     </div>
                                 </a>
                                 <a href="contratos.html" class="quick-link-btn">
@@ -394,7 +397,7 @@
                                 <a href="contratos-mensalidades.html" class="quick-link-btn">
                                     <i class="fas fa-calendar-check me-3"></i>
                                     <div>
-                                        <strong>Histórico de Pagamentos</strong>
+                                        <strong>HistÃ³rico de Pagamentos</strong>
                                         <small class="d-block text-muted">Consultar mensalidades pagas</small>
                                     </div>
                                 </a>
@@ -423,16 +426,16 @@
 
     <!-- Script Melhorada para inicializar o accordion
     function initializeImprovedAccordion() {
-        console.log('🔄 Inicializando accordion melhorado...');
+        console.log('ðŸ”„ Inicializando accordion melhorado...');
         
         // Aguarda um pouco para garantir que todos os elementos estejam prontos
         setTimeout(() => {
             // Seleciona todos os itens de submenu
             const submenuItems = document.querySelectorAll('.menu-item.has-submenu');
-            console.log(`📊 Encontrados ${submenuItems.length} itens de submenu`);
+            console.log(`ðŸ“Š Encontrados ${submenuItems.length} itens de submenu`);
             
             submenuItems.forEach((menuItem, index) => {
-                // Encontra o link clicável dentro do item
+                // Encontra o link clicÃ¡vel dentro do item
                 const menuLink = menuItem.querySelector('.menu-link, a');
                 const submenu = menuItem.querySelector('.submenu');
                 const arrowIcon = menuItem.querySelector('.arrow-icon');
@@ -447,7 +450,7 @@
                         e.preventDefault();
                         e.stopPropagation();
                         
-                        console.log(`🖱️ Clique no item ${index + 1}`);
+                        console.log(`ðŸ–±ï¸ Clique no item ${index + 1}`);
                         
                         // Fecha todos os outros submenus
                         const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
@@ -461,21 +464,21 @@
                         menuItem.classList.toggle('expanded');
                         
                         const isExpanded = menuItem.classList.contains('expanded');
-                        console.log(`${isExpanded ? '📂' : '📁'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraído'}`);
+                        console.log(`${isExpanded ? 'ðŸ“‚' : 'ðŸ“'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraÃ­do'}`);
                         
-                        // Atualiza o ícone da seta se existir
+                        // Atualiza o Ã­cone da seta se existir
                         if (arrowIcon) {
                             arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
                         }
                     });
                     
-                    console.log(`✅ Evento vinculado ao item ${index + 1}`);
+                    console.log(`âœ… Evento vinculado ao item ${index + 1}`);
                 } else {
-                    console.warn(`⚠️ Item ${index + 1} não tem link ou submenu válido`);
+                    console.warn(`âš ï¸ Item ${index + 1} nÃ£o tem link ou submenu vÃ¡lido`);
                 }
             });
             
-            console.log('✅ Accordion melhorado inicializado com sucesso!');
+            console.log('âœ… Accordion melhorado inicializado com sucesso!');
         }, 100);
     }
     
@@ -486,7 +489,7 @@
         initializeImprovedAccordion();
     }
     
-    // Também disponibiliza globalmente para re-inicialização manual
+    // TambÃ©m disponibiliza globalmente para re-inicializaÃ§Ã£o manual
     window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
     <script src="../assets/js/core/user-menu.js?v=20250127003"></script>
@@ -498,36 +501,36 @@
 
     
 
-    <!-- Correção Completa do Sidebar com Accordion -->
+    <!-- CorreÃ§Ã£o Completa do Sidebar com Accordion -->
     <script>
     (function() {
         'use strict';
         
         // Aguardar que todos os scripts sejam carregados
         function initializeSidebar() {
-            console.log('🔧 Inicializando correção completa do sidebar...');
+            console.log('ðŸ”§ Inicializando correÃ§Ã£o completa do sidebar...');
             
             const menuToggle = document.getElementById('menu-toggle');
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             
             if (!menuToggle) {
-                console.error('❌ Botão do menu não encontrado!');
+                console.error('âŒ BotÃ£o do menu nÃ£o encontrado!');
                 return;
             }
             
             if (!sidebar) {
-                console.error('❌ Sidebar não encontrado!');
+                console.error('âŒ Sidebar nÃ£o encontrado!');
                 return;
             }
             
-            console.log('✅ Elementos encontrados - aplicando correção...');
+            console.log('âœ… Elementos encontrados - aplicando correÃ§Ã£o...');
             
             // Limpar todos os event listeners existentes
             const newMenuToggle = menuToggle.cloneNode(true);
             menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
             
-            // Função para abrir o sidebar
+            // FunÃ§Ã£o para abrir o sidebar
             function openSidebar() {
                 sidebar.classList.add('open', 'menu-aberto');
                 sidebar.style.transform = 'translateX(0)';
@@ -537,10 +540,10 @@
                     overlay.style.display = 'block';
                 }
                 document.body.style.overflow = 'hidden';
-                console.log('🔓 Sidebar aberto');
+                console.log('ðŸ”“ Sidebar aberto');
             }
             
-            // Função para fechar o sidebar
+            // FunÃ§Ã£o para fechar o sidebar
             function closeSidebar() {
                 sidebar.classList.remove('open', 'menu-aberto');
                 sidebar.style.transform = 'translateX(-100%)';
@@ -550,15 +553,15 @@
                     overlay.style.display = 'none';
                 }
                 document.body.style.overflow = '';
-                console.log('🔒 Sidebar fechado');
+                console.log('ðŸ”’ Sidebar fechado');
             }
             
-            // Event listener para o botão do menu
+            // Event listener para o botÃ£o do menu
             newMenuToggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                console.log('🖱️ Clique no menu detectado');
+                console.log('ðŸ–±ï¸ Clique no menu detectado');
                 
                 const isOpen = sidebar.classList.contains('open') || 
                               sidebar.classList.contains('menu-aberto') ||
@@ -577,7 +580,7 @@
                 overlay.addEventListener('click', function(e) {
                     e.preventDefault();
                     closeSidebar();
-                    console.log('🔒 Sidebar fechado via overlay');
+                    console.log('ðŸ”’ Sidebar fechado via overlay');
                 });
             }
             
@@ -588,12 +591,12 @@
                                   sidebar.classList.contains('menu-aberto');
                     if (isOpen) {
                         closeSidebar();
-                        console.log('🔒 Sidebar fechado via ESC');
+                        console.log('ðŸ”’ Sidebar fechado via ESC');
                     }
                 }
             });
             
-            // Event listener para botão de fechar (se existir)
+            // Event listener para botÃ£o de fechar (se existir)
             const closeButton = document.getElementById('sidebar-close') || 
                                document.querySelector('.sidebar-close') ||
                                document.querySelector('#sidebar .close-btn');
@@ -601,13 +604,13 @@
                 closeButton.addEventListener('click', function(e) {
                     e.preventDefault();
                     closeSidebar();
-                    console.log('🔒 Sidebar fechado via botão fechar');
+                    console.log('ðŸ”’ Sidebar fechado via botÃ£o fechar');
                 });
             }
             
             // Implementar funcionalidade de accordion
             const menuItems = document.querySelectorAll('#sidebar .menu-item.has-submenu');
-            console.log('🔍 Itens do menu encontrados:', menuItems.length);
+            console.log('ðŸ” Itens do menu encontrados:', menuItems.length);
             
             menuItems.forEach(function(item) {
                 const link = item.querySelector('.menu-link');
@@ -622,7 +625,7 @@
                         e.preventDefault();
                         e.stopPropagation();
                         
-                        console.log('🖱️ Clique no menu:', newLink.textContent.trim());
+                        console.log('ðŸ–±ï¸ Clique no menu:', newLink.textContent.trim());
                         
                         // Fechar outros submenus
                         menuItems.forEach(function(otherItem) {
@@ -640,15 +643,15 @@
                         if (isExpanded) {
                             item.classList.remove('expanded');
                             submenu.style.display = 'none';
-                            console.log('📁 Submenu fechado:', newLink.textContent.trim());
+                            console.log('ðŸ“ Submenu fechado:', newLink.textContent.trim());
                         } else {
                             item.classList.add('expanded');
                             submenu.style.display = 'block';
-                            console.log('📂 Submenu aberto:', newLink.textContent.trim());
+                            console.log('ðŸ“‚ Submenu aberto:', newLink.textContent.trim());
                         }
                     });
                     
-                    console.log('✅ Event listener adicionado para:', link.textContent.trim());
+                    console.log('âœ… Event listener adicionado para:', link.textContent.trim());
                 }
             });
                 
@@ -656,7 +659,7 @@
             // Garantir que o sidebar inicie fechado
             closeSidebar();
             
-            console.log('✅ Correção completa do sidebar aplicada com sucesso!');
+            console.log('âœ… CorreÃ§Ã£o completa do sidebar aplicada com sucesso!');
         }
         
         // Inicializar quando o DOM estiver pronto
@@ -673,6 +676,7 @@
     <script src="../assets/js/features/pix-checkout.js?v=20250127003"></script>
 </body>
 </html>
+
 
 
 

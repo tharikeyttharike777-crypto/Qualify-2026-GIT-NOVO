@@ -71,27 +71,15 @@ function initSearchBar() {
     const availablePages = [
         { title: 'Dashboard', url: '/index.html', icon: 'fa-tachometer-alt' },
         // Contratos
-        { title: 'Contratos', url: '/pages/contratos.html', icon: 'fa-file-contract' },
-        { title: 'Mensalidades', url: '/pages/contratos-mensalidades.html', icon: 'fa-file-contract' },
-        { title: 'Renovações Pendentes', url: '/pages/renovacoes-pendentes.html', icon: 'fa-file-contract' },
-        { title: 'Renegociação', url: '/pages/renegociacao-cobrancas.html', icon: 'fa-file-contract' },
-        { title: 'Adimplentes', url: '/pages/contratos-adimplentes.html', icon: 'fa-file-contract' },
-        { title: 'Cancelados', url: '/pages/cancelados.html', icon: 'fa-file-contract' },
+        { title: 'Contratos Ativos', url: '/pages/contratos.html', icon: 'fa-file-contract' },
+        { title: 'Renegociação', url: '/pages/renegociacao-cobrancas.html', icon: 'fa-handshake' },
         // Financeiro
-        { title: 'Cobranças', url: '/pages/cobrancas.html', icon: 'fa-money-bill-wave' },
-        { title: 'Lista de Cobrança', url: '/pages/lista-cobranca.html', icon: 'fa-money-bill-wave' },
-        { title: 'Contas a Pagar', url: '/pages/contas-pagar.html', icon: 'fa-file-invoice-dollar' },
-        { title: 'Contas a Receber', url: '/pages/contas-receber.html', icon: 'fa-hand-holding-usd' },
-        // Comissionamento removido
-        // Pesquisas
-        { title: 'Pesquisa Simplificada', url: '/pages/pesquisa-simplificada.html', icon: 'fa-search' },
+        { title: 'Gestão Financeira', url: '/pages/lista-cobranca.html', icon: 'fa-money-bill-wave' },
         { title: 'Pesquisar Associados', url: '/pages/pesquisar-associados.html', icon: 'fa-user-friends' },
         { title: 'Pesquisar Famílias', url: '/pages/pesquisar-familias.html', icon: 'fa-users' },
         { title: 'Pesquisar Pets', url: '/pages/pesquisar-pets.html', icon: 'fa-paw' },
         // Relatórios
-        { title: 'Resumo do Dia', url: '/pages/resumo-dia.html', icon: 'fa-calendar-day' },
         { title: 'Aniversariantes', url: '/pages/aniversariantes.html', icon: 'fa-birthday-cake' },
-        { title: 'Metas', url: '/pages/metas.html', icon: 'fa-bullseye' },
         { title: 'Minhas Movimentações', url: '/pages/minhas-movimentacoes.html', icon: 'fa-chart-line' },
         // Serviços
         { title: 'Ordens de Serviço', url: '/pages/ordens-servico.html', icon: 'fa-tools' },

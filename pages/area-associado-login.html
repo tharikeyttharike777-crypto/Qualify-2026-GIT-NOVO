@@ -1,18 +1,19 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/6819/6819264.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Área do Associado - Login - Qualify</title>
+    <title>Ãrea do Associado - Login - Qualify</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250127003" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=20250127003" rel="stylesheet">
-    <!-- CSS específico -->
+    <!-- CSS especÃ­fico -->
     <link rel="stylesheet" href="../assets/css/styles.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/sidebar-menu.css?v=20250127003">
     <link rel="stylesheet" href="../assets/css/user-menu.css?v=20250127003">
@@ -21,7 +22,7 @@
 
     <!-- Script Melhorado do Accordion -->
     <script>
-    // Fun��o melhorada para inicializar o accordion
+    // Funï¿½ï¿½o melhorada para inicializar o accordion
     function initializeImprovedAccordion() {
         console.log('?? Inicializando accordion melhorado...');
         
@@ -32,7 +33,7 @@
             console.log(`?? Encontrados ${submenuItems.length} itens de submenu`);
             
             submenuItems.forEach((menuItem, index) => {
-                // Encontra o link clic�vel dentro do item
+                // Encontra o link clicï¿½vel dentro do item
                 const menuLink = menuItem.querySelector('.menu-link, a');
                 const submenu = menuItem.querySelector('.submenu');
                 const arrowIcon = menuItem.querySelector('.arrow-icon');
@@ -61,9 +62,9 @@
                         menuItem.classList.toggle('expanded');
                         
                         const isExpanded = menuItem.classList.contains('expanded');
-                        console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contra�do'}`);
+                        console.log(`${isExpanded ? '??' : '??'} Item ${index + 1} ${isExpanded ? 'expandido' : 'contraï¿½do'}`);
                         
-                        // Atualiza o �cone da seta se existir
+                        // Atualiza o ï¿½cone da seta se existir
                         if (arrowIcon) {
                             arrowIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
                         }
@@ -71,7 +72,7 @@
                     
                     console.log(`? Evento vinculado ao item ${index + 1}`);
                 } else {
-                    console.warn(`?? Item ${index + 1} n�o tem link ou submenu v�lido`);
+                    console.warn(`?? Item ${index + 1} nï¿½o tem link ou submenu vï¿½lido`);
                 }
             });
             
@@ -86,11 +87,13 @@
         initializeImprovedAccordion();
     }
     
-    // Tamb�m disponibiliza globalmente para re-inicializa��o manual
+    // Tambï¿½m disponibiliza globalmente para re-inicializaï¿½ï¿½o manual
     window.reinitializeAccordion = initializeImprovedAccordion;
     </script>
     <script src="../assets/js/core/user-menu.js?v=20250127003" defer></script>
     <script src="../assets/js/utils/header-search.js?v=20250127003" defer></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <!-- Header -->
@@ -106,7 +109,7 @@
             </div>
             <div class="header-center">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Pesquisar páginas..." id="page-search">
+                    <input type="text" class="search-input" placeholder="Pesquisar pÃ¡ginas..." id="page-search">
                     <i class="fas fa-search search-icon"></i>
                     <div id="search-results" class="search-results"></div>
                 </div>
@@ -117,12 +120,12 @@
                     <span class="notification-badge">9</span>
                 </div>
                 <div class="user-info">
-                    <!-- Informações do usuário serão inseridas aqui pelo auth-manager -->
+                    <!-- InformaÃ§Ãµes do usuÃ¡rio serÃ£o inseridas aqui pelo auth-manager -->
                 </div>
                 
-                <!-- Menu de Usuário -->
+                <!-- Menu de UsuÃ¡rio -->
                 <div class="user-menu-container">
-                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do Usuário" aria-expanded="false">
+                    <button class="user-menu-trigger" id="userMenuTrigger" aria-label="Menu do UsuÃ¡rio" aria-expanded="false">
                         <i class="fas fa-user-circle"></i>
                     </button>
                     
@@ -136,17 +139,17 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Meu Perfil</span>
-                                    <span class="dropdown-item-subtitle">Configurações pessoais</span>
+                                    <span class="dropdown-item-subtitle">ConfiguraÃ§Ãµes pessoais</span>
                                 </div>
                             </a>
                             
-                            <!-- Item 2: Configurações -->
+                            <!-- Item 2: ConfiguraÃ§Ãµes -->
                             <a href="minha-conta.html" class="dropdown-item" role="menuitem" data-action="settings">
                                 <div class="dropdown-item-icon">
                                     <i class="fas fa-cog"></i>
                                 </div>
                                 <div class="dropdown-item-content">
-                                    <span class="dropdown-item-title">Configurações</span>
+                                    <span class="dropdown-item-title">ConfiguraÃ§Ãµes</span>
                                     <span class="dropdown-item-subtitle">Ajustes do sistema</span>
                                 </div>
                             </a>
@@ -161,7 +164,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Ajuda</span>
-                                    <span class="dropdown-item-subtitle">Suporte e documentação</span>
+                                    <span class="dropdown-item-subtitle">Suporte e documentaÃ§Ã£o</span>
                                 </div>
                             </a>
                             
@@ -175,7 +178,7 @@
                                 </div>
                                 <div class="dropdown-item-content">
                                     <span class="dropdown-item-title">Sair</span>
-                                    <span class="dropdown-item-subtitle">Encerrar sessão</span>
+                                    <span class="dropdown-item-subtitle">Encerrar sessÃ£o</span>
                                 </div>
                             </a>
                         </div>
@@ -206,7 +209,7 @@
                         <li><a href="dashboard.html">Dashboard</a></li>
                         <li><a href="inadimplentes.html">Inadimplentes</a></li>
                         <li><a href="dre-gerencial.html">DRE Gerencial</a></li>
-                        <li><a href="metricas-estrategicas.html">M�tricas Estrat�gicas</a></li>
+                        <li><a href="metricas-estrategicas.html">Mï¿½tricas Estratï¿½gicas</a></li>
                         <li><a href="controle-caixas.html">Controle de caixas</a></li>
                         <li><a href="contas-receber.html">Contas a receber</a></li>
                         <li><a href="vendas.html">Vendas</a></li>
@@ -223,8 +226,8 @@
                     <ul class="submenu">
                         <li><a href="contratos.html">Ativos</a></li>
                         <li><a href="contratos-mensalidades.html">Mensalidades</a></li>
-                        <li><a href="renovacoes-pendentes.html">Renovações pendentes</a></li>
-                        <li><a href="renegociacao-cobrancas.html">Renegocia��o</a></li>
+                        <li><a href="renovacoes-pendentes.html">RenovaÃ§Ãµes pendentes</a></li>
+                        <li><a href="renegociacao-cobrancas.html">Renegociaï¿½ï¿½o</a></li>
                         <li><a href="contratos-adimplentes.html">Adimplentes</a></li>
                         <li><a href="cancelados.html">Cancelados</a></li>
                 
@@ -240,25 +243,25 @@
                     </a>
                     <ul class="submenu">
                         <li><a href="contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="lista-cobranca.html">Lista de cobranÃ§a</a></li>
                         <li><a href="comissionamento.html">Comissionamento</a></li>
                         <li><a href="resumo-dia.html">Resumo do dia</a></li>
-                        <li><a href="minhas-movimentacoes.html">Minhas movimentações</a></li>
+                        <li><a href="minhas-movimentacoes.html">Minhas movimentaÃ§Ãµes</a></li>
                         <li><a href="metas.html">Metas</a></li>
-                        <li><a href="ordens-servico.html">Ordens de serviço</a></li>
+                        <li><a href="ordens-servico.html">Ordens de serviÃ§o</a></li>
                     </ul>
                 </li>
                 
-                <!-- Famílias -->
+                <!-- FamÃ­lias -->
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="icon-family"></i>
-                        <span class="menu-text">Famílias</span>
+                        <span class="menu-text">FamÃ­lias</span>
                         <i class="arrow-icon">?</i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="nova-familia.html">Nova família</a></li>
-                        <li><a href="pesquisar-familias.html">Pesquisar famílias</a></li>
+                        <li><a href="nova-familia.html">Nova famÃ­lia</a></li>
+                        <li><a href="pesquisar-familias.html">Pesquisar famÃ­lias</a></li>
                         <li><a href="pesquisar-associados.html">Pesquisar associados</a></li>
                 <li><a href="pesquisar-pets.html">Pesquisar Pets</a></li>
                         <li><a href="aniversariantes.html">Aniversariantes</a></li>
@@ -304,14 +307,14 @@
                     <div class="col-lg-12">
                         <div class="login-card">
                             <div class="row g-0">
-                                <!-- Coluna Esquerda - Formulário -->
+                                <!-- Coluna Esquerda - FormulÃ¡rio -->
                                 <div class="col-lg-7 login-form-section">
                                     <div class="login-form-content">
                                         <div class="login-header-content">
                                             <h1 class="login-title">Acesse sua Conta</h1>
                                             <p class="login-subtitle">
-                                                Bem-vindo à sua área exclusiva! Aqui você pode consultar 
-                                                suas mensalidades, histórico de pagamentos e muito mais.
+                                                Bem-vindo Ã  sua Ã¡rea exclusiva! Aqui vocÃª pode consultar 
+                                                suas mensalidades, histÃ³rico de pagamentos e muito mais.
                                             </p>
                                         </div>
 
@@ -330,11 +333,11 @@
                                                     required
                                                 >
                                                 <div class="invalid-feedback">
-                                                    Por favor, insira um CPF válido.
+                                                    Por favor, insira um CPF vÃ¡lido.
                                                 </div>
                                             </div>
 
-                                            <!-- Campo "N�mero do Contrato" removido: login apenas por CPF -->
+                                            <!-- Campo "Nï¿½mero do Contrato" removido: login apenas por CPF -->
 
                                             <div class="form-group">
                                                 <div class="form-check">
@@ -371,7 +374,7 @@
                                             </div>
                                             <div class="security-text">
                                                 <h4>100% Seguro</h4>
-                                                <p>Seus dados estão protegidos com criptografia de ponta</p>
+                                                <p>Seus dados estÃ£o protegidos com criptografia de ponta</p>
                                             </div>
                                         </div>
 
@@ -382,7 +385,7 @@
                                             </div>
                                             <div class="feature-item">
                                                 <i class="fas fa-check-circle"></i>
-                                                <span>Histórico de pagamentos</span>
+                                                <span>HistÃ³rico de pagamentos</span>
                                             </div>
                                             <div class="feature-item">
                                                 <i class="fas fa-check-circle"></i>
@@ -408,11 +411,11 @@
         <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <i class="fas fa-info-circle text-primary me-2"></i>
-                <strong class="me-auto">Notificação</strong>
+                <strong class="me-auto">NotificaÃ§Ã£o</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body">
-                <!-- Conteúdo dinâmico -->
+                <!-- ConteÃºdo dinÃ¢mico -->
             </div>
         </div>
     </div>
@@ -421,7 +424,7 @@
     
     <!-- Cache Buster - DEVE SER O PRIMEIRO SCRIPT -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250127003"></script>
-    <!-- JavaScript espec�fico -->
+    <!-- JavaScript especï¿½fico -->
     <script src="../assets/js/features/area-associado-login.js?v=20250127003"></script>
 
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
@@ -430,36 +433,36 @@
 
     
 
-    <!-- Corre��o Completa do Sidebar com Accordion -->
+    <!-- Correï¿½ï¿½o Completa do Sidebar com Accordion -->
     <script>
     (function() {
         'use strict';
         
         // Aguardar que todos os scripts sejam carregados
         function initializeSidebar() {
-            console.log('?? Inicializando corre��o completa do sidebar...');
+            console.log('?? Inicializando correï¿½ï¿½o completa do sidebar...');
             
             const menuToggle = document.getElementById('menu-toggle');
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             
             if (!menuToggle) {
-                console.error('? Bot�o do menu n�o encontrado!');
+                console.error('? Botï¿½o do menu nï¿½o encontrado!');
                 return;
             }
             
             if (!sidebar) {
-                console.error('? Sidebar n�o encontrado!');
+                console.error('? Sidebar nï¿½o encontrado!');
                 return;
             }
             
-            console.log('? Elementos encontrados - aplicando corre��o...');
+            console.log('? Elementos encontrados - aplicando correï¿½ï¿½o...');
             
             // Limpar todos os event listeners existentes
             const newMenuToggle = menuToggle.cloneNode(true);
             menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
             
-            // Fun��o para abrir o sidebar
+            // Funï¿½ï¿½o para abrir o sidebar
             function openSidebar() {
                 sidebar.classList.add('open', 'menu-aberto');
                 sidebar.style.transform = 'translateX(0)';
@@ -472,7 +475,7 @@
                 console.log('?? Sidebar aberto');
             }
             
-            // Fun��o para fechar o sidebar
+            // Funï¿½ï¿½o para fechar o sidebar
             function closeSidebar() {
                 sidebar.classList.remove('open', 'menu-aberto');
                 sidebar.style.transform = 'translateX(-100%)';
@@ -485,7 +488,7 @@
                 console.log('?? Sidebar fechado');
             }
             
-            // Event listener para o bot�o do menu
+            // Event listener para o botï¿½o do menu
             newMenuToggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -525,7 +528,7 @@
                 }
             });
             
-            // Event listener para bot�o de fechar (se existir)
+            // Event listener para botï¿½o de fechar (se existir)
             const closeButton = document.getElementById('sidebar-close') || 
                                document.querySelector('.sidebar-close') ||
                                document.querySelector('#sidebar .close-btn');
@@ -533,7 +536,7 @@
                 closeButton.addEventListener('click', function(e) {
                     e.preventDefault();
                     closeSidebar();
-                    console.log('?? Sidebar fechado via bot�o fechar');
+                    console.log('?? Sidebar fechado via botï¿½o fechar');
                 });
             }
             
@@ -588,7 +591,7 @@
             // Garantir que o sidebar inicie fechado
             closeSidebar();
             
-            console.log('? Corre��o completa do sidebar aplicada com sucesso!');
+            console.log('? Correï¿½ï¿½o completa do sidebar aplicada com sucesso!');
         }
         
         // Inicializar quando o DOM estiver pronto
@@ -604,6 +607,7 @@
     </script>
 </body>
 </html>
+
 
 
 

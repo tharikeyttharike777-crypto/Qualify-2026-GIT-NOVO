@@ -214,9 +214,6 @@
                         <li><a href="pages/pesquisa-planos.html">Pesquisa de Planos</a></li>
                         <li><a href="pages/dashboard.html">Dashboard</a></li>
                         <li><a href="pages/inadimplentes.html">Inadimplentes</a></li>
-                        <li><a href="pages/dre-gerencial.html">DRE Gerencial</a></li>
-                        <li><a href="pages/metricas-estrategicas.html">Métricas Estratégicas</a></li>
-                        <li><a href="pages/controle-caixas.html">Controle de caixas</a></li>
                         <li><a href="pages/contas-receber.html">Contas a receber</a></li>
                         <li><a href="pages/vendas.html">Vendas</a></li>
                     </ul>
@@ -248,12 +245,10 @@
                         <i class="arrow-icon">▼</i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="pages/contas-pagar.html">Contas a pagar</a></li>
-                        <li><a href="pages/lista-cobranca.html">Lista de cobrança</a></li>
-                        <li><a href="pages/comissionamento.html">Comissionamento</a></li>
-                        <li><a href="pages/resumo-dia.html">Resumo do dia</a></li>
                         <li><a href="pages/minhas-movimentacoes.html">Minhas movimentações</a></li>
-                        <li><a href="pages/metas.html">Metas</a></li>
+                        <li><a href="pages/lista-cobranca.html">Lista de cobrança</a></li>
+                        <li><a href="pages/contas-pagar.html">Contas a pagar</a></li>
+                        <li><a href="pages/contas-receber.html">Contas a receber</a></li>
                         <li><a href="pages/ordens-servico.html">Ordens de serviço</a></li>
                     </ul>
                 </li>
@@ -283,41 +278,25 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Mais usados Section -->
+        <!-- Mais Usados Section -->
         <section class="dashboard-section">
             <h2>Mais usados</h2>
             <div class="card-grid">
-                <div class="card blue" onclick="window.location.href='pages/pesquisa-simplificada.html'">
-                    <i class="fas fa-search"></i>
-                    <span>Pesquisa simplificada</span>
+                <div class="card" onclick="window.location.href='pages/pesquisa-planos.html'">
+                    <i class="fas fa-search-dollar"></i>
+                    <span>Pesquisa de Planos</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/produtos.html'">
+                    <i class="fas fa-box"></i>
+                    <span>Produtos</span>
                 </div>
                 <div class="card blue" onclick="window.location.href='pages/dashboard.html'">
-                    <i class="fas fa-tachometer-alt"></i>
+                    <i class="fas fa-chart-pie"></i>
                     <span>Dashboard</span>
                 </div>
                 <div class="card blue" onclick="window.location.href='pages/inadimplentes.html'">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>Inadimplentes</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/dre-gerencial.html'">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>DRE Gerencial</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/metricas-estrategicas.html'">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Métricas Estratégicas</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/controle-caixas.html'">
-                    <i class="fas fa-dollar-sign"></i>
-                    <span>Controle de caixas</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/contas-receber.html'">
-                    <i class="fas fa-download"></i>
-                    <span>Contas a receber</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/nova-familia.html'">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Nova família</span>
                 </div>
             </div>
         </section>
@@ -328,23 +307,7 @@
             <div class="card-grid">
                 <div class="card blue" onclick="window.location.href='pages/contratos.html'">
                     <i class="fas fa-file-contract"></i>
-                    <span>Ativos</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/contratos-mensalidades.html'">
-                    <i class="fas fa-search-dollar"></i>
-                    <span>Mensalidades</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/renovacoes-pendentes.html'">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Renovações pendentes</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/contratos-adimplentes.html'">
-                    <i class="fas fa-calendar-check"></i>
-                    <span>Adimplentes</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/cancelados.html'">
-                    <i class="fas fa-ban"></i>
-                    <span>Cancelados</span>
+                    <span>Todos os Contratos</span>
                 </div>
                 <div class="card blue" onclick="window.location.href='pages/renegociacao-cobrancas.html'">
                     <i class="fas fa-handshake"></i>
@@ -357,21 +320,9 @@
         <section class="dashboard-section">
             <h2>Financeiro</h2>
             <div class="card-grid">
-                <div class="card blue" onclick="window.location.href='pages/minhas-movimentacoes.html'">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Minhas movimentações</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/metas.html'">
-                    <i class="fas fa-bullseye"></i>
-                    <span>Metas</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/contas-pagar.html'">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    <span>Contas a pagar</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/resumo-dia.html'">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Resumo do dia</span>
+                <div class="card blue" onclick="window.location.href='pages/lista-cobranca.html'">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Gestão Financeira</span>
                 </div>
             </div>
         </section>
@@ -380,6 +331,10 @@
         <section class="dashboard-section">
             <h2>Famílias</h2>
             <div class="card-grid">
+                <div class="card blue" onclick="window.location.href='pages/nova-familia.html'">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Nova família</span>
+                </div>
                 <div class="card blue" onclick="window.location.href='pages/pesquisar-familias.html'">
                     <i class="fas fa-users"></i>
                     <span>Pesquisar famílias</span>
@@ -390,11 +345,30 @@
                 </div>
                 <div class="card blue" onclick="window.location.href='pages/pesquisar-pets.html'">
                     <i class="fas fa-paw"></i>
-                    <span>Pesquisar pet's</span>
+                    <span>Pesquisar Pets</span>
                 </div>
                 <div class="card blue" onclick="window.location.href='pages/aniversariantes.html'">
                     <i class="fas fa-birthday-cake"></i>
                     <span>Aniversariantes</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Planos Section -->
+        <section class="dashboard-section">
+            <h2>Planos</h2>
+            <div class="card-grid">
+                <div class="card blue" onclick="window.location.href='pages/novo-plano.html'">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Novo plano</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/pesquisa-planos.html'">
+                    <i class="fas fa-search-dollar"></i>
+                    <span>Pesquisa de Planos</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/produtos.html'">
+                    <i class="fas fa-box"></i>
+                    <span>Produtos</span>
                 </div>
             </div>
         </section>
@@ -520,20 +494,10 @@
     <script src="assets/js/core/user-menu.js?v=20260716001"></script>
     <script src="assets/js/core/empresa-display-fix.js?v=20260716001"></script>
     <script src="assets/js/core/active-company-display.js?v=20260716001"></script>
+    <script src="assets/js/utils/header-search.js" defer></script>
 
     <!-- Bloqueador de requisições será injetado automaticamente pelo webpack -->
-    <script>
-        (function () {
-            try {
-                var p = (window.location.pathname || '');
-                if (p && !/\.html$/i.test(p) && !/\/$/.test(p)) {
-                    var last = p.split('/').pop();
-                    var target = '/' + last + '.html';
-                    fetch(target, { method: 'HEAD' }).then(function (r) { if (r.ok) { location.replace(target); } });
-                }
-            } catch (_) { }
-        })();
-    </script>
+
 </body>
 
 </html>
