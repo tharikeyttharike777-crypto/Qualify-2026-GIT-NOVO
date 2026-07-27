@@ -643,7 +643,8 @@
     let currentPage = 1;
     let totalPages = 1;
     const selectedRows = new Set(); // chaves selecionadas (numero)
-    let _deletionInProgress = false; // Flag de supressÃ£o â€” bloqueia re-renders durante exclusÃ£o
+    let _deletionInProgress = false; // Flag de supressã£o â€” bloqueia re-renders durante exclusã£o
+    let currentFilterTab = 'all';    // Aba de filtro ativa no seletor de status
 
     // DOM helpers
     const $body = () => document.getElementById('contractsBody');
@@ -680,24 +681,60 @@
     }
 
     function toContract(data, fam) {
-      const numeroRaw = data.numero || data.id || '';
+      const meta = data.metadata || {};
+      const numeroRaw = data.numero || data.id || meta.numero || '';
       const numeroLimpo = String(numeroRaw).replace(/\D/g, '');
-      const numeroNumerico = numeroLimpo ? parseInt(numeroLimpo, 10) : Date.now();
-      const titularName = fam?.titular?.nome || data.titular || fam?.titular
-        || (data.familyId ? getTitularByFamilyIdCached(data.familyId) : null) || '-';
+      const numeroNumerico = numeroLimpo ? parseInt(numeroLimpo, 10) : (numeroRaw || Date.now());
+      
+      let titularName = meta.titular || data.titular || data.cliente || fam?.titular?.nome || fam?.titular;
+      if (!titularName || titularName === '-' || titularName === '—') {
+        if (fam && Array.isArray(fam.dependentes)) {
+          const titDep = fam.dependentes.find(d => d && String(d.parentesco||'').toLowerCase() === 'titular') || fam.dependentes[0];
+          if (titDep && titDep.nome) titularName = titDep.nome;
+        }
+        if (!titularName && fam && fam.nome) titularName = fam.nome;
+        if (!titularName && data.familyId) {
+          const cached = getTitularByFamilyIdCached(data.familyId);
+          if (cached) titularName = cached;
+        }
+      }
+      if (!titularName || titularName === '-' || titularName === '—') titularName = 'Em Cadastramento';
+
+      let planoName = meta.plano || data.plano || data.planoNome || fam?.plano || 'Plano QUALIFY';
+
       return {
         id: numeroNumerico,
         numero: String(numeroRaw || numeroNumerico),
-        date: data.date || data.dataInicio || new Date().toLocaleDateString('pt-BR'),
+        date: meta.date || data.date || data.dataInicio || new Date().toLocaleDateString('pt-BR'),
         titular: titularName,
-        plano: data.plano || '-',
-        status: normalizeStatus(data.status || 'ativo'),
-        vendedor: (data.vendedor && String(data.vendedor).trim()) ? data.vendedor : 'nenhum',
-        // Metadados para exclusÃ£o no Firestore
+        plano: planoName,
+        status: normalizeStatus(meta.status || data.status || 'ativo'),
+        vendedor: (meta.vendedor || data.vendedor && String(data.vendedor).trim()) ? (meta.vendedor || data.vendedor) : 'nenhum',
         firestoreId: data.firestoreId || data.id || null,
         firestoreSource: data.firestoreSource || null,
         familyId: data.familyId || (fam ? fam.id : null)
       };
+    }
+
+    function updateKPICards() {
+      const elTotal = document.getElementById('kpiTotal');
+      const elAtivos = document.getElementById('kpiAtivos');
+      const elPendentes = document.getElementById('kpiPendentes');
+      const elInadim = document.getElementById('kpiInadimplentes');
+
+      let ativos = 0, pendentes = 0, inadimCancel = 0;
+      allData.forEach(c => {
+        const st = normalizeStatus(c.status);
+        if (['ativo', 'adimplente'].includes(st)) ativos++;
+        else if (['pendente', 'renovacao', 'renovação', 'renegociacao', 'renegociação', 'inadimplente', 'atrasada', 'em atraso'].includes(st)) pendentes++;
+        else if (['cancelado', 'encerrado', 'inativo'].includes(st)) inadimCancel++;
+        else inadimCancel++;
+      });
+
+      if (elTotal) elTotal.textContent = allData.length;
+      if (elAtivos) elAtivos.textContent = ativos;
+      if (elPendentes) elPendentes.textContent = pendentes;
+      if (elInadim) elInadim.textContent = inadimCancel;
     }
 
     // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -907,25 +944,41 @@
           const contract = allData.find(c => c.numero === numero);
           if (!contract) return;
 
-          try {
-            // Se for um contrato direto
-            if (contract.firestoreSource === 'contratos' && contract.firestoreId) {
-              await contractsCol.doc(contract.firestoreId).delete();
-            }
-            // Se estiver dentro de uma famÃ­lia
-            else if (contract.firestoreSource === 'familia' && contract.familyId) {
-              const famSnap = await familiasCol.doc(contract.familyId).get();
-              if (famSnap.exists) {
-                const famData = famSnap.data();
-                const updatedContratos = (famData.contratos || []).filter(ct =>
-                  String(ct.numero || ct.id || '').trim() !== numero
-                );
-                await familiasCol.doc(contract.familyId).update({ contratos: updatedContratos });
+            // Exclui de ambas as fontes (contratos individuais e array em famílias, sem 'else if')
+            try {
+              if (contract.firestoreId && contractsCol) await contractsCol.doc(contract.firestoreId).delete().catch(()=>{});
+              if (window.supabase) await window.supabase.from('contratos').delete().eq('numero', String(numero)).catch(()=>{});
+            } catch(e) {}
+
+            try {
+              if (contract.familyId && familiasCol) {
+                const famSnap = await familiasCol.doc(contract.familyId).get();
+                if (famSnap.exists) {
+                  const famData = famSnap.data();
+                  const updatedContratos = (famData.contratos || []).filter(ct =>
+                    String(ct.numero || ct.id || '').trim() !== String(numero).trim() &&
+                    String(ct.numero || ct.id || '').trim().replace(/^0+/, '') !== String(numero).trim().replace(/^0+/, '')
+                  );
+                  await familiasCol.doc(contract.familyId).update({ contratos: updatedContratos });
+                }
               }
-            }
-            // Limpeza de localStorage se necessÃ¡rio
-            const editKey = `CONTRACT_EDIT_${numero}`;
-            if (localStorage.getItem(editKey)) localStorage.removeItem(editKey);
+            } catch(e) {}
+
+            try {
+              localStorage.removeItem(`CONTRACT_EDIT_${numero}`);
+              const ctsLocal = JSON.parse(localStorage.getItem('contratos') || '[]');
+              localStorage.setItem('contratos', JSON.stringify(ctsLocal.filter(c => String(c.numero||c.id)!==String(numero))));
+              const famsLocal = JSON.parse(localStorage.getItem('familias') || '[]');
+              let famsModified = false;
+              famsLocal.forEach(f => {
+                if (Array.isArray(f.contratos)) {
+                  const ant = f.contratos.length;
+                  f.contratos = f.contratos.filter(c => String(c.numero||c.id)!==String(numero));
+                  if (f.contratos.length !== ant) famsModified = true;
+                }
+              });
+              if (famsModified) localStorage.setItem('familias', JSON.stringify(famsLocal));
+            } catch(e) {}
 
             successCount++;
           } catch (err) {
@@ -936,7 +989,6 @@
 
         await Promise.all(tasks);
 
-        // Atualizar estado local
         const frozenSet = new Set(frozenIds);
         allData = allData.filter(c => !frozenSet.has(c.numero));
         selectedRows.clear();
@@ -948,52 +1000,62 @@
         closeDeleteModal();
 
         if (failCount > 0) {
-          showToast(`${successCount} excluÃ­dos, ${failCount} falharam.`, 'warning');
+          showToast(`${successCount} excluídos, ${failCount} falharam.`, 'warning');
         } else {
-          showToast(`${totalToDelete} contrato(s) excluÃ­do(s) com sucesso!`, 'success');
+          showToast(`${totalToDelete} contrato(s) excluído(s) com sucesso!`, 'success');
         }
 
       } catch (error) {
-        console.error('âŒ Erro na exclusÃ£o:', error);
+        console.error('❌ Erro na exclusão:', error);
         _deletionInProgress = false;
         closeDeleteModal();
         showToast('Erro ao excluir: ' + error.message, 'error');
       }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // BUSCA + ATUALIZAÃ‡ÃƒO COMPLETA
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ——————————————————————————————————————————————————————————————————————————
+    // BUSCA + ATUALIZAÇÃO COMPLETA
+    // ——————————————————————————————————————————————————————————————————————————
     function applySearch(data) {
-      const q = String($search().value || '').trim().toLowerCase();
-      if (!q) return data;
-      return data.filter(c => `${c.numero} ${c.titular} ${c.vendedor} ${c.plano} ${c.status}`.toLowerCase().includes(q));
+      let result = data;
+      if (typeof currentFilterTab !== 'undefined' && currentFilterTab && currentFilterTab !== 'all') {
+        result = result.filter(c => {
+          const st = normalizeStatus(c.status);
+          if (currentFilterTab === 'ativo') return ['ativo', 'adimplente'].includes(st);
+          if (currentFilterTab === 'inadimplente') return ['pendente', 'renovacao', 'renovação', 'renegociacao', 'renegociação', 'inadimplente', 'atrasado', 'em atraso', 'pendente'].includes(st);
+          if (currentFilterTab === 'cancelado') return ['cancelado', 'encerrado', 'inativo'].includes(st);
+          return true;
+        });
+      }
+      const q = String($search()?.value || '').trim().toLowerCase();
+      if (!q) return result;
+      return result.filter(c => `${c.numero} ${c.titular} ${c.vendedor} ${c.plano} ${c.status}`.toLowerCase().includes(q));
     }
 
     function applySearchAndRender() {
-      if (_deletionInProgress) { console.log('â¸ï¸ applySearchAndRender bloqueado â€” exclusÃ£o em andamento'); return; }
+      if (_deletionInProgress) { console.log('⏳ applySearchAndRender bloqueado — exclusão em andamento'); return; }
       filteredData = applySearch(allData);
       currentPage = 1;
       renderTable();
       renderPagination();
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // LOADING DE DADOS (6 FONTES)
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ——————————————————————————————————————————————————————————————————————————
+    // LOADING DE DADOS (7 FONTES COMPLETAS)
+    // ——————————————————————————————————————————————————————————————————————————
     async function loadFromContratosFirestore() {
       try {
         const mt = window.multitenantConfig;
-        if (!mt || !mt.getActiveCompany || !mt.getCompanyCollection || !mt.getActiveCompany()) return null;
+        if (!mt || !mt.getCompanyCollection || !mt.getActiveCompany()) return null;
         const snap = await mt.getCompanyCollection('contratos').get();
         return snap.docs.map(d => toContract({ id: d.id, firestoreId: d.id, firestoreSource: 'contratos', ...d.data() }));
-      } catch (e) { console.warn('Falha ao carregar contratos (Firestore):', e); return null; }
+      } catch (e) { return null; }
     }
 
     async function loadFromFamiliasFirestore() {
       try {
         const mt = window.multitenantConfig;
-        if (!mt || !mt.getActiveCompany || !mt.getCompanyCollection || !mt.getActiveCompany()) return null;
+        if (!mt || !mt.getCompanyCollection || !mt.getActiveCompany()) return null;
         const snap = await mt.getCompanyCollection('familias').get();
         const list = [];
         snap.forEach(doc => {
@@ -1002,7 +1064,7 @@
           contratos.forEach(ct => list.push(toContract({ ...ct, firestoreSource: 'familia', familyId: doc.id }, fam)));
         });
         return list;
-      } catch (e) { console.warn('Falha ao carregar contratos via famÃ­lias (Firestore):', e); return null; }
+      } catch (e) { return null; }
     }
 
     function loadFromLocalFamilias() {
@@ -1081,9 +1143,10 @@
           if (key && !dedup.has(key)) dedup.set(key, cn);
         });
 
-        allData = Array.from(dedup.values());
-        console.log('âœ… Total apÃ³s dedupe:', allData.length);
+        allData = Array.from(dedup.values()).filter(c => c && (c.numero || c.id));
+        console.log('✅ Total de contratos consolidados na central:', allData.length);
 
+        updateKPICards();
         applySearchAndRender();
 
         // Busca reativa
@@ -1125,6 +1188,26 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Master checkbox
       $masterCb().addEventListener('change', masterToggle);
+
+      // Vincular abas de filtro
+      document.querySelectorAll('.contract-tab').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.contract-tab').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = 'white';
+            b.style.color = '#475569';
+            b.style.border = '1px solid #cbd5e1';
+            b.style.boxShadow = 'none';
+          });
+          this.classList.add('active');
+          this.style.background = '#3b82f6';
+          this.style.color = 'white';
+          this.style.border = 'none';
+          this.style.boxShadow = '0 4px 10px rgba(59,130,246,0.3)';
+          currentFilterTab = this.getAttribute('data-filter') || 'all';
+          applySearchAndRender();
+        });
+      });
 
       // Auth
       if (window.auth && typeof window.auth.onAuthStateChanged === 'function') {
