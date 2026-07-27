@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -218,29 +218,32 @@
 
         <!-- Overlay para fechar o menu em dispositivos m?veis -->
 
-        <!-- Filter Bar -->
-        <div class="filter-bar">
-            <div class="filter-left">
-                <button class="btn btn-filter" id="filterBtn">
-                    <span class="icon"><i class="fas fa-filter"></i></span> Filtrar
+        <!-- Painel de Gerenciamento e Filtros Rápido -->
+        <div class="filter-bar" style="background: #f8fafc; padding: 16px 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <div class="filter-left" style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn btn-filter" id="filterBtn" style="padding: 10px 18px; background: #2563eb; color: white; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(37,99,235,0.2); transition: all 0.2s;">
+                    <i class="fas fa-filter"></i> Filtrar Avulsos
                 </button>
-                <button class="btn btn-options" id="optionsBtn">
-                    <span class="icon"><i class="fas fa-sliders-h"></i></span> OpÃ§Ãµes
+                <button class="btn btn-options" id="optionsBtn" style="padding: 10px 18px; background: #10b981; color: white; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(16,185,129,0.2); transition: all 0.2s;">
+                    <i class="fas fa-file-excel"></i> Exportar Lista (CSV)
                 </button>
             </div>
-            <div class="filter-status">
-                <span id="filterStatus">Nenhum filtro aplicado</span>
+            <div class="filter-status" style="font-size: 0.92rem; font-weight: 600; color: #64748b;">
+                <span id="filterStatus">Exibindo todos os associados da empresa</span>
             </div>
-            <div class="filter-search" style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-                <input type="text" id="associadoSearch" class="search-input" placeholder="Buscar por nome ou CPF"
-                    aria-label="Buscar por nome ou CPF" />
-                <i class="fas fa-search" aria-hidden="true"></i>
+            <div class="filter-search" style="display: flex; align-items: center; gap: 8px; min-width: 320px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="associadoSearch" class="search-input" style="width: 100%; padding: 10px 40px 10px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s;" placeholder="Buscar por nome, CPF ou tipo..." aria-label="Buscar por nome ou CPF" />
+                    <i class="fas fa-search" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none;"></i>
+                </div>
             </div>
         </div>
 
-        <!-- Data Tabs -->
-        <div class="data-tabs">
-            <button class="tab-btn active" data-tab="dados">Dados</button>
+        <!-- Abas Inteligentes de Segmentação (Substituindo a aba inútil "Dados") -->
+        <div class="segment-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; overflow-x: auto;">
+            <button class="segment-btn active" data-segment="todos" style="padding: 8px 18px; background: #0056b3; color: white; border: 1px solid #3b82f6; border-radius: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;"><i class="fas fa-users" style="margin-right: 6px;"></i> Todos (<span id="countTodos">...</span>)</button>
+            <button class="segment-btn" data-segment="titulares" style="padding: 8px 18px; background: white; color: #475569; border: 1px solid #cbd5e1; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;"><i class="fas fa-user-shield" style="color: #2563eb; margin-right: 6px;"></i> Apenas Titulares (<span id="countTitulares">...</span>)</button>
+            <button class="segment-btn" data-segment="dependentes" style="padding: 8px 18px; background: white; color: #475569; border: 1px solid #cbd5e1; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;"><i class="fas fa-user-friends" style="color: #10b981; margin-right: 6px;"></i> Apenas Dependentes (<span id="countDependentes">...</span>)</button>
         </div>
 
         <!-- Main Content -->
@@ -250,15 +253,14 @@
                 <table class="data-table" id="associadosTable">
                     <thead>
                         <tr>
-                            <th class="col-options">OpÃ§Ãµes</th>
-                            <th class="col-id">ID</th>
-                            <th class="col-nome">Nome</th>
-                            <th class="col-idade">Idade</th>
-                            <th class="col-cpf">CPF</th>
-                            <th class="col-parentesco">Parentesco</th>
+                            <th class="col-options" style="width: 80px;">Opções</th>
+                            <th class="col-id" style="width: 70px;">#</th>
+                            <th class="col-nome">Nome do Associado</th>
+                            <th class="col-parentesco">Tipo / Relação</th>
+                            <th class="col-idade" style="width: 80px;">Idade</th>
+                            <th class="col-cpf" style="width: 140px;">CPF</th>
                             <th class="col-contatos">Contatos</th>
-                            <th class="col-contratos">Contratos</th>
-                            <th class="col-extra">Extra?</th>
+                            <th class="col-contratos" style="text-align: center; width: 130px;">Contratos Ativos</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>

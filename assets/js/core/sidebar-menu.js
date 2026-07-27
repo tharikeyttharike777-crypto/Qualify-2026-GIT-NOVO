@@ -4,38 +4,10 @@
  * Sistema de navegação lateral moderno e responsivo
  */
 
-document.addEventListener('DOMContentLoaded', function(){
-    try {
-        var menu = document.querySelector('.sidebar .sidebar-menu');
-        if (!menu || document.getElementById('reportsMenuItem')) return;
-        var li = document.createElement('li');
-        li.id = 'reportsMenuItem';
-        li.className = 'menu-item has-submenu';
-        li.innerHTML = '<a href="#" class="menu-link"><i class="icon-report"></i><span class="menu-text">Relatórios</span><i class="arrow-icon">▼</i></a>'+
-            '<ul class="submenu">'+
-            '<li><a href="/pages/mensalidades-recebidas.html"><i class="fas fa-file-pdf"></i> Mensalidades Recebidas</a></li>'+
-            '<li><a href="#" data-report="mensalidades"><i class="fas fa-file-pdf"></i> Mensalidades</a></li>'+
-            '<li><a href="/pages/associados.html"><i class="fas fa-file-pdf"></i> Associados</a></li>'+
-            '<li><a href="#" data-report="time-vendas"><i class="fas fa-file-pdf"></i> Time de vendas</a></li>'+
-            '<li><a href="/pages/vendas-produtos.html"><i class="fas fa-file-pdf"></i> Vendas de produtos</a></li>'+
-            '</ul>';
-        var items = menu.querySelectorAll('.menu-item');
-        var anchorIndex = -1;
-        items.forEach(function(it, idx){
-            var txt = it.querySelector('.menu-text');
-            if (txt && /planos|contratos/i.test(txt.textContent || '')) { anchorIndex = idx; }
-        });
-        if (anchorIndex !== -1) {
-            var ref = items[anchorIndex];
-            if (ref && ref.parentNode) ref.parentNode.insertBefore(li, ref.nextSibling);
-            else menu.appendChild(li);
-        } else {
-            menu.appendChild(li);
-        }
-        var link = li.querySelector('.menu-link');
-        if (link) link.addEventListener('click', function(e){ e.preventDefault(); li.classList.toggle('expanded'); });
-    } catch(_) {}
-});
+// Blindagem do Sistema de Menu Oficial Contra Sobrescritas Legadas
+window.initializeSidebar = function() {
+    console.log('🛡️ ModernSidebar assumiu controle de navegação - Neutralizando script inline antigo.');
+};
 
 class ModernSidebar {
     constructor() {
@@ -213,134 +185,40 @@ class ModernSidebar {
     }
 
     /**
-     * Garante que o grupo "Mais usados" tenha um conjunto básico de itens,
-     * adicionando os que estiverem faltando e mantendo a ordem.
+     * Remove completamente qualquer grupo "Mais usados" que exista na página HTML estática.
      */
     normalizeCommonMenu() {
         try {
             const sidebar = this.sidebar;
             if (!sidebar) return;
-
-            // Localiza o item de menu "Mais usados"
             const menuItems = sidebar.querySelectorAll('.menu-item.has-submenu');
-            let commonSubmenu = null;
             menuItems.forEach(item => {
                 const textEl = item.querySelector('.menu-text');
                 const text = (textEl ? textEl.textContent.trim().toLowerCase() : '');
                 if (text === 'mais usados' || text.includes('usados')) {
-                    const submenu = item.querySelector('.submenu');
-                    if (submenu) commonSubmenu = submenu;
+                    item.remove();
                 }
             });
-            if (!commonSubmenu) return;
-
-            const required = [
-                { href: '/pages/pesquisa-planos.html', label: 'Pesquisa de Planos' },
-                { href: '/pages/produtos.html', label: 'Produtos' },
-                { href: '/pages/dashboard.html', label: 'Dashboard' },
-                { href: '/pages/inadimplentes.html', label: 'Inadimplentes' }
-            ];
-            // Reconstrói o submenu do zero com os itens padrão (remove entradas aleatórias)
-            while (commonSubmenu.firstChild) commonSubmenu.removeChild(commonSubmenu.firstChild);
-            required.forEach(item => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.setAttribute('href', item.href);
-                a.textContent = item.label;
-                li.appendChild(a);
-                commonSubmenu.appendChild(li);
-            });
         } catch (e) {
-            console.warn('Falha ao normalizar submenu Mais usados:', e);
+            console.warn('Falha ao remover Mais usados:', e);
         }
     }
 
     /**
-     * Garante que os grupos principais (Contratos, Financeiro, Famílias) existam.
-     * Se estiverem ausentes, cria com um conjunto padrão de links.
+     * Garante que os grupos principais (Contratos, Financeiro, Famílias) existam sem duplicações.
      */
     ensureCoreGroups() {
-        try {
-            const sidebar = this.sidebar;
-            if (!sidebar) return;
-
-            const menuList = sidebar.querySelector('.sidebar-menu');
-            if (!menuList) return;
-
-            const ensureGroup = (title, iconClass, links) => {
-                // Verifica se já existe
-                const existing = Array.from(menuList.querySelectorAll('.menu-item.has-submenu')).find(item => {
-                    const t = item.querySelector('.menu-text');
-                    return t && t.textContent.trim().toLowerCase() === title.toLowerCase();
-                });
-                if (existing) return;
-
-                // Cria estrutura
-                const li = document.createElement('li');
-                li.className = 'menu-item has-submenu';
-                const a = document.createElement('a');
-                a.href = '#';
-                a.className = 'menu-link';
-                const icon = document.createElement('i');
-                icon.className = iconClass;
-                const span = document.createElement('span');
-                span.className = 'menu-text';
-                span.textContent = title;
-                const arrow = document.createElement('i');
-                arrow.className = 'arrow-icon';
-                a.appendChild(icon);
-                a.appendChild(span);
-                a.appendChild(arrow);
-
-                const submenu = document.createElement('ul');
-                submenu.className = 'submenu';
-                links.forEach(l => {
-                    const liSub = document.createElement('li');
-                    const link = document.createElement('a');
-                    link.setAttribute('href', l.href);
-                    link.textContent = l.label;
-                    liSub.appendChild(link);
-                    submenu.appendChild(liSub);
-                });
-
-                li.appendChild(a);
-                li.appendChild(submenu);
-                menuList.appendChild(li);
-            };
-
-            // Contratos
-            ensureGroup('Contratos', 'icon-contract', [
-                { href: 'contratos.html', label: 'Todos os Contratos' },
-                { href: 'renegociacao-cobrancas.html', label: 'Renegociação' }
-            ]);
-
-            // Financeiro
-            ensureGroup('Financeiro', 'icon-money', [
-                { href: 'lista-cobranca.html', label: 'Gestão Financeira' }
-            ]);
-
-            // Famílias (se ausente por completo)
-            ensureGroup('Famílias', 'icon-family', [
-                { href: 'pesquisar-familias.html', label: 'Pesquisar famílias' },
-                { href: 'pesquisar-associados.html', label: 'Pesquisar associados' },
-                { href: 'pesquisar-pets.html', label: 'Pesquisar Pets' },
-                { href: 'aniversariantes.html', label: 'Aniversariantes' },
-            ]);
-        } catch (e) {
-            console.warn('Falha ao garantir grupos principais no sidebar:', e);
-        }
+        // A função rebuildSidebarMenu já constrói a árvore oficial completa e padronizada.
     }
 
     /**
      * Reconstrói a lista do menu lateral de forma padronizada em todas as páginas
-     * Exclui páginas de acesso pelo botão de perfil do header
      */
     rebuildSidebarMenu() {
         try {
             const sidebar = this.sidebar;
             if (!sidebar) return;
 
-            // Localiza/Cria o contêiner de lista
             let menuList = sidebar.querySelector('.sidebar-menu');
             if (!menuList) {
                 const content = sidebar.querySelector('.sidebar-content') || document.createElement('div');
@@ -351,19 +229,12 @@ class ModernSidebar {
                 if (!content.parentElement) sidebar.appendChild(content);
             }
 
-            // Limpa conteúdo atual para evitar duplicações/itens aleatórios
+            // Limpa conteúdo atual para manter o menu lateral estritamente oficial e idêntico em todas as telas
             while (menuList.firstChild) menuList.removeChild(menuList.firstChild);
 
-            // Páginas que NÃO entram no menu lateral (acessos pelo perfil)
-            const excluded = new Set([
-                'perfil.html',
-                'trocar-empresa.html',
-                'minha-conta.html',
-                'area-associado-login.html',
-                'catalogo-planos.html'
-            ]);
+            const isRoot = !window.location.pathname.includes('/pages/') && !window.location.pathname.includes('pages');
+            const getPath = (file) => isRoot ? `pages/${file}` : `${file}`;
 
-            // Helper de criação
             const createGroup = (title, iconClass, links) => {
                 const li = document.createElement('li');
                 li.className = 'menu-item has-submenu';
@@ -377,15 +248,23 @@ class ModernSidebar {
                 span.textContent = title;
                 const arrow = document.createElement('i');
                 arrow.className = 'arrow-icon';
+                // O CSS do .arrow-icon::before já desenha o ícone corretamente. Não colocamos texto aqui para evitar o bug de DUAS setas!
+                arrow.textContent = '';
                 a.appendChild(icon); a.appendChild(span); a.appendChild(arrow);
+                
                 const submenu = document.createElement('ul');
                 submenu.className = 'submenu';
+                submenu.style.maxHeight = '0px';
+                submenu.style.opacity = '0';
+                submenu.style.visibility = 'hidden';
+
                 links.forEach(l => {
-                    if (!l || !l.href || excluded.has(l.href)) return;
                     const liSub = document.createElement('li');
                     const link = document.createElement('a');
-                    link.setAttribute('href', l.href);
+                    const href = getPath(l.href);
+                    link.setAttribute('href', href);
                     link.textContent = l.label;
+                    // O item ativo e a expansão são calculados estritamente na setActiveMenuItem para evitar marcação errada de múltiplos itens!
                     liSub.appendChild(link);
                     submenu.appendChild(liSub);
                 });
@@ -394,117 +273,49 @@ class ModernSidebar {
                 menuList.appendChild(li);
             };
 
-            // Grupo: Mais usados
-            createGroup('Mais usados', 'icon-star', [
-                { href: '/pages/pesquisa-planos.html', label: 'Pesquisa de Planos' },
-                { href: '/pages/produtos.html', label: 'Produtos' },
-                { href: '/pages/dashboard.html', label: 'Dashboard' },
-                { href: '/pages/inadimplentes.html', label: 'Inadimplentes' }
-            ]);
-
-            // Grupo: Contratos
+            // 1. Grupo Oficial: Contratos
             createGroup('Contratos', 'icon-contract', [
-                { href: '/pages/contratos.html', label: 'Todos os Contratos' },
-                { href: '/pages/renegociacao-cobrancas.html', label: 'Renegociação' }
+                { href: 'contratos.html', label: 'Todos os Contratos' },
+                { href: 'inadimplentes.html', label: 'Inadimplentes' },
+                { href: 'renegociacao-cobrancas.html', label: 'Renegociação' }
             ]);
 
-            // Grupo: Financeiro
+            // 2. Grupo Oficial: Financeiro
             createGroup('Financeiro', 'icon-money', [
-                { href: '/pages/lista-cobranca.html', label: 'Gestão Financeira' }
+                { href: 'lista-cobranca.html', label: 'Gestão Financeira' }
             ]);
 
-            // Grupo: Famílias
+            // 3. Grupo Oficial: Famílias
             createGroup('Famílias', 'icon-family', [
-                { href: '/pages/nova-familia.html', label: 'Nova família' },
-                { href: '/pages/pesquisar-familias.html', label: 'Pesquisar famílias' },
-                { href: '/pages/pesquisar-associados.html', label: 'Pesquisar associados' },
-                { href: '/pages/pesquisar-pets.html', label: 'Pesquisar Pets' },
-                { href: '/pages/aniversariantes.html', label: 'Aniversariantes' }
-                // Removido: Editar família (/pages/editar-familia.html)
+                { href: 'nova-familia.html', label: 'Nova família' },
+                { href: 'pesquisar-familias.html', label: 'Pesquisar famílias' },
+                { href: 'pesquisar-associados.html', label: 'Pesquisar associados' },
+                { href: 'pesquisar-pets.html', label: 'Pesquisar Pets' },
+                { href: 'aniversariantes.html', label: 'Aniversariantes' }
             ]);
 
-            // Grupo: Planos
+            // 4. Grupo Oficial: Planos
             createGroup('Planos', 'icon-plan', [
-                { href: '/pages/novo-plano.html', label: 'Novo plano' },
-                // Removido: Administração de planos (/pages/admin-planos.html)
-                { href: '/pages/pesquisa-planos.html', label: 'Pesquisa de Planos' },
-                // Realocado: Produtos (de Operações)
-                { href: '/pages/produtos.html', label: 'Produtos' }
+                { href: 'novo-plano.html', label: 'Novo plano' },
+                { href: 'pesquisa-planos.html', label: 'Pesquisa de Planos' },
+                { href: 'produtos-plano.html', label: 'Produtos' }
             ]);
-
-            // Removido: Grupo Operações
-
-            // Observação: itens como 'comissionamento.html' e 'ordens-servico.html' são mantidos fora
-            // por política atual; o bloco global abaixo também os oculta caso apareçam.
 
             // Reaplica eventos para novos elementos
             this.bindSubmenuEvents();
             this.bindNavigationLinks();
 
-            console.log('✅ Sidebar reconstruído com configuração padrão unificada');
+            console.log('✅ Sidebar reconstruído com perfeição sem setas duplas e sem falsos positivos.');
         } catch (e) {
             console.warn('Falha ao reconstruir menu lateral:', e);
         }
     }
 
     /**
-     * Garante que o submenu "Famílias" exiba sempre os mesmos itens,
-     * adicionando os que estiverem faltando e ordenando conforme o padrão.
+     * Normalização desativada para não conflitar nem alterar o menu oficial gerado dinamicamente
      */
     normalizeFamilySubmenu() {
-        try {
-            const sidebar = this.sidebar;
-            if (!sidebar) return;
-
-            // Localiza o item de menu "Famílias" (variações com/sem acento)
-            const menuItems = sidebar.querySelectorAll('.menu-item.has-submenu');
-            let familySubmenu = null;
-            menuItems.forEach(item => {
-                const textEl = item.querySelector('.menu-text');
-                const text = (textEl ? textEl.textContent.trim().toLowerCase() : '');
-                if (text === 'famílias' || text === 'familias' || text.includes('famí') || text.includes('famil')) {
-                    const submenu = item.querySelector('.submenu');
-                    if (submenu) familySubmenu = submenu;
-                }
-            });
-            if (!familySubmenu) return;
-
-            const required = [
-                { href: '/pages/nova-familia.html', label: 'Nova família' },
-                { href: '/pages/pesquisar-familias.html', label: 'Pesquisar famílias' },
-                { href: '/pages/pesquisar-associados.html', label: 'Pesquisar associados' },
-                { href: '/pages/pesquisar-pets.html', label: 'Pesquisar Pets' },
-                { href: '/pages/aniversariantes.html', label: 'Aniversariantes' },
-            ];
-
-            const existingLinks = Array.from(familySubmenu.querySelectorAll('a')).map(a => (a.getAttribute('href') || '').trim());
-            // Adiciona itens que estiverem faltando
-            required.forEach(item => {
-                if (!existingLinks.includes(item.href)) {
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
-                    a.setAttribute('href', item.href);
-                    a.textContent = item.label;
-                    li.appendChild(a);
-                    familySubmenu.appendChild(li);
-                }
-            });
-
-            // Reordena conforme o padrão definido
-            const linkMap = {};
-            Array.from(familySubmenu.querySelectorAll('li')).forEach(li => {
-                const a = li.querySelector('a');
-                if (!a) return;
-                const href = (a.getAttribute('href') || '').trim();
-                linkMap[href] = li;
-            });
-            required.forEach(item => {
-                const li = linkMap[item.href];
-                if (li) familySubmenu.appendChild(li);
-            });
-        } catch (e) {
-            console.warn('Falha ao normalizar submenu Famílias:', e);
-        }
+        // Desativado: o menu principal em rebuildSidebarMenu já é a autoridade máxima do sistema.
     }
     
     /**
@@ -581,17 +392,40 @@ class ModernSidebar {
      * Vincula os eventos
      */
     bindEvents() {
-        // Toggle do menu
-        if (this.menuToggle) {
-            this.menuToggle.addEventListener('click', (e) => {
+        // Toggle do menu - Protegido por delegação de evento
+        document.body.addEventListener('click', (e) => {
+            const trigger = e.target.closest('#menu-toggle, #menuToggle, .hamburger-menu, .menu-toggle');
+            if (trigger) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🔄 Botao do menu clicado');
+                console.log('🔄 Clique no menu detectado por delegação oficial');
                 this.toggle();
-            });
-            console.log('✅ Evento de clique vinculado ao botao do menu');
-        } else {
-            console.warn('⚠️ Botao do menu nao encontrado para vincular eventos - funcionalidade desabilitada');
+            }
+        }, true);
+        
+        // Blindagem DOM Anti-IIFE: Bloqueia métodos cloneNode e replaceChild para impedir que scripts inline legados removam os listeners dos botões e links
+        const protectElement = (el) => {
+            if (!el) return;
+            try {
+                el.cloneNode = function() { return this; };
+                if (el.parentNode && !el.parentNode._isProtected) {
+                    const origReplace = el.parentNode.replaceChild;
+                    el.parentNode.replaceChild = function(newChild, oldChild) {
+                        if (oldChild === el || (newChild && newChild === oldChild) || (oldChild && (oldChild.id === 'menu-toggle' || oldChild.id === 'menuToggle'))) {
+                            console.warn('🛡️ ModernSidebar interceptou e impediu replaceChild/clonagem de elemento do menu!');
+                            return oldChild;
+                        }
+                        return origReplace.call(this, newChild, oldChild);
+                    };
+                    el.parentNode._isProtected = true;
+                }
+            } catch(e) {}
+        };
+        protectElement(this.menuToggle);
+        protectElement(document.getElementById('menu-toggle'));
+        protectElement(document.getElementById('menuToggle'));
+        if (this.sidebar) {
+            this.sidebar.querySelectorAll('.menu-link, .menu-item a, .submenu a').forEach(protectElement);
         }
         
         // Fechar sidebar

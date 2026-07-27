@@ -88,30 +88,59 @@ async function criarAssinatura(config, dados) {
 
     const valorEmCentavos = Math.round(parseFloat(dados.value) * 100);
 
-    const hoje = new Date();
-    const diaHoje = hoje.getDate();
+    const dataVencimento = dados.nextDueDate || dados.vencimento;
+    let dayDue = 28;
+    if (dataVencimento) {
+        const partes = String(dataVencimento).split('-');
+        if (partes.length === 3) {
+            dayDue = parseInt(partes[2], 10);
+            if (dayDue > 28) dayDue = 28; // Evitar problema com fevereiro
+        }
+    }
     
-    // Se a API exigir dayGenerateCharge igual ao dia atual para PAYMENT_ON_APPROVAL
-    const dayGenerateCharge = diaHoje; 
-    const dayDue = 5; // 5 dias para o cliente pagar a partir da geração
+    // Define a frequência (padrão MONTHLY)
+    const frequency = dados.cycle || 'MONTHLY';
     
+    // Define a jornada
+    // PAYMENT_ON_APPROVAL: Cobra a 1ª fatura AGORA, e a 2ª no próximo ciclo
+    // ONLY_RECURRENCY: Cobra apenas na data programada (respeitando regra dos 3 dias do Bacen)
+    const journey = dados.cobrarImediatamente ? "PAYMENT_ON_APPROVAL" : "ONLY_RECURRENCY";
+
+
+    // AVISO CRÍTICO: O erro que você tomou na tela prova que dayGenerateCharge
+    // É SIM O DIA DO MÊS! Quando mandamos 3 e o vencimento era 27, ele calculou
+    // 27 - 3 = 24 dias, que é maior que 7. Por isso deu erro!
+    // Para resolver de vez, temos que voltar a matemática exata:
+    let prazoPadrao = 3;
+    let validadeFinal = Math.max(dados.validadeQrCode || 3, prazoPadrao);
+
     const rawComment = dados.description || 'Assinatura Mensal';
+
+    // A API da Woovi tem um bug crítico onde ela valida o dayDue ao invés da diferença
+    // quando usamos PAYMENT_ON_APPROVAL, permitindo apenas dayDue de 3 a 7.
+    // E exige dayGenerateCharge = dia atual (UTC).
+    const diaHojeUTC = new Date().getUTCDate();
+
     const payload = {
+        name: dados.name || rawComment.substring(0, 99) || 'Assinatura Mensal',
         value: valorEmCentavos,
         type: 'PIX_RECURRING',
-        frequency: 'MONTHLY',
-        dayGenerateCharge: 5,
-        dayDue: 5,
+        frequency: frequency,
+        dayDue: dayDue,
+        dayGenerateCharge: journey === 'PAYMENT_ON_APPROVAL' ? diaHojeUTC : undefined,
+        daysDueDate: validadeFinal, 
+        chargeDaysDueDate: validadeFinal,
+        pixRecurringOptions: {
+            journey: journey,
+            retryPolicy: "NON_PERMITED" // Ignora regras absurdas de retentativa
+        },
         comment: rawComment.substring(0, 30),
         customer: {
             name: dados.customer.name,
             taxID: dados.customer.cpfCnpj.replace(/\D/g, ''),
             ...(dados.customer.address && { address: dados.customer.address })
         },
-        pixRecurringOptions: {
-            journey: 'ONLY_RECURRENCY',
-            retryPolicy: 'NON_PERMITED'
-        },
+
         globalID: uuidv4(), // Identificador único da assinatura
     };
 
@@ -119,6 +148,10 @@ async function criarAssinatura(config, dados) {
     if (dados.customer.phone) payload.customer.phone = dados.customer.phone.replace(/\D/g, '');
 
     try {
+        console.log('--- PAYLOAD ENVIADO PARA A WOOVI ---');
+        console.log(JSON.stringify(payload, null, 2));
+        console.log('------------------------------------');
+
         const response = await axios.post(`${WOOVI_API_URL}/api/v1/subscriptions`, payload, {
             headers: {
                 'Authorization': appId,

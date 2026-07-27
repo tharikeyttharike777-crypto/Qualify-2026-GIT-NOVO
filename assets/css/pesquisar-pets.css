@@ -13,11 +13,13 @@ body {
 }
 
 .container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 28px 28px; /* margem lateral ampliada */
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 88px 38px 60px 38px !important;
     background-color: white;
     min-height: 100vh;
+    box-sizing: border-box !important;
 }
 
 /* Header Styles */

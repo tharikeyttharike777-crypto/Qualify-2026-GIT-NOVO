@@ -57,11 +57,13 @@ html, body {
     font-size: 1.2rem;
 }
 
-/* Main Content */
+/* Main Content - 100% Fluido e Responsivo sem Tela Comida */
 .main-content {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 2.5rem 3rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
 }
 
 /* Page Header */

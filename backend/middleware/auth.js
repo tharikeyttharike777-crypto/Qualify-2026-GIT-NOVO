@@ -2,6 +2,7 @@
  * Middleware de Autenticação (Supabase)
  * Garante que apenas usuários logados possam chamar as APIs
  */
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { createClient } = require('@supabase/supabase-js');
 
 // Cria cliente Supabase isolado para validação de JWT (usa ANON KEY, pois só precisamos verificar o token enviado)

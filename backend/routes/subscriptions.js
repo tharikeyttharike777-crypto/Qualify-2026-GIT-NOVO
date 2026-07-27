@@ -14,9 +14,9 @@ const wooviBankService = require('../services/wooviBank');
  */
 router.post('/criar-link', async (req, res) => {
     try {
-        const { empresaId, cpfCnpj, nomeCliente, email, telefone, value, nextDueDate, description, cycle } = req.body;
+        const { empresaId, cpfCnpj, nomeCliente, email, telefone, value, nextDueDate, description, cycle, cobrarImediatamente, validadeQrCode, name } = req.body;
 
-        console.log('💳 Criando assinatura recorrente (Woovi):', { empresaId, value, cycle });
+        console.log('💳 Criando assinatura recorrente (Woovi):', { empresaId, value, cycle, cobrarImediatamente, validadeQrCode });
 
         // Validações básicas
         if (!empresaId) {
@@ -50,16 +50,25 @@ router.post('/criar-link', async (req, res) => {
                 email: email,
                 phone: telefone,
                 address: req.body.endereco && req.body.endereco.cep ? {
-                    zipcode: req.body.endereco.cep.replace(/\D/g, ''),
+                    zipcode: (req.body.endereco.cep.replace(/\D/g, '').length === 8) 
+                                ? req.body.endereco.cep.replace(/\D/g, '').replace(/^(\d{5})(\d{3})$/, "$1-$2") 
+                                : req.body.endereco.cep,
                     street: req.body.endereco.logradouro || 'N/A',
                     number: req.body.endereco.numero || 'S/N',
                     neighborhood: req.body.endereco.bairro || 'N/A',
                     city: req.body.endereco.cidade || 'N/A',
-                    state: req.body.endereco.uf || 'SP'
+                    state: req.body.endereco.uf || 'SP',
+                    country: 'BR'
                 } : undefined
             },
+            name: name || description || 'Assinatura Qualify',
             value: parseFloat(value),
-            description: description || 'Assinatura Qualify'
+            description: description || 'Assinatura Qualify',
+            vencimento: nextDueDate,
+            cycle: cycle,
+            cobrarImediatamente: cobrarImediatamente,
+            validadeQrCode: validadeQrCode
+
         });
 
         // A Woovi geralmente retorna o link de pagamento na própria charge ou na subscription

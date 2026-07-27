@@ -202,23 +202,6 @@
                 <p class="company-display">Empresa: <span id="empresaDisplaySidebar">Nenhuma empresa ativa</span></p>
             </div>
             <ul class="sidebar-menu">
-                <!-- Mais usados -->
-                <li class="menu-item has-submenu expanded">
-                    <a href="#" class="menu-link">
-                        <i class="icon-star"></i>
-                        <span class="menu-text">Mais usados</span>
-                        <i class="arrow-icon">▼</i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="pages/pesquisa-simplificada.html">Pesquisa simplificada</a></li>
-                        <li><a href="pages/pesquisa-planos.html">Pesquisa de Planos</a></li>
-                        <li><a href="pages/dashboard.html">Dashboard</a></li>
-                        <li><a href="pages/inadimplentes.html">Inadimplentes</a></li>
-                        <li><a href="pages/contas-receber.html">Contas a receber</a></li>
-                        <li><a href="pages/vendas.html">Vendas</a></li>
-                    </ul>
-                </li>
-
                 <!-- Contratos -->
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
@@ -228,12 +211,12 @@
                     </a>
                     <ul class="submenu">
                         <li><a href="pages/contratos.html">Ativos</a></li>
+                        <li><a href="pages/inadimplentes.html">Inadimplentes</a></li>
                         <li><a href="pages/contratos-mensalidades.html">Mensalidades</a></li>
                         <li><a href="pages/renovacoes-pendentes.html">Renovações pendentes</a></li>
                         <li><a href="pages/renegociacao-cobrancas.html">Renegociação</a></li>
                         <li><a href="pages/contratos-adimplentes.html">Adimplentes</a></li>
                         <li><a href="pages/cancelados.html">Cancelados</a></li>
-
                     </ul>
                 </li>
 
@@ -278,29 +261,6 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Mais Usados Section -->
-        <section class="dashboard-section">
-            <h2>Mais usados</h2>
-            <div class="card-grid">
-                <div class="card" onclick="window.location.href='pages/pesquisa-planos.html'">
-                    <i class="fas fa-search-dollar"></i>
-                    <span>Pesquisa de Planos</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/produtos.html'">
-                    <i class="fas fa-box"></i>
-                    <span>Produtos</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/dashboard.html'">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Dashboard</span>
-                </div>
-                <div class="card blue" onclick="window.location.href='pages/inadimplentes.html'">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Inadimplentes</span>
-                </div>
-            </div>
-        </section>
-
         <!-- Contratos Section -->
         <section class="dashboard-section">
             <h2>Contratos</h2>
@@ -308,6 +268,10 @@
                 <div class="card blue" onclick="window.location.href='pages/contratos.html'">
                     <i class="fas fa-file-contract"></i>
                     <span>Todos os Contratos</span>
+                </div>
+                <div class="card blue" onclick="window.location.href='pages/inadimplentes.html'">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Inadimplentes</span>
                 </div>
                 <div class="card blue" onclick="window.location.href='pages/renegociacao-cobrancas.html'">
                     <i class="fas fa-handshake"></i>

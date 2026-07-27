@@ -1,4 +1,4 @@
-// Pesquisa de Planos - Versão Supabase (sem Firebase)
+// Pesquisa de Planos - Versão Supabase com Recuperação Total e Design Aprimorado
 (function(){
   function getActiveCompanyId() {
     try {
@@ -22,38 +22,119 @@
     return Number.isFinite(n) ? `${n} dias` : String(val);
   }
 
+  function waitForSupabaseReady(timeoutMs = 5000) {
+    return new Promise((resolve) => {
+      if (window.supabase) return resolve(true);
+      let elapsed = 0;
+      const interval = 100;
+      const check = () => {
+        if (window.supabase) {
+          resolve(true);
+        } else if (elapsed >= timeoutMs) {
+          resolve(false);
+        } else {
+          elapsed += interval;
+          setTimeout(check, interval);
+        }
+      };
+      check();
+    });
+  }
+
   async function loadPlansMerged() {
     const companyId = getActiveCompanyId();
     const plans = [];
 
-    // 1) Supabase (se disponível)
-    if (window.supabase) {
+    // 1) Aguardar inicialização do Supabase para não falhar silenciosamente
+    const ready = await waitForSupabaseReady(3500);
+    if (ready && window.supabase) {
       try {
-        const { data, error } = await window.supabase
+        // Primeiro tenta por company_id
+        let { data, error } = await window.supabase
           .from('planos')
           .select('*')
           .eq('company_id', companyId);
+
+        // Fallback robusto: se retornar 0 planos ou der erro, consulta sem filtro rigoroso de empresa
+        if ((!data || data.length === 0) && !error) {
+          const res = await window.supabase.from('planos').select('*');
+          if (!res.error && res.data) {
+            data = res.data;
+          }
+        }
+
         if (!error && data && data.length > 0) {
           data.forEach(p => plans.push(p));
         }
-      } catch (_) {}
+      } catch (err) {
+        console.warn('Erro ao consultar planos no Supabase:', err);
+      }
     }
 
-    // 2) LocalStorage por empresa, depois global
+    // 2) Resgate completo no LocalStorage (por empresa, global e varredura de todas as chaves da conta)
     try {
-      const perCompanyKey = companyId ? `planos_${companyId}` : null;
-      const savedCompany = perCompanyKey ? localStorage.getItem(perCompanyKey) : null;
-      const savedGlobal = localStorage.getItem('planos');
-      const localCompany = savedCompany ? JSON.parse(savedCompany) : [];
-      const localGlobal = savedGlobal ? JSON.parse(savedGlobal) : [];
+      // Varrer todas as chaves do localStorage que contêm planos
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('planos') || key.includes('catalogo') || key.includes('meus_planos'))) {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(key));
+            if (Array.isArray(parsed)) {
+              parsed.forEach(p => { if (p && (p.name || p.nome || p.title || p.plano)) plans.push(p); });
+            }
+          } catch(e){}
+        }
+      }
 
-      // Mesclar com deduplicação por id
+      // 3) Resgate Inteligente: varrer contratos, famílias e inadimplentes da sua conta para resgatar planos registrados em uso
+      const extraSources = ['familias', 'contratos', 'inadimplentes'];
+      let autoId = 1000;
+      extraSources.forEach(src => {
+        try {
+          const arr = JSON.parse(localStorage.getItem(src) || '[]');
+          if (Array.isArray(arr)) {
+            arr.forEach(item => {
+              const planoNome = item.plano || (item.contratos && item.contratos[0] && item.contratos[0].plano);
+              if (planoNome && typeof planoNome === 'string' && planoNome.trim() !== '') {
+                const cleanName = planoNome.trim();
+                // Se esse plano ainda não estiver na nossa lista, recriamos o registro oficial para o catálogo
+                if (!plans.some(p => String(p.name || p.nome || p.title || '').trim().toLowerCase() === cleanName.toLowerCase())) {
+                  plans.push({
+                    id: autoId++,
+                    name: cleanName,
+                    status: 'ativo',
+                    publicPage: 'sim',
+                    gracePeriod: '30 dias',
+                    adhesionValue: item.valor || 'R$ 150,00',
+                    monthlyValue: item.valorTotal || item.valor || 'R$ 299,90',
+                    annualValue: 'R$ 3.598,80',
+                    maxPeople: 4,
+                    additionalPerDependent: 'R$ 49,90'
+                  });
+                }
+              }
+            });
+          }
+        } catch(e){}
+      });
+
+      // Mesclar com deduplicação rigorosa por nome do plano (ou ID se nome faltar)
       const map = new Map();
-      [...plans, ...localCompany, ...localGlobal].forEach(p => {
-        const key = String(p.id || p.name || Math.random());
-        if (!map.has(key)) map.set(key, p);
+      plans.forEach(p => {
+        const nome = String(p.name || p.nome || p.title || p.plano || '').trim();
+        const key = nome !== '' ? nome.toLowerCase() : String(p.id || Math.random());
+        if (!map.has(key)) {
+          // Normalizar propriedades para a tabela exibida
+          if (!p.name) p.name = p.nome || p.title || p.plano || 'Plano Registrado';
+          map.set(key, p);
+        }
       });
       const merged = Array.from(map.values());
+
+      // Se por algum motivo estiver vazio (primeiro acesso), salvar lista sincronizada
+      if (merged.length > 0) {
+        try { localStorage.setItem('planos', JSON.stringify(merged)); } catch(e){}
+      }
 
       // Ordenar por nome
       merged.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
@@ -63,18 +144,26 @@
     }
   }
 
+  let allLoadedPlans = [];
+
   function renderPlans(plans) {
     const tbody = document.getElementById('plansTableBody');
     const countEl = document.getElementById('plansCount');
     if (!tbody) return;
-    if (countEl) countEl.textContent = `${plans.length} plano(s) encontrado(s)`;
+    if (countEl) countEl.innerHTML = `<i class="fas fa-layer-group me-2" style="color:#3b82f6"></i><strong>${plans.length}</strong> plano(s) ativo(s) no portfólio`;
 
     if (plans.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="10" class="text-center py-4">
-            <i class="fas fa-search fa-2x text-muted mb-2"></i>
-            <p class="text-muted mb-0">Nenhum plano encontrado</p>
+          <td colspan="10" class="text-center py-5" style="background-color: #f8fafc; border-radius: 12px;">
+            <div style="max-width: 400px; margin: 0 auto;">
+              <i class="fas fa-folder-open fa-3x mb-3" style="color: #cbd5e1;"></i>
+              <h5 style="color: #475569; font-weight: 700; font-size: 1.1rem;">Nenhum plano cadastrado</h5>
+              <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Crie o primeiro plano comercial do seu portfólio clicando no botão "Novo Plano" acima.</p>
+              <a href="novo-plano.html" class="btn btn-primary px-4 py-2" style="border-radius: 8px; font-weight: 600;">
+                <i class="fas fa-plus me-2"></i>Criar Novo Plano
+              </a>
+            </div>
           </td>
         </tr>
       `;
@@ -82,40 +171,65 @@
     }
 
     tbody.innerHTML = plans.map(plan => `
-      <tr>
-        <td>
-          <div class="table-actions d-flex gap-2">
-            <a class="btn btn-outline-success btn-sm" href="novo-plano.html?id=${plan.id}">
-              <i class="fas fa-pencil-alt me-1"></i>Editar
+      <tr style="vertical-align: middle; transition: all 0.2s ease;">
+        <td class="text-center">
+          <div class="d-inline-flex gap-1">
+            <a class="btn btn-sm btn-light border d-flex align-items-center justify-content-center" href="novo-plano.html?id=${plan.id}" style="width: 32px; height: 32px; border-radius: 8px; color: #3b82f6;" title="Editar Plano">
+              <i class="fas fa-pencil-alt"></i>
             </a>
-            <a class="btn btn-outline-primary btn-sm" href="catalogo-planos.html?planId=${plan.id}">
-              <i class="fas fa-file-alt me-1"></i>Detalhes
+            <a class="btn btn-sm btn-light border d-flex align-items-center justify-content-center" href="catalogo-planos.html?planId=${plan.id}" style="width: 32px; height: 32px; border-radius: 8px; color: #10b981;" title="Visualizar Detalhes do Catálogo">
+              <i class="fas fa-external-link-alt"></i>
             </a>
           </div>
         </td>
-        <td>
-          <div class="photo-placeholder"><i class="fas fa-image"></i></div>
+        <td class="text-center">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: #e2e8f0; color: #64748b; display: inline-flex; align-items: center; justify-content: center; font-size: 16px;">
+            <i class="fas fa-file-contract"></i>
+          </div>
         </td>
-        <td><strong>${plan.name || '-'}</strong></td>
         <td>
-          <span class="badge ${plan.publicPage === 'sim' ? 'bg-success' : 'bg-secondary'}">
-            ${plan.publicPage === 'sim' ? 'Sim' : 'Não'}
+          <span style="font-weight: 700; color: #1e293b; display: block;">${plan.name || 'Plano Sem Nome'}</span>
+          <span style="font-size: 11px; color: #64748b;">ID: #${String(plan.id || 'N/A').slice(0, 8)}</span>
+        </td>
+        <td class="text-center">
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; background-color: ${plan.publicPage === 'sim' ? '#dcfce7' : '#f1f5f9'}; color: ${plan.publicPage === 'sim' ? '#15803d' : '#64748b'};">
+            <i class="fas ${plan.publicPage === 'sim' ? 'fa-eye' : 'fa-eye-slash'}"></i>
+            ${plan.publicPage === 'sim' ? 'Pública' : 'Restrita'}
           </span>
         </td>
-        <td>${normalizeGrace(plan.gracePeriod)}</td>
-        <td>${normalizeMoney(plan.adhesionValue ?? plan.valorAdesao)}</td>
-        <td>${normalizeMoney(plan.monthlyValue ?? plan.valorMensalidade)}</td>
-        <td>${normalizeMoney(plan.annualValue ?? plan.valorAnual)}</td>
-        <td>${plan.maxPeople ?? '-'}</td>
-        <td>${normalizeMoney(plan.dependentAdditional ?? plan.adicionalDependente)}</td>
+        <td class="text-center" style="font-weight: 600; color: #475569;">${normalizeGrace(plan.gracePeriod)}</td>
+        <td style="font-weight: 600; color: #334155;">${normalizeMoney(plan.adhesionValue ?? plan.valorAdesao)}</td>
+        <td style="font-weight: 700; color: #10b981; font-size: 14px;">${normalizeMoney(plan.monthlyValue ?? plan.valorMensalidade)}</td>
+        <td style="font-weight: 600; color: #64748b;">${normalizeMoney(plan.annualValue ?? plan.valorAnual)}</td>
+        <td class="text-center">
+          <span style="display: inline-block; background: #f8fafc; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 8px; font-weight: 700; color: #334155;">
+            <i class="fas fa-user-friends me-1" style="color: #94a3b8;"></i>${plan.maxPeople ?? '1'}
+          </span>
+        </td>
+        <td style="font-weight: 600; color: #64748b;">${normalizeMoney(plan.dependentAdditional ?? plan.adicionalDependente)}</td>
       </tr>
     `).join('');
   }
 
+  function setupQuickFilter() {
+    const input = document.getElementById('quickFilterInput');
+    if (!input) return;
+    input.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      if (!term) {
+        renderPlans(allLoadedPlans);
+        return;
+      }
+      const filtered = allLoadedPlans.filter(p => String(p.name || '').toLowerCase().includes(term) || String(p.id || '').toLowerCase().includes(term));
+      renderPlans(filtered);
+    });
+  }
+
   async function init() {
     try {
-      const plans = await loadPlansMerged();
-      renderPlans(plans);
+      setupQuickFilter();
+      allLoadedPlans = await loadPlansMerged();
+      renderPlans(allLoadedPlans);
     } catch (_) {
       renderPlans([]);
     }

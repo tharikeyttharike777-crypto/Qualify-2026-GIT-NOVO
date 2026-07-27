@@ -11,7 +11,7 @@
     'use strict';
 
     // URL do Backend
-    const API_BASE = window.location.hostname === 'localhost'
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:4570/api'
         : 'https://qualify-2026.onrender.com/api';
 
@@ -657,6 +657,26 @@
      * Vincula eventos do modal
      */
     function bindModalEvents() {
+        // Reatividade do Modal: Alternar entre campos de Assinatura e Avulso
+        const mcMetodo = $('mcMetodo');
+        if (mcMetodo) {
+            mcMetodo.addEventListener('change', function (e) {
+                const metodo = e.target.value;
+                const containerParcelas = $('containerParcelas');
+                const containerAssinatura = $('containerAssinatura');
+
+                if (metodo === 'pix_automatico') {
+                    // Oculta parcelas, mostra campos de assinatura
+                    if (containerParcelas) containerParcelas.style.display = 'none';
+                    if (containerAssinatura) containerAssinatura.style.display = 'block';
+                } else {
+                    // Oculta campos de assinatura, mostra parcelas
+                    if (containerAssinatura) containerAssinatura.style.display = 'none';
+                    if (containerParcelas) containerParcelas.style.display = 'flex';
+                }
+            });
+        }
+
         // Botão Salvar cobrança
         const btnSalvar = $('btnSalvarCharge');
         if (btnSalvar) {
@@ -830,42 +850,75 @@
         }
         sessionStorage.setItem(idempotencyKey, 'processing');
 
+        // --- TRAVA BACEN E FIX TIMEZONE ---
+        // Cria datas em UTC zeradas para validação exata sem timezone
+        const [aV, mV, dV] = vencimento.split('-').map(Number);
+        const hoje = new Date();
+        const dataVencUTC = Date.UTC(aV, mV - 1, dV, 0, 0, 0);
+        const dataHojeUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0);
+        const diffDias = Math.floor((dataVencUTC - dataHojeUTC) / (1000 * 60 * 60 * 24));
+        
+        const cobrarImediato = $('mcCobrarImediato')?.value === 'true';
+
+        if (metodo === 'pix_automatico') {
+            if (!cobrarImediato) {
+                // Se NÃO for imediata, o 1º vencimento deve ser no mínimo 4 dias no futuro para dar tempo de gerar
+                if (diffDias < 4) {
+                    hideLoading();
+                    sessionStorage.removeItem(idempotencyKey);
+                    showToast(
+                        'Para Assinaturas sem cobrança imediata, o primeiro vencimento deve ser de pelo menos 4 dias a partir de hoje (regra Bacen).',
+                        'error'
+                    );
+                    return false;
+                }
+            }
+        }
+
         showLoading('Gerando cobrança...');
 
         try {
-            // Loop para parcelas
-            let dataBase = new Date(vencimento);
+            if (metodo === 'pix_automatico') {
+                // FLUXO EXCLUSIVO DE ASSINATURA: Sem loop de parcelas
+                const nomePlano = $('mcNomePlano')?.value || 'Assinatura Mensal';
+                const ciclo = $('mcCicloAssinatura')?.value || 'MONTHLY';
+                
+                // O nextDueDate será EXATAMENTE a data escolhida no calendário (string pura, sem manipulação)
+                const vencimentoParcela = vencimento; 
+                
+                console.log(`🔄 Gerando Assinatura PIX Automático. Plano: ${nomePlano}, Ciclo: ${ciclo}, Vencimento (nextDueDate): ${vencimentoParcela}`);
+                
+                await gerarAssinaturaPix(empresaId, vencimentoParcela, valor, titular, nomePlano, numeroContrato);
+            } else {
+                // FLUXO NORMAL (Cobrança Avulsa/Parcelada): Loop de parcelas
+                const [anoBase, mesBase, diaBase] = vencimento.split('-').map(Number);
+                
+                for (let i = 0; i < qtdParcelas; i++) {
+                    let mesCalc = mesBase + i;
+                    let anoCalc = anoBase;
+                    while (mesCalc > 12) {
+                        mesCalc -= 12;
+                        anoCalc++;
+                    }
+                    const vencimentoParcela = `${anoCalc}-${String(mesCalc).padStart(2, '0')}-${String(diaBase).padStart(2, '0')}`;
+                    const msgParcela = qtdParcelas > 1 ? `${mensagem} (${i + 1}/${qtdParcelas})` : mensagem;
 
-            for (let i = 0; i < qtdParcelas; i++) {
-                // Calcula vencimento da parcela atual
-                // Clona a data base para não afetar as próximas iterações incorretamente
-                const dataParcela = new Date(dataBase);
-                dataParcela.setMonth(dataBase.getMonth() + i);
+                    console.log(`🔄 Gerando parcela ${i + 1}/${qtdParcelas} para ${vencimentoParcela}`);
 
-                // Formata para YYYY-MM-DD
-                const vencimentoParcela = dataParcela.toISOString().split('T')[0];
-                const msgParcela = qtdParcelas > 1 ? `${mensagem} (${i + 1}/${qtdParcelas})` : mensagem;
+                    if (metodo === 'pix') {
+                        await gerarCobrancaPix(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
+                    } else if (metodo === 'boleto') {
+                        await gerarCobrancaBoleto(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
+                    } else if (metodo === 'cartao' || metodo === 'credit_card') {
+                        if (i === 0) await gerarAssinaturaCartao(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
+                    } else if (metodo === 'money') {
+                        await salvarCobrancaLocal(vencimentoParcela, valor, 'money', msgParcela, numeroContrato, empresaId);
+                    } else {
+                        await salvarCobrancaLocal(vencimentoParcela, valor, metodo, msgParcela, numeroContrato, empresaId);
+                    }
 
-                console.log(`🔄 Gerando parcela ${i + 1}/${qtdParcelas} para ${vencimentoParcela}`);
-
-                if (metodo === 'pix') {
-                    await gerarCobrancaPix(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
-                } else if (metodo === 'pix_automatico') {
-                    // PIX Automático trata como assinatura (cria apenas uma vez)
-                    if (i === 0) await gerarAssinaturaPix(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
-                } else if (metodo === 'boleto') {
-                    await gerarCobrancaBoleto(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
-                } else if (metodo === 'cartao' || metodo === 'credit_card') {
-                    if (i === 0) await gerarAssinaturaCartao(empresaId, vencimentoParcela, valor, titular, msgParcela, numeroContrato);
-                } else if (metodo === 'money') {
-                    // Dinheiro é sempre manual e local (sem API)
-                    await salvarCobrancaLocal(vencimentoParcela, valor, 'money', msgParcela, numeroContrato, empresaId);
-                } else {
-                    await salvarCobrancaLocal(vencimentoParcela, valor, metodo, msgParcela, numeroContrato, empresaId);
+                    if (qtdParcelas > 1) await new Promise(r => setTimeout(r, 500));
                 }
-
-                // Pequeno delay para não estourar rate limit da API
-                if (qtdParcelas > 1) await new Promise(r => setTimeout(r, 500));
             }
 
             closeAddChargeModal();
@@ -1388,16 +1441,32 @@
 
         console.log('🚀 ENVIANDO BILLING TYPE:', billingTypeEnvio);
 
+        // --- CAPTURA NOVOS CAMPOS DE ASSINATURA ---
+        const cicloAssinatura = document.getElementById('mcCicloAssinatura') ? document.getElementById('mcCicloAssinatura').value : 'MONTHLY';
+        const cobrarImediato = document.getElementById('mcCobrarImediato') ? document.getElementById('mcCobrarImediato').value === 'true' : false;
+        const validadeQrCode = document.getElementById('mcValidadeQrCode') ? parseInt(document.getElementById('mcValidadeQrCode').value) : 3;
+
         const payload = {
             empresaId: empresaId,
             cpfCnpj: cpfDevedor,
             nomeCliente: devedor,
+            name: (mensagem || `Assinatura PIX Automático ${numeroContrato}`).substring(0, 99),
             value: valor,
             nextDueDate: vencimento,
-            description: mensagem || `PIX Automático contrato ${numeroContrato}`,
-            cycle: 'MONTHLY',
-            billingType: billingTypeEnvio, // << USA A VARIÁVEL TRATADA
-            contratoNumero: numeroContrato
+            description: (mensagem || `PIX Automático contrato ${numeroContrato}`).substring(0, 99), // Permitindo nomePlano maior
+            cycle: cicloAssinatura,
+            cobrarImediatamente: cobrarImediato,
+            validadeQrCode: validadeQrCode,
+            billingType: billingTypeEnvio,
+            contratoNumero: numeroContrato,
+            endereco: {
+                cep: document.getElementById('mcCep') ? document.getElementById('mcCep').value : '',
+                logradouro: document.getElementById('mcLogradouro') ? document.getElementById('mcLogradouro').value : '',
+                numero: document.getElementById('mcNumero') ? document.getElementById('mcNumero').value : '',
+                bairro: document.getElementById('mcBairro') ? document.getElementById('mcBairro').value : '',
+                cidade: document.getElementById('mcCidade') ? document.getElementById('mcCidade').value : '',
+                uf: document.getElementById('mcUf') ? document.getElementById('mcUf').value : ''
+            }
         };
 
         // --- TRAVA DE SEGURANÇA FINAL ---
@@ -1511,9 +1580,10 @@
             empresaId: empresaId,
             cpfCnpj: cpfDevedor,
             nomeCliente: devedor,
+            name: (mensagem || `Assinatura Cartão ${numeroContrato}`).substring(0, 99),
             value: valor,
             nextDueDate: vencimento,
-            description: mensagem || `Assinatura contrato ${numeroContrato}`,
+            description: (mensagem || `Assinatura contrato ${numeroContrato}`).substring(0, 29),
             cycle: 'MONTHLY',
             contratoNumero: numeroContrato, // Envia para o backend salvar no Firestore
             endereco: {

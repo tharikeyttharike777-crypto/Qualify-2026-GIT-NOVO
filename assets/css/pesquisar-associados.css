@@ -14,22 +14,21 @@ body {
 
 /* Escopo específico desta página para compensar o header fixo e evitar corte no topo */
 .page-pesquisar-associados > .container {
-    max-width: none;
-    width: 100%;
-    margin: 0 auto;
-    /* espaço superior suficiente para a barra de filtro não ficar sob o header */
-    padding-top: calc(var(--header-height, 60px) + 24px) !important;
-    padding-right: 48px !important;
-    padding-left: 48px !important;
-    padding-bottom: 32px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 88px 38px 60px 38px !important;
+    box-sizing: border-box !important;
 }
 
 .container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 88px 38px 60px 38px !important;
     background-color: white;
     min-height: 100vh;
+    box-sizing: border-box !important;
 }
 
 /* Header Styles */

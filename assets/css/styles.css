@@ -983,3 +983,48 @@ body { overflow-x: hidden; }
 [class^="icon-"]::before, [class*=" icon-"]::before {
     font-style: normal;
 }
+
+/* =========================================================
+   🌐 SOLUÇÃO GLOBAL PARA "TELA COMIDA / PELA METADE" EM MONITORES
+   Garante aproveitamento de 100% da largura em desktops e notebooks
+   + PROTEÇÃO VERTICAL (EVITA CORTE EM CIMA/BAIXO PENA DA BARRA FIXA)
+   ========================================================= */
+body main.main-content,
+body div.main-content,
+body > div.container,
+body .table-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Compensar exatamente os 60px da barra superior fixa e dar respiro no rodapé */
+body main.main-content,
+body div.main-content,
+body > div.container {
+    padding-top: 88px !important;
+    padding-bottom: 60px !important;
+}
+
+/* Em telas desktop normais ou ultra-wide, aproveita o espaço com margens confortáveis */
+@media (min-width: 1024px) {
+    body main.main-content,
+    body div.main-content,
+    body > div.container {
+        padding-left: 38px !important;
+        padding-right: 38px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+
+/* Em smartphones e tablets */
+@media (max-width: 1023px) {
+    body main.main-content,
+    body div.main-content,
+    body > div.container {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+        width: 100% !important;
+    }
+}

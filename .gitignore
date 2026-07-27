@@ -32,3 +32,10 @@ supabase_schema.sql
 # Build outputs
 dist/
 build/
+
+# Test and debugging scripts
+test-*.js
+bruteforce-*.js
+backend/test-*.js
+backend/bruteforce-*.js
+

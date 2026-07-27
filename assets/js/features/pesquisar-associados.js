@@ -151,21 +151,60 @@ async function loadData() {
             });
         });
 
+        // Carrega contratos reais do banco para contagem exata
+        let contratosList = [];
+        try {
+            if (window.supabase) {
+                const { data, error } = await window.supabase
+                    .from('contratos')
+                    .select('*')
+                    .eq('company_id', companyId);
+                if (!error && data) {
+                    contratosList = data;
+                }
+            }
+        } catch (e) {
+            console.warn('Falha ao carregar contratos na pesquisa de associados:', e);
+        }
+
         // Mapeia todos os associados com informações completas e consistentes para a tabela
-        const associadosCompletos = Array.from(associadosMap.values()).map(associado => {
+        const associadosCompletos = Array.from(associadosMap.values()).map((associado, index) => {
             const familia = associado.familiaId ? familiaById.get(String(associado.familiaId)) : null;
             const titularNome = familia?.titular?.nome || '';
+            const cpfAssoc = String(associado.cpf || '').replace(/\D+/g, '');
+
+            // Contagem real de contratos (por familiaId ou pelo CPF do associado/titular)
+            const contratosCount = contratosList.filter(c => {
+                const matchFam = c.familia_id && String(c.familia_id) === String(associado.familiaId);
+                const matchCpf = cpfAssoc && String(c.cpf_cnpj || '').replace(/\D+/g, '') === cpfAssoc;
+                return matchFam || matchCpf;
+            }).length;
+
+            // Formatação inteligente e estética para o parentesco
+            let parentescoFormatted = '';
+            if (associado.tipo === 'titular' || !associado.parentesco || associado.parentesco === 'Titular') {
+                parentescoFormatted = `<span style="background: #0056b3; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"><i class="fas fa-user-shield" style="margin-right: 4px;"></i> Titular da Família</span>`;
+            } else {
+                const desc = titularNome && titularNome !== 'N/A' ? `(de ${titularNome.split(' ')[0]})` : '';
+                parentescoFormatted = `<span style="background: #10b981; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"><i class="fas fa-user-friends" style="margin-right: 4px;"></i> Dependente ${desc}</span>`;
+            }
+
+            // Formatação limpa de contatos com ícones
+            const fone = associado.telefone ? `<div style="font-size: 0.83rem; margin-bottom: 3px; color: #333;"><i class="fas fa-phone-alt" style="color: #0056b3; width: 15px;"></i> ${associado.telefone}</div>` : '';
+            const mail = associado.email ? `<div style="font-size: 0.83rem; color: #555;"><i class="fas fa-envelope" style="color: #666; width: 15px;"></i> ${associado.email}</div>` : '';
+            const contatosFormatted = (fone || mail) ? `${fone}${mail}` : `<span style="color: #aaa; font-style: italic; font-size: 0.85rem;">Não informado</span>`;
+
             return {
                 id: associado.id,
-                nome: associado.nome,
-                idade: associado.idade || calcularIdade(associado.dataNascimento),
-                cpf: associado.cpf,
-                parentesco: associado.tipo === 'titular' ?
-                    `Titular de ${associado.nome || titularNome}` :
-                    `${associado.parentesco || 'Dependente'} de ${titularNome || 'N/A'}`,
-                contatos: [associado.telefone, associado.email].filter(Boolean).join(' | ') || '-',
-                contratos: familia ? (Array.isArray(familia.contratos) ? familia.contratos.length : 0) : 0,
-                extra: "Não",
+                displayId: `#${String(index + 1).padStart(2, '0')}`,
+                nome: associado.nome || '<span style="color:#aaa; font-style:italic;">Não preenchido</span>',
+                idade: associado.idade || calcularIdade(associado.dataNascimento) || '-',
+                cpf: associado.cpf || '<span style="color:#aaa;">-</span>',
+                parentesco: parentescoFormatted,
+                contatos: contatosFormatted,
+                contratos: contratosCount > 0 
+                    ? `<span style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.82rem; border: 1px solid #c8e6c9; display: inline-block;"><i class="fas fa-file-contract"></i> ${contratosCount} ${contratosCount > 1 ? 'ativos' : 'ativo'}</span>` 
+                    : `<span style="color: #888; font-size: 0.82rem; background: #f5f5f5; padding: 4px 8px; border-radius: 6px;">0 (Nenhum)</span>`,
                 tipo: associado.tipo,
                 familiaId: associado.familiaId,
                 dataNascimento: associado.dataNascimento
@@ -177,6 +216,16 @@ async function loadData() {
         filteredData = [...associadosData];
         totalRecords = associadosData.length;
         
+        // Atualiza contadores visuais das abas
+        const totalTitulares = associadosData.filter(a => a.tipo === 'titular' || String(a.parentesco).includes('Titular')).length;
+        const totalDependentes = associadosData.length - totalTitulares;
+        const cTodos = document.getElementById('countTodos');
+        const cTit = document.getElementById('countTitulares');
+        const cDep = document.getElementById('countDependentes');
+        if (cTodos) cTodos.textContent = associadosData.length;
+        if (cTit) cTit.textContent = totalTitulares;
+        if (cDep) cDep.textContent = totalDependentes;
+
         if (associadosData.length === 0) {
             showEmptyState('Nenhum associado encontrado');
         } else {
@@ -227,15 +276,35 @@ function initializePage() {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Filter button
+    const filterBtn = document.getElementById('filterBtn');
+    const optionsBtn = document.getElementById('optionsBtn');
+
     if (filterBtn) {
         filterBtn.addEventListener('click', handleFilterClick);
     }
     
-    // Options button
     if (optionsBtn) {
         optionsBtn.addEventListener('click', handleOptionsClick);
     }
+
+    // Configuração das Abas Inteligentes de Segmentação (Todos, Titulares, Dependentes)
+    const segmentBtns = document.querySelectorAll('.segment-btn');
+    segmentBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const current = e.currentTarget;
+            segmentBtns.forEach(b => {
+                b.style.background = 'white';
+                b.style.color = '#475569';
+                b.style.fontWeight = '600';
+            });
+            current.style.background = '#0056b3';
+            current.style.color = 'white';
+            current.style.fontWeight = '700';
+            
+            const segment = current.dataset.segment;
+            applySegmentFilter(segment);
+        });
+    });
     
     // Setup pagination listeners
     setupPaginationListeners();
@@ -247,11 +316,27 @@ function setupEventListeners() {
     setupSearchListeners();
 }
 
+function applySegmentFilter(segment) {
+    if (segment === 'titulares') {
+        filteredData = associadosData.filter(a => a.tipo === 'titular' || String(a.parentesco).includes('Titular'));
+        updateFilterStatus('Exibindo apenas Titulares da Família');
+    } else if (segment === 'dependentes') {
+        filteredData = associadosData.filter(a => a.tipo !== 'titular' && !String(a.parentesco).includes('Titular'));
+        updateFilterStatus('Exibindo apenas Dependentes');
+    } else {
+        filteredData = [...associadosData];
+        updateFilterStatus('Exibindo todos os associados da empresa');
+    }
+    totalRecords = filteredData.length;
+    currentPage = 1;
+    updateTable();
+}
+
 // Mostra estado de loading
 function showLoadingState() {
     const tableBody = document.getElementById('tableBody');
     if (tableBody) {
-        tableBody.innerHTML = '<tr><td colspan="9" class="text-center"><i class="fas fa-spinner fa-spin"></i> Carregando dados...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Carregando dados...</td></tr>';
     }
 }
 
@@ -264,7 +349,7 @@ function hideLoadingState() {
 function showEmptyState(message) {
     const tableBody = document.getElementById('tableBody');
     if (tableBody) {
-        tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">${message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding: 30px;">${message}</td></tr>`;
     }
     
     // Limpa paginação
@@ -311,26 +396,29 @@ function renderTable() {
 function createTableRow(associado) {
     const row = document.createElement('tr');
     row.dataset.associadoId = associado.id;
+    row.style.borderBottom = '1px solid #eeeeee';
+    row.style.transition = 'background-color 0.2s';
+    row.onmouseover = () => { row.style.backgroundColor = '#f8fafc'; };
+    row.onmouseout = () => { row.style.backgroundColor = 'transparent'; };
     
     row.innerHTML = `
-        <td class="actions-cell">
-            <div class="action-buttons">
-                <button class="btn-action btn-edit" title="Editar" aria-label="Editar">
+        <td class="actions-cell" style="padding: 12px; text-align: center;">
+            <div class="action-buttons" style="display: flex; gap: 6px; justify-content: center;">
+                <button class="btn-action btn-edit" title="Editar Família / Associado" aria-label="Editar" style="padding: 6px 10px; background: #e3f2fd; color: #0056b3; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
                     <i class="fas fa-edit" aria-hidden="true"></i>
                 </button>
-                <button class="btn-action btn-view" title="Visualizar" aria-label="Visualizar">
+                <button class="btn-action btn-view" title="Visualizar Cadastro" aria-label="Visualizar" style="padding: 6px 10px; background: #f1f5f9; color: #334155; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
                     <i class="fas fa-eye" aria-hidden="true"></i>
                 </button>
             </div>
         </td>
-        <td class="id-cell">${associado.id || '-'}</td>
-        <td class="name-cell">${associado.nome || '-'}</td>
-        <td class="age-cell">${associado.idade || '-'}</td>
-        <td class="document-cell">${associado.cpf || '-'}</td>
-        <td class="relationship-cell">${associado.parentesco || '-'}</td>
-        <td class="contacts-cell">${associado.contatos || '-'}</td>
-        <td class="contracts-cell">${associado.contratos || 0}</td>
-        <td class="extra-cell">${associado.extra || 'Não'}</td>
+        <td class="id-cell" style="font-weight: 700; color: #64748b; text-align: center; padding: 12px;">${associado.displayId || '-'}</td>
+        <td class="name-cell" style="font-weight: 600; color: #1e293b; padding: 12px;">${associado.nome || '-'}</td>
+        <td class="relationship-cell" style="padding: 12px;">${associado.parentesco || '-'}</td>
+        <td class="age-cell" style="text-align: center; font-weight: 500; color: #475569; padding: 12px;">${associado.idade || '-'}</td>
+        <td class="document-cell" style="font-family: 'Courier New', monospace; font-weight: 600; color: #475569; padding: 12px;">${associado.cpf || '-'}</td>
+        <td class="contacts-cell" style="padding: 12px;">${associado.contatos || '-'}</td>
+        <td class="contracts-cell" style="text-align: center; padding: 12px;">${associado.contratos || 0}</td>
     `;
     
     return row;
@@ -382,15 +470,85 @@ function updateFilterStatus(text = 'Nenhum filtro aplicado') {
     }
 }
 
-// Event handlers
+// Event handlers - Interatividade completa
 function handleFilterClick() {
-    console.log('Filter button clicked');
-    showToast('Filtros em desenvolvimento', 'info');
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '🎯 Filtro Avançado por Contrato',
+            text: 'Selecione como deseja filtrar a lista atual:',
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: '✅ Com Contratos Ativos',
+            denyButtonText: '⚠️ Sem Contratos (0)',
+            cancelButtonText: '🔄 Mostrar Todos',
+            confirmButtonColor: '#10b981',
+            denyButtonColor: '#f59e0b',
+            cancelButtonColor: '#64748b'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                filteredData = associadosData.filter(a => !String(a.contratos).includes('0 (Nenhum)'));
+                updateFilterStatus('Filtro: Associados com Contrato Ativo');
+                totalRecords = filteredData.length;
+                currentPage = 1;
+                updateTable();
+            } else if (result.isDenied) {
+                filteredData = associadosData.filter(a => String(a.contratos).includes('0 (Nenhum)'));
+                updateFilterStatus('Filtro: Associados sem nenhum contrato');
+                totalRecords = filteredData.length;
+                currentPage = 1;
+                updateTable();
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                filteredData = [...associadosData];
+                updateFilterStatus('Exibindo todos os associados da empresa');
+                totalRecords = filteredData.length;
+                currentPage = 1;
+                updateTable();
+            }
+        });
+    } else {
+        showToast('Filtro restaurado para Todos os Associados', 'info');
+        filteredData = [...associadosData];
+        updateTable();
+    }
 }
 
 function handleOptionsClick() {
-    console.log('Options button clicked');
-    showToast('Opções em desenvolvimento', 'info');
+    if (!filteredData || filteredData.length === 0) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire('Atenção', 'Nenhum dado exibido para exportar!', 'warning');
+        }
+        return;
+    }
+    
+    // Geração de planilha Excel/CSV em tempo real
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    csvContent += "ID,Nome,Relacao,Idade,CPF,Contratos\r\n";
+    
+    filteredData.forEach(row => {
+        const nome = String(row.nome || '').replace(/<[^>]*>?/gm, '');
+        const rel = String(row.parentesco || '').replace(/<[^>]*>?/gm, '');
+        const cpf = String(row.cpf || '').replace(/<[^>]*>?/gm, '');
+        const contratos = String(row.contratos || '').replace(/<[^>]*>?/gm, '');
+        csvContent += `"${row.displayId}","${nome}","${rel}","${row.idade}","${cpf}","${contratos}"\r\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Relatorio_Associados_QUALIFY_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '📥 Exportação Concluída!',
+            text: 'O arquivo Excel/CSV foi transferido com sucesso!',
+            icon: 'success',
+            confirmButtonColor: '#10b981'
+        });
+    }
 }
 
 // Setup pagination listeners

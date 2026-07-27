@@ -624,24 +624,7 @@
     padding-left: 49px;
 }
 
-/* Indicadores visuais para submenus */
-.has-submenu > .menu-link::after {
-    content: '';
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-left: 5px solid currentColor;
-    border-top: 3px solid transparent;
-    border-bottom: 3px solid transparent;
-    transition: transform 0.3s ease;
-}
-
-.has-submenu.expanded > .menu-link::after {
-    transform: translateY(-50%) rotate(90deg);
-}
+/* O indicador visual é tratado exclusivamente pela classe .arrow-icon e seu pseudo-elemento ::before */
 
 @media (max-width: 480px) {
     .sidebar {

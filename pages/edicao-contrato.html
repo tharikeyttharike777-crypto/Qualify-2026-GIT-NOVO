@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -82,7 +82,6 @@
     <script src="../assets/js/core/user-menu.js" defer></script>
     <script src="../assets/js/utils/header-search.js" defer></script>
     <script src="../assets/js/core/sidebar-menu.js" defer></script>
-    <script src="../assets/js/features/sidebar.js" defer></script>
     <script src="../assets/js/utils/navigation-fix.js" defer></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -736,24 +735,63 @@
                         <input id="mcCpfPagador" type="text" placeholder="000.000.000-00" maxlength="14" />
                     </div>
                     <div class="form-group">
-                        <label>MÃ©todo de cobranÃ§a</label>
+                        <label>Método de cobrança</label>
                         <select id="mcMetodo" class="form-control" style="background: #f8f9fa;">
                             <option value="pix">PIX</option>
-                            <option value="pix_automatico">PIX AutomÃ¡tico</option>
-                            <option value="boleto">Boleto BancÃ¡rio</option>
-                            <option value="cartao">CartÃ£o de CrÃ©dito</option>
+                            <option value="pix_automatico">PIX Automático</option>
+                            <option value="boleto">Boleto Bancário</option>
+                            <option value="cartao">Cartão de Crédito</option>
                             <option value="money">Dinheiro (Manual)</option>
                         </select>
                     </div>
                 </div>
-                <div class="form-row">
+
+                <!-- Campos Específicos para Cobrança Avulsa/Parcelada -->
+                <div class="form-row" id="containerParcelas">
                     <div class="form-group">
                         <label>Quantidade de parcelas</label>
                         <input id="mcQtdParcelas" type="number" min="1" value="1" />
                     </div>
                 </div>
 
-                <!-- Campos de EndereÃ§o para PIX/Boleto -->
+                <!-- Campos Específicos para Assinatura (PIX Automático) -->
+                <div id="containerAssinatura" style="display: none;">
+                    <h4 style="margin: 16px 0 8px; color: var(--secondary-text); font-size: 14px;">
+                        <i class="fas fa-sync-alt"></i> Dados da Assinatura
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Nome do Plano/Serviço *</label>
+                            <input id="mcNomePlano" type="text" placeholder="Ex: Assinatura Mensal" maxlength="100" />
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Ciclo</label>
+                            <select id="mcCicloAssinatura" class="form-control">
+                                <option value="MONTHLY">Mensal</option>
+                                <option value="YEARLY">Anual</option>
+                                <option value="WEEKLY">Semanal</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Cobrar Imediatamente?</label>
+                            <select id="mcCobrarImediato" class="form-control">
+                                <option value="true">Sim, gerar link 1º mês agora</option>
+                                <option value="false">Não, cobrar só no vencimento</option>
+                            </select>
+                            <small style="color: #666; font-size: 11px; margin-top: 4px; display: block;" id="avisoCobrarImediato">
+                                O primeiro link será gerado agora. As próximas cairão no automático.
+                            </small>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Validade do QR Code (dias)</label>
+                            <input id="mcValidadeQrCode" type="number" min="1" max="7" value="3" class="form-control" title="Máximo permitido pelo Bacen: 7 dias" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campos de Endereço para PIX/Boleto -->
                 <h4 style="margin: 16px 0 8px; color: var(--secondary-text); font-size: 14px;">
                     <i class="fas fa-map-marker-alt"></i> EndereÃ§o do Pagador
                 </h4>
@@ -1053,8 +1091,8 @@
         }
     </style>
 
-    <script src="../assets/js/features/edicao-contrato.js?v=FAMILIA_FIX_V14"></script>
-    <script src="../assets/js/features/cobrancas-manager.js?v=PIX_SAFETY_LOCK_V7"></script>
+    <script src="../assets/js/features/edicao-contrato.js?v=FAMILIA_FIX_V15"></script>
+    <script src="../assets/js/features/cobrancas-manager.js?v=PIX_SAFETY_LOCK_V16"></script>
 
     <!-- Script SAFE MODE removido - estava destruindo sessÃ£o do Firebase Auth ao deletar IndexedDB -->
     <!-- A autenticaÃ§Ã£o do Firebase agora persiste corretamente entre recarregamentos de pÃ¡gina -->
