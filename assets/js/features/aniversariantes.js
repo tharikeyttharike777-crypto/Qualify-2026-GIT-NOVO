@@ -68,9 +68,11 @@
         return Math.max(0, age);
     }
 
-    // ===== Carregamento Unificado do Supabase + localStorage =====
+    // ===== Carregamento Unificado e Desduplicado (Sem Repetições e Sem Clones) =====
     async function loadAllPeople() {
-        const pMap = new Map();
+        const mapCpf = new Map();
+        const mapNome = new Map();
+        const listaUnica = [];
 
         let activeCompanyId = null;
         try {
@@ -79,6 +81,58 @@
             if (activeCompany && activeCompany.id) activeCompanyId = String(activeCompany.id);
         } catch(e) {}
         if (!activeCompanyId) activeCompanyId = localStorage.getItem('companyId') || localStorage.getItem('activeCompanyId') || null;
+
+        // Motor Inteligente de Registro Anti-Repetição e Enriquecimento
+        const registrarAniversariante = (item) => {
+            if (!item || !item.nome) return;
+            
+            const dt = parseDateFlexible(item.dataNascimento || item.data_nascimento || item.nascimento || item.dataNasc || item.birthDate || '');
+            if (!dt || isNaN(dt)) return; // apenas cadastros com data de nascimento real entram no calendário
+
+            const cpfLimpo = String(item.cpf || '').replace(/\D+/g, '').trim();
+            const nomeNormalizado = String(item.nome || '').toLowerCase().trim();
+            if (nomeNormalizado.length < 2) return;
+
+            // Desduplicação Absoluta: verifica se já exibimos esta mesma pessoa (pelo CPF ou pelo Nome Completo)
+            const existente = (cpfLimpo.length >= 8 && mapCpf.get(cpfLimpo)) || mapNome.get(nomeNormalizado);
+
+            if (existente) {
+                // Mescla/Enriquecimento sem criar novo card na tela
+                if (!existente.telefone && (item.telefone || item.celular || item.whatsapp)) existente.telefone = item.telefone || item.celular || item.whatsapp;
+                if (!existente.email && item.email) existente.email = item.email;
+                if (!existente.cpf && item.cpf) existente.cpf = item.cpf;
+                
+                // Prioriza o status nobre de "Titular do Plano" em vez de rótulos contraditórios como "Dependente (Titular)" ou "dependente"
+                const tipoAtual = String(existente.tipo || '').toLowerCase();
+                const tipoNovo = String(item.tipo || '').toLowerCase();
+                if ((tipoNovo === 'titular' || tipoNovo === 'titular do plano' || tipoNovo === 'titular da família' || tipoNovo.includes('titular')) && !tipoNovo.includes('dependente')) {
+                    existente.tipo = 'Titular do Plano';
+                }
+            } else {
+                let tipoLimpo = String(item.tipo || 'Associado Vitaplan');
+                const tLow = tipoLimpo.toLowerCase().trim();
+                if (tLow === 'titular' || tLow.includes('dependente (titular')) {
+                    tipoLimpo = 'Titular do Plano';
+                } else if (tLow === 'dependente') {
+                    tipoLimpo = 'Dependente Familiar';
+                }
+
+                const novo = {
+                    id: item.id || `aniv_${listaUnica.length + 1}`,
+                    familiaId: item.familia_id || item.familiaId || null,
+                    nome: item.nome,
+                    tipo: tipoLimpo,
+                    dataNascimento: dt,
+                    telefone: item.telefone || item.celular || item.whatsapp || '',
+                    email: item.email || '',
+                    cpf: item.cpf || ''
+                };
+
+                if (cpfLimpo.length >= 8) mapCpf.set(cpfLimpo, novo);
+                mapNome.set(nomeNormalizado, novo);
+                listaUnica.push(novo);
+            }
+        };
 
         // 1. Supabase - Tabela Famílias (Titular e Dependentes)
         if (window.supabase) {
@@ -89,43 +143,31 @@
                 if (Array.isArray(dataFam)) {
                     dataFam.forEach(f => {
                         const tit = f.titular || (f.dados ? f.dados.titular : {}) || {};
-                        const fId = f.id;
-                        const fNome = tit.nome || f.nome_titular || f.nome;
-                        const fNasc = tit.dataNascimento || f.data_nascimento;
-                        
-                        if (fNome && fNasc) {
-                            const dt = parseDateFlexible(fNasc);
-                            if (dt) {
-                                const key = `tit_${fId || fNome}`;
-                                pMap.set(key, {
-                                    id: fId,
-                                    familiaId: fId,
-                                    nome: fNome,
-                                    tipo: "Titular do Plano",
-                                    dataNascimento: dt,
-                                    telefone: tit.telefone || f.telefone || tit.celular || "",
-                                    email: tit.email || f.email || ""
-                                });
-                            }
-                        }
+                        registrarAniversariante({
+                            id: f.id,
+                            familiaId: f.id,
+                            nome: tit.nome || f.nome_titular || f.nome,
+                            cpf: tit.cpf || f.cpf,
+                            tipo: "Titular do Plano",
+                            dataNascimento: tit.dataNascimento || f.data_nascimento || tit.data_nascimento,
+                            telefone: tit.telefone || f.telefone || tit.celular || "",
+                            email: tit.email || f.email || ""
+                        });
 
-                        // Dependentes
                         let deps = f.dependentes || (f.dados ? f.dados.dependentes : []);
                         if (typeof deps === 'string') { try { deps = JSON.parse(deps); } catch(e){ deps = []; } }
                         if (Array.isArray(deps)) {
                             deps.forEach((d, idx) => {
-                                const dNasc = parseDateFlexible(d.dataNascimento || d.data_nascimento || d.nascimento);
-                                if (d.nome && dNasc) {
-                                    pMap.set(`dep_${fId}_${idx}`, {
-                                        id: d.id || `${fId}_dep_${idx}`,
-                                        familiaId: fId,
-                                        nome: d.nome,
-                                        tipo: `Dependente (${d.parentesco || 'Familiar'}) de ${fNome || 'Titular'}`,
-                                        dataNascimento: dNasc,
-                                        telefone: d.telefone || d.celular || tit.telefone || "",
-                                        email: d.email || tit.email || ""
-                                    });
-                                }
+                                registrarAniversariante({
+                                    id: d.id || `${f.id}_dep_${idx}`,
+                                    familiaId: f.id,
+                                    nome: d.nome,
+                                    cpf: d.cpf,
+                                    tipo: `Dependente (${d.parentesco || 'Familiar'})`,
+                                    dataNascimento: d.dataNascimento || d.data_nascimento || d.nascimento,
+                                    telefone: d.telefone || d.celular || tit.telefone || "",
+                                    email: d.email || tit.email || ""
+                                });
                             });
                         }
                     });
@@ -140,58 +182,54 @@
                 if (activeCompanyId) qAssocs = qAssocs.eq('company_id', activeCompanyId);
                 const { data: dataAssocs } = await qAssocs;
                 if (Array.isArray(dataAssocs)) {
-                    dataAssocs.forEach(a => {
-                        const dt = parseDateFlexible(a.dataNascimento || a.data_nascimento || a.birthDate);
-                        if (a.nome && dt) {
-                            const key = `assoc_${a.id || a.cpf || a.nome}`;
-                            if (!pMap.has(key)) {
-                                pMap.set(key, {
-                                    id: a.id,
-                                    familiaId: a.familia_id || a.familiaId || null,
-                                    nome: a.nome,
-                                    tipo: a.tipo || "Associado",
-                                    dataNascimento: dt,
-                                    telefone: a.telefone || a.celular || a.whatsapp || "",
-                                    email: a.email || ""
-                                });
-                            }
-                        }
-                    });
+                    dataAssocs.forEach(registrarAniversariante);
                 }
             } catch(e) {}
         }
 
-        // 3. Fallback no localStorage
+        // 3. Fallback/Complemento no localStorage (famílias e associados locais)
         try {
             const locFamilias = JSON.parse(localStorage.getItem("familias") || "[]");
             locFamilias.forEach(f => {
                 if (activeCompanyId && String(f.companyId || '') !== String(activeCompanyId) && f.companyId) return;
                 const tit = f.titular || {};
                 const fId = f.id || Math.random();
-                if (tit.nome && tit.dataNascimento) {
-                    const dt = parseDateFlexible(tit.dataNascimento);
-                    if (dt && !pMap.has(`tit_${fId}`)) {
-                        pMap.set(`tit_${fId}`, {
-                            id: fId, familiaId: fId, nome: tit.nome, tipo: "Titular", dataNascimento: dt, telefone: tit.telefone || "", email: tit.email || ""
-                        });
-                    }
-                }
+                registrarAniversariante({
+                    id: fId,
+                    familiaId: fId,
+                    nome: tit.nome || f.nome,
+                    cpf: tit.cpf || f.cpf,
+                    tipo: "Titular do Plano",
+                    dataNascimento: tit.dataNascimento || tit.data_nascimento || f.data_nascimento,
+                    telefone: tit.telefone || tit.celular || "",
+                    email: tit.email || ""
+                });
+
                 const deps = Array.isArray(f.dependentes) ? f.dependentes : [];
                 deps.forEach((d, i) => {
-                    const dt = parseDateFlexible(d.dataNascimento);
-                    if (d.nome && dt) {
-                        const key = `dep_loc_${fId}_${i}`;
-                        if (!pMap.has(key)) {
-                            pMap.set(key, {
-                                id: d.id || key, familiaId: fId, nome: d.nome, tipo: `Dependente (${d.parentesco || 'Familiar'})`, dataNascimento: dt, telefone: d.telefone || tit.telefone || "", email: d.email || ""
-                            });
-                        }
-                    }
+                    registrarAniversariante({
+                        id: d.id || `dep_loc_${fId}_${i}`,
+                        familiaId: fId,
+                        nome: d.nome,
+                        cpf: d.cpf,
+                        tipo: `Dependente (${d.parentesco || 'Familiar'})`,
+                        dataNascimento: d.dataNascimento || d.data_nascimento || d.nascimento,
+                        telefone: d.telefone || d.celular || tit.telefone || "",
+                        email: d.email || ""
+                    });
                 });
             });
         } catch(e) {}
 
-        return Array.from(pMap.values()).map(item => {
+        try {
+            const locAssocs = JSON.parse(localStorage.getItem("associados") || "[]");
+            locAssocs.forEach(a => {
+                if (activeCompanyId && String(a.companyId || '') !== String(activeCompanyId) && a.companyId) return;
+                registrarAniversariante(a);
+            });
+        } catch(e) {}
+
+        return listaUnica.map(item => {
             return {
                 ...item,
                 dia: item.dataNascimento.getDate(),

@@ -743,14 +743,54 @@
             mcVencimento.value = vencimentoDefault;
         }
 
-        // Preenche valor padrão a partir do contrato
-        const valorMensalidade = $('ivValor') || $('cvValor');
-        if (valorMensalidade) {
-            const valorTexto = valorMensalidade.textContent || '';
-            const valorNum = parseFloat(valorTexto.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-            const mcValor = $('mcValor');
-            if (mcValor && valorNum > 0) {
+        // Preenche o valor financeiro pré-estabelecido do contrato na modal de cobranças
+        const mcValor = $('mcValor');
+        if (mcValor) {
+            let valorNum = 0;
+            const tentarExtrair = (v) => {
+                if (!v) return 0;
+                if (typeof v === 'number') return v;
+                let limpo = String(v).replace(/\s/g, '');
+                if (limpo.includes(',') && limpo.includes('.')) {
+                    limpo = limpo.replace(/[^\d,]/g, '').replace(',', '.');
+                } else if (limpo.includes(',')) {
+                    limpo = limpo.replace(/[^\d,]/g, '').replace(',', '.');
+                } else {
+                    limpo = limpo.replace(/[^\d.]/g, '');
+                }
+                return parseFloat(limpo) || 0;
+            };
+
+            const valText = ($('ivValor') || $('cvValor'))?.textContent || '';
+            valorNum = tentarExtrair(valText);
+
+            if (valorNum <= 0 && window.currentContract) {
+                valorNum = tentarExtrair(window.currentContract.valor || window.currentContract.valor_mensalidade || window.currentContract.valorCobranca || window.currentContract.valor_cobranca || window.currentContract.mensalidade || window.currentContract.price);
+            }
+            if (valorNum <= 0 && window.currentFamily && Array.isArray(window.currentFamily.contratos)) {
+                const params = new URLSearchParams(window.location.search);
+                const numCt = params.get('numero');
+                const ctMatch = window.currentFamily.contratos.find(c => String(c.numero || c.id) === String(numCt)) || window.currentFamily.contratos[0];
+                if (ctMatch) valorNum = tentarExtrair(ctMatch.valor || ctMatch.valor_mensalidade || ctMatch.valorCobranca || ctMatch.price);
+            }
+            if (valorNum > 0) {
                 mcValor.value = valorNum.toFixed(2);
+            }
+        }
+
+        // Preenche automaticamente o nome real do plano no campo do modal
+        const mcNomePlano = $('mcNomePlano');
+        if (mcNomePlano) {
+            const planoEl = $('ivPlano') || $('cvPlano') || $('plano-nome');
+            let nomePlanoLido = planoEl ? planoEl.textContent.trim() : '';
+            if (nomePlanoLido && !nomePlanoLido.toLowerCase().includes('definido')) {
+                mcNomePlano.value = nomePlanoLido;
+            } else if (window.currentContract && (window.currentContract.plano || window.currentContract.nome_plano || window.currentContract.planoNome)) {
+                mcNomePlano.value = window.currentContract.plano || window.currentContract.nome_plano || window.currentContract.planoNome;
+            } else if (window.currentFamily && window.currentFamily.plano) {
+                mcNomePlano.value = window.currentFamily.plano;
+            } else {
+                mcNomePlano.value = 'Plano Assistencial Contratado';
             }
         }
 

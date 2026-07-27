@@ -42,91 +42,96 @@ const elements = {
 };
 
 /**
- * Carrega contratos em atraso/pendentes a partir das bases do sistema (familias, inadimplentes, contratos)
+ * Carrega contratos em atraso/pendentes a partir das bases do sistema com Conexão Crítica e Sem Dados Fantasmas
  */
 function loadRenegotiationContracts() {
-    console.log('🔄 Carregando carteira para renegociação de cobranças...');
+    console.log('🔄 Carregando carteira para renegociação com validação anti-fantasma...');
     const list = [];
     let idCounter = 1;
 
     try {
-        // 1. Tentar ler de inadimplentes
+        // Obter cadastros vigentes (contratos e famílias) para verificação cruzada (Conexão Crítica)
+        const rawContratos = localStorage.getItem('contratos');
+        const contratosAtivos = rawContratos ? JSON.parse(rawContratos) : [];
+        const rawFamilias = localStorage.getItem('familias');
+        const familiasAtivas = rawFamilias ? JSON.parse(rawFamilias) : [];
+
+        // Conjunto de IDs ou nomes de titulares legítimos de cadastros que ainda existem na conta
+        const nomesValidos = new Set();
+        const numerosValidos = new Set();
+        
+        if (Array.isArray(contratosAtivos)) {
+            contratosAtivos.forEach(c => {
+                if (c && (c.numero || c.id || c.titular)) {
+                    if (c.titular) nomesValidos.add(String(c.titular).toLowerCase().trim());
+                    if (c.numero || c.id) numerosValidos.add(String(c.numero || c.id));
+                }
+            });
+        }
+        if (Array.isArray(familiasAtivas)) {
+            familiasAtivas.forEach(f => {
+                const nome = f && f.titular && f.titular.nome ? f.titular.nome : (f ? f.nome : '');
+                if (nome) nomesValidos.add(String(nome).toLowerCase().trim());
+                if (f && f.id) numerosValidos.add(String(f.id));
+            });
+        }
+
+        // 1. Ler de inadimplentes verificando legitimidade (se o usuário apagou os contratos/famílias, limpa os órfãos do cache)
         const rawInad = localStorage.getItem('inadimplentes');
         if (rawInad) {
             const arr = JSON.parse(rawInad);
             if (Array.isArray(arr)) {
+                const arrFiltrado = [];
                 arr.forEach(item => {
-                    list.push({
-                        id: idCounter++,
-                        number: String(item.numero || item.contrato || item.id || `CT-00${idCounter}`),
-                        contractDate: item.dataInicio || item.dataContrato || '2025-01-10',
-                        holder: item.nome || item.titular || 'Cliente não identificado',
-                        plan: item.plano || 'Plano Ouro / Familiar',
-                        vendor: item.vendedor || 'Consultoria Geral',
-                        quantityOpen: item.parcelasAtraso || Math.floor(Math.random() * 5) + 2,
-                        totalOpen: parseFloat(item.valorTotal || item.valor || (Math.random() * 800 + 150).toFixed(2)),
-                        overdueDays: parseInt(item.diasAtraso || Math.floor(Math.random() * 280) + 20),
-                        phone: item.telefone || '5511999998888'
-                    });
-                });
-            }
-        }
+                    const num = String(item.numero || item.contrato || item.id || '');
+                    const titular = String(item.nome || item.titular || '').toLowerCase().trim();
+                    
+                    // Verificação de Conexão Crítica: Se não existem mais contratos ou famílias, ou se este cliente não bate mais com nenhum registro de titular/número, trata-se de dado fantasma ou contrato deletado!
+                    const existeNoSistema = (contratosAtivos.length === 0 && familiasAtivas.length === 0) ? false : (nomesValidos.has(titular) || numerosValidos.has(num));
 
-        // 2. Complementar com famílias/contratos locais para garantir uma carteira rica e funcional
-        if (list.length < 5) {
-            const rawFam = localStorage.getItem('familias');
-            if (rawFam) {
-                const fams = JSON.parse(rawFam);
-                if (Array.isArray(fams)) {
-                    fams.forEach(fam => {
-                        const nome = fam.titular && fam.titular.nome ? fam.titular.nome : (fam.nome || 'Associado Vitaplan');
-                        const contratos = Array.isArray(fam.contratos) && fam.contratos.length > 0 ? fam.contratos : [{ numero: fam.id || `FAM-${idCounter}`, plano: fam.plano || 'Vitaplan Prata' }];
-                        contratos.forEach(c => {
-                            if (!list.some(x => x.holder === nome || x.number === String(c.numero))) {
-                                list.push({
-                                    id: idCounter++,
-                                    number: String(c.numero || `CT-7${idCounter}`),
-                                    contractDate: c.dataInicio || '2025-02-15',
-                                    holder: nome,
-                                    plan: c.plano || 'Plano Premium',
-                                    vendor: c.vendedor || 'Equipe Qualify',
-                                    quantityOpen: Math.floor(Math.random() * 6) + 1,
-                                    totalOpen: Math.floor(Math.random() * 1400) + 250,
-                                    overdueDays: Math.floor(Math.random() * 320) + 15,
-                                    phone: fam.titular?.telefone || '5511987654321'
-                                });
-                            }
+                    // Apenas se o contrato original ainda for real e existir na sua conta
+                    if (existeNoSistema) {
+                        arrFiltrado.push(item);
+                        list.push({
+                            id: idCounter++,
+                            number: num || `CT-00${idCounter}`,
+                            contractDate: item.dataInicio || item.dataContrato || '2026-01-10',
+                            holder: item.nome || item.titular || 'Cliente não identificado',
+                            plan: item.plano || 'Plano Cadastrado',
+                            vendor: item.vendedor || 'Consultoria Geral',
+                            quantityOpen: parseInt(item.parcelasAtraso || 1),
+                            totalOpen: parseFloat(item.valorTotal || item.valor || 0),
+                            overdueDays: parseInt(item.diasAtraso || 0),
+                            phone: item.telefone || ''
                         });
-                    });
+                    }
+                });
+
+                // Limpeza Anti-Fantasma: Expulsa os devedores no storage que pertenciam aos contratos ou famílias já excluídos da conta
+                if (arrFiltrado.length !== arr.length) {
+                    console.log(`🛡️ Conexão Crítica: ${arr.length - arrFiltrado.length} registro(s) fantasma(s) ou vinculados a contratos excluídos foram removidos.`);
+                    localStorage.setItem('inadimplentes', JSON.stringify(arrFiltrado));
                 }
             }
         }
 
-        // 3. Se ainda assim estiver vazio em testes locais sem banco, injetar amostra realista operacional
-        if (list.length === 0) {
-            list.push(
-                { id: idCounter++, number: '90041', contractDate: '2024-05-12', holder: 'Carlos Eduardo Mendes', plan: 'Vitaplan Prata Especial', vendor: 'Ana de Sá', quantityOpen: 5, totalOpen: 745.00, overdueDays: 145, phone: '5511991234567' },
-                { id: idCounter++, number: '90088', contractDate: '2023-11-20', holder: 'Marina Souza Siqueira', plan: 'Plano Diamante Familiar', vendor: 'Roberto Neves', quantityOpen: 11, totalOpen: 1850.00, overdueDays: 310, phone: '5511988223344' },
-                { id: idCounter++, number: '90102', contractDate: '2025-01-18', holder: 'Fernando Gomes Pezzetti', plan: 'Assistencia Pet Ouro', vendor: 'Marcos Paulo', quantityOpen: 2, totalOpen: 180.00, overdueDays: 45, phone: '5511977665544' },
-                { id: idCounter++, number: '90145', contractDate: '2024-08-03', holder: 'Patrícia Alcantara Castro', plan: 'Vitaplan Ouro Individual', vendor: 'Juliana Dias', quantityOpen: 8, totalOpen: 1240.50, overdueDays: 215, phone: '5511966554433' },
-                { id: idCounter++, number: '90210', contractDate: '2023-09-15', holder: 'Antonio Gilberto do Nascimento', plan: 'Familiar Premium Ultra', vendor: 'Ricardo Fontes', quantityOpen: 14, totalOpen: 2650.00, overdueDays: 420, phone: '5511955443322' }
-            );
-        }
+        // ZERO dados fakes, zero Math.random() e zero amostra fictícia! 
+        // Se a sua carteira não possui contratos inadimplentes renegociáveis reais, a tela vai refletir honestamente 0 itens.
     } catch (e) {
-        console.warn('Falha ao processar carteira para renegociação:', e);
+        console.warn('Falha ao processar carteira real para renegociação:', e);
     }
 
     sampleContracts = list;
     baseContracts = [...sampleContracts];
     currentContracts = [...baseContracts];
-    totalPages = Math.ceil(currentContracts.length / itemsPerPage);
+    totalPages = Math.max(1, Math.ceil(currentContracts.length / itemsPerPage));
 
-    // Atualiza indicadores KPI na tela se existirem
+    // Atualiza indicadores KPI na tela
     updateRenegotiationKPIs();
 }
 
 /**
- * Atualiza os novos Cards de Resumo no topo da tela
+ * Atualiza os Cards de Resumo no topo da tela (sem números fakes ou hardcoded)
  */
 function updateRenegotiationKPIs() {
     try {
@@ -145,7 +150,7 @@ function updateRenegotiationKPIs() {
         if (kpiTotalValor) kpiTotalValor.textContent = `R$ ${formatCurrency(totalR)}`;
         if (kpiQtdContratos) kpiQtdContratos.textContent = sampleContracts.length;
         if (kpiMediaAtraso) kpiMediaAtraso.textContent = sampleContracts.length > 0 ? `${Math.round(totalDias / sampleContracts.length)} dias` : '0 dias';
-        if (kpiAcordosMes) kpiAcordosMes.textContent = localStorage.getItem('acordosFechadosMes') || '4';
+        if (kpiAcordosMes) kpiAcordosMes.textContent = localStorage.getItem('acordosFechadosMes') || '0';
     } catch (e) {
         console.warn('Erro ao atualizar KPIs Renegociação:', e);
     }

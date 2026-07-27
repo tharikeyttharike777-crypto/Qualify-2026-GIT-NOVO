@@ -89,31 +89,57 @@ async function loadData() {
             console.warn('Falha ao carregar associados do Supabase, usando dados locais para complementar:', e);
         }
 
-        // Complementa com localStorage
-        const associadosLocal = (JSON.parse(localStorage.getItem('associados') || '[]') || [])
-            .filter(a => String(a.companyId) === String(companyId) || (a.familiaId && familyIds.has(String(a.familiaId))));
-        const byKey = new Map();
-        const addSafe = (a) => {
-            if (!a) return;
-            const key = String(a.id || `${a.familiaId || 'semFamilia'}-${a.tipo || 'assoc'}-${(a.nome || '').trim()}`);
-            if (!byKey.has(key)) byKey.set(key, a);
+        // Motor de Mescla Profunda e Desduplicação Absoluta (por CPF e por Nome Completo simultaneamente)
+        const mapCpf = new Map();
+        const mapNome = new Map();
+        const listaUnica = [];
+
+        const registrarAssociado = (a) => {
+            if (!a || (!a.nome && !a.cpf)) return;
+            
+            const cpfLimpo = String(a.cpf || '').replace(/\D+/g, '').trim();
+            const nomeNormalizado = String(a.nome || '').toLowerCase().trim();
+            const tipoNormalizado = String(a.tipo || 'titular').toLowerCase().trim();
+            const chaveNome = `${nomeNormalizado}_${tipoNormalizado}`;
+            
+            // Verifica se este indivíduo já existe pelo seu CPF ou pelo seu Nome+Tipo
+            const existente = (cpfLimpo.length >= 8 && mapCpf.get(cpfLimpo)) || (nomeNormalizado.length >= 3 && mapNome.get(chaveNome));
+            
+            // Resgata todas as variantes em que o sistema possa ter salvo a data de nascimento ou a idade
+            const dtNasc = a.dataNascimento || a.data_nascimento || a.nascimento || a.dataNasc || a.birthDate || a.dtNascimento || '';
+            const idadeCad = a.idade || (dtNasc ? calcularIdade(dtNasc) : null);
+
+            if (existente) {
+                // Enriquecimento e mescla inteligente: transfere qualquer campo presente no registro extra que falte na linha principal
+                if (!existente.dataNascimento || existente.dataNascimento === '-') {
+                    if (dtNasc) existente.dataNascimento = dtNasc;
+                }
+                if (!existente.idade || existente.idade === '-' || isNaN(existente.idade)) {
+                    if (idadeCad && !isNaN(idadeCad)) existente.idade = idadeCad;
+                }
+                if (!existente.cpf && a.cpf) existente.cpf = a.cpf;
+                if (!existente.telefone && (a.telefone || a.celular)) existente.telefone = a.telefone || a.celular;
+                if (!existente.email && a.email) existente.email = a.email;
+                if (!existente.seguradora && a.seguradora) existente.seguradora = a.seguradora;
+                
+                // Atualiza os índices de busca para garantir unicidade
+                if (cpfLimpo.length >= 8) mapCpf.set(cpfLimpo, existente);
+                if (nomeNormalizado.length >= 3) mapNome.set(chaveNome, existente);
+            } else {
+                // Insere o novo indivíduo padronizando suas datas e telefones
+                const novo = { 
+                    ...a,
+                    dataNascimento: dtNasc,
+                    idade: (idadeCad && !isNaN(idadeCad)) ? idadeCad : '-',
+                    telefone: a.telefone || a.celular || ''
+                };
+                if (cpfLimpo.length >= 8) mapCpf.set(cpfLimpo, novo);
+                if (nomeNormalizado.length >= 3) mapNome.set(chaveNome, novo);
+                listaUnica.push(novo);
+            }
         };
-        associadosFiltrados.forEach(addSafe);
-        associadosLocal.forEach(addSafe);
-        associadosFiltrados = Array.from(byKey.values());
 
-        // Constrói associados a partir das famílias (fallback) e mescla com armazenados
-        const associadosMap = new Map();
-        const pushAssoc = (a) => {
-            if (!a) return;
-            const key = String(a.id || `${a.familiaId || 'semFamilia'}-${a.tipo || 'assoc'}-${(a.nome || '').trim()}`);
-            if (!associadosMap.has(key)) associadosMap.set(key, a);
-        };
-
-        // Primeiro, adiciona os associados existentes (preferência para dados mais completos)
-        associadosFiltrados.forEach(a => pushAssoc(a));
-
-        // Agora, adiciona titulares e dependentes a partir das famílias (garante presença)
+        // 1. Injetamos primeiro da tabela Famílias resgatando todos os formatos possíveis de campos
         familias.forEach(familia => {
             // Titular
             const titularAssoc = {
@@ -121,35 +147,68 @@ async function loadData() {
                 familiaId: String(familia.id),
                 companyId: companyId,
                 tipo: 'titular',
-                nome: familia?.titular?.nome || '',
-                cpf: familia?.titular?.cpf || '',
-                telefone: familia?.titular?.telefone || '',
-                email: familia?.titular?.email || '',
-                dataNascimento: familia?.titular?.dataNascimento || '',
+                nome: familia?.titular?.nome || familia?.nome || '',
+                cpf: familia?.titular?.cpf || familia?.cpf || '',
+                telefone: familia?.titular?.telefone || familia?.titular?.celular || familia?.telefone || '',
+                email: familia?.titular?.email || familia?.email || '',
+                dataNascimento: familia?.titular?.dataNascimento || familia?.titular?.data_nascimento || familia?.titular?.dataNasc || familia?.titular?.nascimento || familia?.dataNascimento || '',
+                idade: familia?.titular?.idade || familia?.idade || null,
                 endereco: familia?.endereco || {},
-                seguradora: familia?.titular?.seguradora || ''
+                seguradora: familia?.titular?.seguradora || familia?.seguradora || ''
             };
-            pushAssoc(titularAssoc);
+            registrarAssociado(titularAssoc);
 
             // Dependentes
             (familia?.dependentes || []).forEach((dep, idx) => {
                 const depAssoc = {
-                    id: dep?.id || `fam_${familia.id}_dep_${idx}_${(dep?.nome || '').replace(/\s+/g,'_')}`,
+                    id: dep?.id || `fam_${familia.id}_dep_${idx}`,
                     familiaId: String(familia.id),
                     companyId: companyId,
                     tipo: 'dependente',
                     nome: dep?.nome || '',
                     cpf: dep?.cpf || '',
-                    telefone: dep?.telefone || '',
+                    telefone: dep?.telefone || dep?.celular || '',
                     email: dep?.email || '',
-                    dataNascimento: dep?.dataNascimento || '',
+                    dataNascimento: dep?.dataNascimento || dep?.data_nascimento || dep?.dataNasc || dep?.nascimento || dep?.dtNascimento || '',
+                    idade: dep?.idade || null,
                     endereco: familia?.endereco || {},
                     parentesco: dep?.parentesco || 'Dependente',
                     seguradora: dep?.seguradora || ''
                 };
-                pushAssoc(depAssoc);
+                registrarAssociado(depAssoc);
             });
         });
+
+        // 2. Mesclamos com registros secundários em Supabase e localStorage unificando por CPF e Nome
+        associadosFiltrados.forEach(registrarAssociado);
+        
+        const associadosLocal = (JSON.parse(localStorage.getItem('associados') || '[]') || [])
+            .filter(a => String(a.companyId) === String(companyId) || (a.familiaId && familyIds.has(String(a.familiaId))));
+        associadosLocal.forEach(registrarAssociado);
+
+        // 3. Varredura extra de enriquecimento no histórico de contratos caso a idade ou data ainda esteja faltando
+        try {
+            const contLocal = JSON.parse(localStorage.getItem('contratos') || '[]');
+            listaUnica.forEach(indv => {
+                if (!indv.idade || indv.idade === '-' || !indv.dataNascimento || indv.dataNascimento === '-') {
+                    const cpfIndv = String(indv.cpf || '').replace(/\D+/g, '');
+                    const cMatch = contLocal.find(c => (cpfIndv && String(c.cpf_cnpj || c.cpf || '').replace(/\D+/g, '') === cpfIndv) || String(c.titular || '').toLowerCase().trim() === String(indv.nome || '').toLowerCase().trim());
+                    if (cMatch) {
+                        const cNasc = cMatch.dataNascimento || cMatch.data_nascimento || cMatch.nascimento || '';
+                        if (cNasc && (!indv.dataNascimento || indv.dataNascimento === '-')) indv.dataNascimento = cNasc;
+                        if (cMatch.idade && !isNaN(cMatch.idade) && (indv.idade === '-' || !indv.idade)) indv.idade = cMatch.idade;
+                    }
+                }
+            });
+        } catch(err) {}
+
+        const listaDesduplicada = listaUnica;
+        
+        // Limpeza do cache do localStorage se houver duplicatas ou versões incompletas armazenadas
+        if (associadosLocal.length !== listaDesduplicada.length) {
+            console.log(`🧹 Cache purificado: unificados ${listaDesduplicada.length} associados plenos e desduplicados.`);
+            localStorage.setItem('associados', JSON.stringify(listaDesduplicada));
+        }
 
         // Carrega contratos reais do banco para contagem exata
         let contratosList = [];
@@ -167,8 +226,8 @@ async function loadData() {
             console.warn('Falha ao carregar contratos na pesquisa de associados:', e);
         }
 
-        // Mapeia todos os associados com informações completas e consistentes para a tabela
-        const associadosCompletos = Array.from(associadosMap.values()).map((associado, index) => {
+        // Mapeia todos os associados unificados com informações completas e consistentes para a tabela
+        const associadosCompletos = listaDesduplicada.map((associado, index) => {
             const familia = associado.familiaId ? familiaById.get(String(associado.familiaId)) : null;
             const titularNome = familia?.titular?.nome || '';
             const cpfAssoc = String(associado.cpf || '').replace(/\D+/g, '');
@@ -240,12 +299,37 @@ async function loadData() {
     }
 }
 
-// Função auxiliar para calcular idade
+// Função auxiliar robusta para calcular idade aceitando datas no formato brasileiro DD/MM/AAAA ou internacional YYYY-MM-DD
 function calcularIdade(dataNascimento) {
-    if (!dataNascimento) return '-';
+    if (!dataNascimento || dataNascimento === '-' || dataNascimento === 'N/A') return '-';
+    
+    let nascimento = null;
+    try {
+        if (typeof dataNascimento === 'number') {
+            nascimento = new Date(dataNascimento);
+        } else if (typeof dataNascimento === 'string') {
+            const limpa = dataNascimento.trim();
+            if (limpa.includes('/')) {
+                const partes = limpa.split('/');
+                if (partes.length === 3) {
+                    // Trata datas brasileiras DD/MM/YYYY
+                    nascimento = new Date(`${partes[2]}-${String(partes[1]).padStart(2, '0')}-${String(partes[0]).padStart(2, '0')}T12:00:00`);
+                }
+            } else if (limpa.includes('-')) {
+                nascimento = new Date(`${limpa.split('T')[0]}T12:00:00`);
+            } else {
+                nascimento = new Date(limpa);
+            }
+        } else if (dataNascimento instanceof Date) {
+            nascimento = dataNascimento;
+        }
+    } catch (e) {
+        return '-';
+    }
+
+    if (!nascimento || isNaN(nascimento.getTime())) return '-';
     
     const hoje = new Date();
-    const nascimento = new Date(dataNascimento);
     let idade = hoje.getFullYear() - nascimento.getFullYear();
     const mes = hoje.getMonth() - nascimento.getMonth();
     
@@ -253,7 +337,7 @@ function calcularIdade(dataNascimento) {
         idade--;
     }
     
-    return idade;
+    return (isNaN(idade) || idade < 0) ? '-' : idade;
 }
 
 // DOM Elements
