@@ -209,11 +209,11 @@ class CatalogoPlanos {
     }
 
     /**
-     * Cria um card de plano
+     * Cria um card de plano de alto padrão
      */
     createPlanCard(plan) {
-        const badgeHtml = plan.badge ? 
-            `<div class="plan-badge ${plan.badge === 'popular' ? 'popular' : plan.badge === 'new' ? 'new' : ''}">${plan.badge}</div>` : '';
+        const badgeHtml = plan.type === 'Familiar' ? 
+            `<div class="plan-badge popular">Mais Popular</div>` : `<div class="plan-badge">Individual</div>`;
         
         return `
             <div class="col-lg-4 col-md-6 col-sm-12">
@@ -221,32 +221,32 @@ class CatalogoPlanos {
                     <div class="plan-card-header">
                         ${badgeHtml}
                         <div class="plan-logo">
-                            <i class="${plan.icon}"></i>
+                            <i class="${plan.icon || 'fas fa-shield-alt'}"></i>
                         </div>
                         <h3 class="plan-title">${plan.title}</h3>
-                        <p class="plan-category">${plan.type}</p>
+                        <p class="plan-category">${plan.type} • Cobertura Nacional</p>
                     </div>
                     <div class="plan-card-body">
-                        <p class="plan-description">${plan.description}</p>
-                        
-                        <ul class="plan-features">
-                            ${plan.features.map(feature => 
-                                `<li><i class="fas fa-check"></i>${feature}</li>`
-                            ).join('')}
-                        </ul>
-                        
-                        <div class="plan-price">
-                            <div class="price-label">Mensalidade</div>
-                            <span class="price-value">R$ ${this.formatPrice(plan.price)}</span>
-                            <span class="price-period">/${plan.period}</span>
+                        <div>
+                            <div class="plan-price-box">
+                                <span class="price-value">R$ ${this.formatPrice(plan.price)}</span>
+                                <span class="price-period">/mês</span>
+                            </div>
+                            <p class="plan-description">${plan.description || 'Assistência completa para você e seus beneficiários com garantia de qualidade QUALIFY.'}</p>
+                            
+                            <ul class="plan-features">
+                                <li><i class="fas fa-check-circle"></i> Acesso ilimitado ao portal digital</li>
+                                <li><i class="fas fa-check-circle"></i> Carteirinha virtual instantânea</li>
+                                ${plan.features.length > 0 ? plan.features.slice(0,3).map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('') : '<li><i class="fas fa-check-circle"></i> Cobertura em rede conveniada</li>'}
+                            </ul>
                         </div>
                     </div>
                     <div class="plan-card-footer">
-                        <button class="btn btn-details" onclick="catalogoPlanos.showPlanDetails(${plan.id})">
-                            <i class="fas fa-info-circle me-2"></i>Ver Detalhes
+                        <button class="btn-details" onclick="catalogoPlanos.showPlanDetails('${plan.id}')">
+                            <i class="fas fa-search-plus"></i> Ver Detalhes
                         </button>
-                        <button class="btn btn-contract" onclick="catalogoPlanos.contractPlan(${plan.id})">
-                            <i class="fas fa-shopping-cart me-2"></i>Contratar
+                        <button class="btn-contract" onclick="catalogoPlanos.contractPlan('${plan.id}')">
+                            <i class="fas fa-check-circle"></i> Selecionar e Contratar
                         </button>
                     </div>
                 </div>
@@ -258,8 +258,7 @@ class CatalogoPlanos {
      * Configura event listeners dos cards
      */
     setupCardEventListeners() {
-        // Os event listeners são configurados via onclick nos botões
-        // para evitar problemas com elementos dinâmicos
+        // Handled via inline onclick via catalogoPlanos
     }
 
     /**
@@ -269,74 +268,84 @@ class CatalogoPlanos {
         const params = new URLSearchParams(window.location.search);
         const planIdParam = params.get('planId');
         if (!planIdParam) return;
-        const planId = parseInt(planIdParam, 10);
-        if (!isNaN(planId)) {
-            this.showPlanDetails(planId);
-        }
+        this.showPlanDetails(planIdParam);
     }
 
     /**
-     * Mostra detalhes do plano no modal
+     * Mostra detalhes do plano no modal de forma riquíssima e explicativa
      */
     showPlanDetails(planId) {
-        const plan = this.plans.find(p => p.id === planId);
+        const plan = this.plans.find(p => String(p.id) === String(planId)) || this.plans[0];
         if (!plan) return;
         
         const content = `
-            <div class="row">
-                <div class="col-md-4 text-center">
-                    <div class="plan-logo-large">
-                        <i class="${plan.icon}" style="font-size: 4rem; color: #667eea;"></i>
+            <div class="row g-4">
+                <div class="col-md-5 text-center" style="background: #ffffff; padding: 30px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="width: 80px; height: 80px; background: #eff6ff; color: #2563eb; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 15px;">
+                        <i class="${plan.icon || 'fas fa-shield-alt'}"></i>
                     </div>
-                    <h4 class="mt-3">${plan.title}</h4>
-                    <p class="text-muted">${plan.type}</p>
+                    <h3 style="font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 5px;">${plan.title}</h3>
+                    <span style="background: #dcfce7; color: #166534; font-size: 0.8rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; display: inline-block; margin: 0 auto 15px;">Plano ${plan.type} Ativo</span>
+                    
+                    <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 15px;">
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Investimento Mensal</span>
+                        <div style="font-size: 2rem; font-weight: 900; color: #1e293b;">R$ ${this.formatPrice(plan.price)}</div>
+                        <span style="font-size: 0.8rem; color: #94a3b8;">Sem taxas abusivas de adesão</span>
+                    </div>
                 </div>
-                <div class="col-md-8">
-                    <h5>Descrição</h5>
-                    <p>${plan.description}</p>
+                <div class="col-md-7">
+                    <h5 style="font-weight: 800; color: #0f172a; margin-bottom: 10px;"><i class="fas fa-file-alt" style="color: #3b82f6; margin-right: 8px;"></i> Sobre esta Cobertura</h5>
+                    <p style="color: #475569; font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px;">${plan.description || 'Este plano foi desenvolvido para entregar o máximo de comodidade, segurança e tranquilidade financeira. Conte com a gestão unificada QUALIFY para todos os seus beneficiários.'}</p>
                     
-                    <h5>Benefícios Inclusos</h5>
-                    <ul class="list-unstyled">
-                        ${plan.features.map(feature => 
-                            `<li class="mb-2"><i class="fas fa-check text-success me-2"></i>${feature}</li>`
-                        ).join('')}
+                    <h5 style="font-weight: 800; color: #0f172a; margin-bottom: 12px;"><i class="fas fa-list-check" style="color: #10b981; margin-right: 8px;"></i> Benefícios & Garantias Inclusas</h5>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 10px;">
+                        <li style="background: white; padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: 600; color: #334155;"><i class="fas fa-check text-success me-2"></i> Carteira Digital & Emissão Instantânea de Contratos</li>
+                        <li style="background: white; padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: 600; color: #334155;"><i class="fas fa-check text-success me-2"></i> Cobranças Automáticas integradas com PIX via QR Code</li>
+                        ${plan.features.map(f => `<li style="background: white; padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: 600; color: #334155;"><i class="fas fa-check text-success me-2"></i> ${f}</li>`).join('')}
                     </ul>
-                    
-                    <div class="price-info mt-4 p-3 bg-light rounded">
-                        <h5 class="mb-2">Investimento</h5>
-                        <div class="d-flex align-items-center">
-                            <span class="h3 text-primary mb-0">R$ ${this.formatPrice(plan.price)}</span>
-                            <span class="text-muted ms-2">/${plan.period}</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         `;
         
-        this.elements.planDetailsContent.innerHTML = content;
-        this.elements.contractPlanBtn.dataset.planId = planId;
+        if (this.elements.planDetailsContent) this.elements.planDetailsContent.innerHTML = content;
+        if (this.elements.contractPlanBtn) {
+            this.elements.contractPlanBtn.dataset.planId = planId;
+            this.elements.contractPlanBtn.onclick = () => {
+                window.location.href = `nova-familia.html?plano=${encodeURIComponent(plan.title)}&valor=${encodeURIComponent(plan.price)}`;
+            };
+        }
         
-        const modal = new bootstrap.Modal(this.elements.planDetailsModal);
-        modal.show();
+        if (this.elements.planDetailsModal) {
+            const modal = new bootstrap.Modal(this.elements.planDetailsModal);
+            modal.show();
+        }
     }
 
     /**
-     * Inicia processo de contratação
+     * Inicia processo de contratação redirecionando para Nova Família com os dados do plano preenchidos
      */
     contractPlan(planId) {
-        const plan = this.plans.find(p => p.id === planId);
+        const plan = this.plans.find(p => String(p.id) === String(planId)) || this.plans[0];
         if (!plan) return;
         
-        this.showNotification(`Redirecionando para contratação do plano "${plan.title}"...`, 'info');
-        
-        setTimeout(() => {
-            // Simula redirecionamento para checkout
-            const checkoutUrl = `/checkout/plano-${planId}`;
-            this.showNotification(`Redirecionamento para: ${checkoutUrl}`, 'success');
-            
-            // Em produção, seria:
-            // window.location.href = checkoutUrl;
-        }, 1500);
+        if (window.Swal) {
+            Swal.fire({
+                title: `Contratar ${plan.title}?`,
+                text: `Você será redirecionado para o cadastro de Nova Família já com este plano pré-selecionado!`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sim, avançar!',
+                cancelButtonText: 'Agora não'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location.href = `nova-familia.html?plano=${encodeURIComponent(plan.title)}&valor=${encodeURIComponent(plan.price)}`;
+                }
+            });
+        } else {
+            window.location.href = `nova-familia.html?plano=${encodeURIComponent(plan.title)}&valor=${encodeURIComponent(plan.price)}`;
+        }
     }
 
     /**
