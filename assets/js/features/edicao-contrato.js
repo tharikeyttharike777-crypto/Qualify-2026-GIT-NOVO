@@ -172,9 +172,27 @@ function atualizarInterfaceGlobal(contrato, familia) {
 
     setMulti(['numero-contrato', 'ivNumero', 'cvNumero'], contrato.numero || contrato.id || '---');
     setMulti(['status-contrato', 'ivSituacao', 'svSituacao'], contrato.status || 'Em Análise');
-    setMulti(['data-contrato', 'ivDataContrato', 'cvDataContrato'], formatarData(contrato.createdAt || contrato.data_contrato));
-    setMulti(['valor-mensalidade', 'ivValor', 'cvValor'], formatarMoeda(contrato.valor || contrato.valor_mensalidade));
-    setMulti(['plano-nome', 'ivPlano', 'cvPlano'], contrato.plano || contrato.nome_plano || 'Não definido');
+    let nomePlanoFinal = contrato.plano || contrato.nome_plano || contrato.planoNome || contrato.plano_nome || '';
+    if (!nomePlanoFinal && familia && Array.isArray(familia.contratos)) {
+        const ctLocal = familia.contratos.find(c => String(c.numero || c.id) === String(contrato.numero || contrato.id) || String(c.numero || c.id).replace(/^0+/, '') === String(contrato.numero || contrato.id).replace(/^0+/, ''));
+        if (ctLocal) nomePlanoFinal = ctLocal.plano || ctLocal.nome_plano || '';
+    }
+    if (!nomePlanoFinal && familia && (familia.plano || familia.nomePlano)) {
+        nomePlanoFinal = familia.plano || familia.nomePlano;
+    }
+    if (!nomePlanoFinal && localStorage.getItem('planos')) {
+        try {
+            const planos = JSON.parse(localStorage.getItem('planos') || '[]');
+            if (planos.length > 0) {
+                const pid = contrato.plano_id || contrato.planoId || contrato.plano;
+                if (pid) {
+                    const p = planos.find(x => String(x.id) === String(pid) || String(x.code) === String(pid));
+                    if (p) nomePlanoFinal = p.nome || p.name || p.title;
+                }
+            }
+        } catch(e) {}
+    }
+    setMulti(['plano-nome', 'ivPlano', 'cvPlano'], nomePlanoFinal || 'Plano Assistencial Contratado');
 
     // Outros campos úteis
     setMulti(['ivTipo', 'cvTipo', 'tipo-cobranca'], contrato.tipo_cobranca || 'Boleto/Pix');

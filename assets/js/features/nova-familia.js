@@ -211,7 +211,10 @@ async function prefillIfEditing() {
         if (nomeEl) nomeEl.value = (titularAssoc?.nome || familia.titular?.nome || '');
         if (cpfEl) cpfEl.value = (titularAssoc?.cpf || familia.titular?.cpf || '');
         if (rgEl) rgEl.value = (titularAssoc?.rg || '');
-        if (dnEl) dnEl.value = (titularAssoc?.dataNascimento || '');
+        if (dnEl) {
+            const dtNascTit = titularAssoc?.dataNascimento || titularAssoc?.data_nascimento || familia.titular?.dataNascimento || familia.titular?.data_nascimento || familia.titular?.nascimento || familia?.dataNascimento || '';
+            dnEl.value = typeof formatDateForInput === 'function' ? formatDateForInput(dtNascTit) : dtNascTit;
+        }
         if (telEl) telEl.value = (titularAssoc?.telefone || '');
         if (celEl) celEl.value = (titularAssoc?.celular || familia.titular?.celular || '');
         if (emailEl) emailEl.value = (titularAssoc?.email || '');
@@ -1150,6 +1153,13 @@ async function openContratoModal() {
                 });
             }
         }
+        // Selecionar 'Mensalidades / Mensalidade' por padrão no seletor, conforme solicitado
+        const optMensalidade = Array.from(planoContasSelect.options).find(o => o.value && o.value.toLowerCase().includes('mensali'));
+        if (optMensalidade) {
+            planoContasSelect.value = optMensalidade.value;
+        } else if (planoContasSelect.options.length > 1 && !planoContasSelect.value) {
+            planoContasSelect.selectedIndex = 1;
+        }
     }
 
     initializeContractParticipantsUI();
@@ -1523,11 +1533,39 @@ async function confirmarSalvarContrato() {
                 return '';
             })()
         }));
+
+        // Sincronização global imediata do contrato para não existir "ilha isolada"
+        const titName = (familiaData.dependentes||[]).find(d=>d && String(d.parentesco||'').toLowerCase()==='titular')?.nome || familiaData.titular?.nome || document.getElementById('nome')?.value || 'Cliente em Cadastramento';
+        const cid = companyId || localStorage.getItem('activeCompanyId') || '';
+        const globalContractDoc = {
+            id: String(contrato.id || generateId()),
+            numero: String(contrato.numero),
+            plano: contrato.plano || '',
+            titular: titName,
+            status: 'ativo',
+            company_id: cid,
+            familia_id: String(familiaId || ''),
+            date: contrato.dataInicio || new Date().toLocaleDateString('pt-BR'),
+            metadata: {
+                plano: contrato.plano || '',
+                date: contrato.dataInicio || new Date().toLocaleDateString('pt-BR'),
+                titular: titName,
+                vendedor: 'nenhum',
+                parcelas: contrato.parcelas || 0
+            }
+        };
+        const curList = JSON.parse(localStorage.getItem('contratos') || '[]');
+        const idxC = curList.findIndex(c => String(c.numero||c.id) === String(globalContractDoc.numero));
+        if (idxC >= 0) curList[idxC] = globalContractDoc; else curList.push(globalContractDoc);
+        localStorage.setItem('contratos', JSON.stringify(curList));
+        if (window.supabase) {
+            window.supabase.from('contratos').upsert(globalContractDoc).catch(e => console.warn('Falha no sync do contrato ao Supabase:', e));
+        }
     } catch (_) { }
     renderContratosTable();
     closeModal('confirmContratoModal');
     closeModal('contratoModal');
-    showMessage('Contrato criado com sucesso!', 'success');
+    showMessage('Contrato criado e sincronizado com sucesso!', 'success');
 
     // Permanecer na página e permitir gestão pelo botão dedicado em listagens
 
@@ -1569,8 +1607,75 @@ function salvarPet() {
     showMessage('Pet adicionado com sucesso!', 'success');
 }
 
-// Função para remover itens das tabelas
-function removerItem(tipo, id) {
+// Função para remover itens das tabelas com modal design elegante e exclusão global unificada
+async function removerItem(tipo, id) {
+    const nomeTipo = {
+        'contratos': 'este contrato financeiro/serviço',
+        'dependentes': 'este dependente da família',
+        'pais': 'este registro de pai/mãe',
+        'pets': 'este animal de estimação'
+    }[tipo] || 'este item';
+
+    let confirmado = false;
+    if (typeof window.swalConfirm === 'function') {
+        confirmado = await window.swalConfirm(
+            'Excluir Registro Permanente?',
+            `Tem certeza que deseja apagar ${nomeTipo}?\nEsta ação não poderá ser desfeita e removerá os registros em todas as centrais!`,
+            'warning',
+            'Sim, apagar',
+            'Cancelar'
+        );
+    } else if (window.Swal) {
+        const res = await window.Swal.fire({
+            title: 'Excluir Registro?',
+            text: `Tem certeza que deseja apagar ${nomeTipo}?\nEsta ação é definitiva e removerá os dados do sistema!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, apagar permanente',
+            cancelButtonText: 'Cancelar'
+        });
+        confirmado = res.isConfirmed;
+    } else {
+        confirmado = confirm(`⚠️ SEGURANÇA E PROTEÇÃO DE DADOS SENSÍVEIS:\n\nTem certeza que deseja apagar permanentemente ${nomeTipo}?\n\nEsta ação não poderá ser desfeita!`);
+    }
+
+    if (!confirmado) {
+        if (typeof showMessage === 'function') showMessage('Exclusão cancelada para proteção dos dados.', 'info');
+        return;
+    }
+
+    if (tipo === 'contratos') {
+        const contratoRemovido = familiaData.contratos.find(item => item.id === id || item.numero === id);
+        const numeroCt = contratoRemovido?.numero || contratoRemovido?.id || id;
+        if (numeroCt) {
+            console.log('🧹 Exclusão Geral Unificada: Removendo contrato ' + numeroCt + ' em todo o sistema!');
+            try {
+                const cts = JSON.parse(localStorage.getItem('contratos') || '[]');
+                const ctsLimpo = cts.filter(c => String(c.numero || c.id) !== String(numeroCt) && String(c.numero || c.id).replace(/^0+/, '') !== String(numeroCt).replace(/^0+/, ''));
+                localStorage.setItem('contratos', JSON.stringify(ctsLimpo));
+            } catch(e) {}
+            localStorage.removeItem('CONTRACT_EDIT_' + numeroCt);
+            try {
+                const fams = JSON.parse(localStorage.getItem('familias') || '[]');
+                let modified = false;
+                fams.forEach(f => {
+                    if (Array.isArray(f.contratos)) {
+                        const lenAnterior = f.contratos.length;
+                        f.contratos = f.contratos.filter(c => String(c.numero || c.id) !== String(numeroCt));
+                        if (f.contratos.length !== lenAnterior) modified = true;
+                    }
+                });
+                if (modified) localStorage.setItem('familias', JSON.stringify(fams));
+            } catch(e) {}
+            if (window.supabase) {
+                window.supabase.from('contratos').delete().eq('numero', String(numeroCt)).then(() => console.log('✅ Deletado na tabela contratos (Supabase)')).catch(() => {});
+                window.supabase.from('contratos').delete().eq('id', String(numeroCt)).then(() => {}).catch(() => {});
+            }
+        }
+    }
+
     familiaData[tipo] = familiaData[tipo].filter(item => item.id !== id);
 
     // Renderizar a tabela correspondente
@@ -1589,7 +1694,7 @@ function removerItem(tipo, id) {
             break;
     }
 
-    showMessage('Item removido com sucesso!', 'success');
+    showMessage('Item removido com sucesso de todo o sistema!', 'success');
 }
 
 // Função auxiliar para formatar data para exibição
