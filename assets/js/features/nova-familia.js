@@ -1,9 +1,9 @@
-// Dados e estado do formulário
+// Dados e estado do formulÃ¡rio
 let dependentesCount = 0;
 let paisCount = 0;
 let contratosCount = 0;
 let petsCount = 0;
-// Estado de edição do dependente
+// Estado de ediÃ§Ã£o do dependente
 let editingDependenteId = null;
 let currentContractParticipants = [];
 let contractParticipantsPool = [];
@@ -21,9 +21,9 @@ async function waitForSupabaseReady(timeoutMs = 5000) {
         check();
     });
 }
-// Proteção contra perda de dados
-let isDirty = false; // Rastreia se houve alterações no formulário
-let hasUnsavedChanges = false; // Controla o aviso de saída
+// ProteÃ§Ã£o contra perda de dados
+let isDirty = false; // Rastreia se houve alteraÃ§Ãµes no formulÃ¡rio
+let hasUnsavedChanges = false; // Controla o aviso de saÃ­da
 
 // Estado dos dados
 const familiaData = {
@@ -34,7 +34,7 @@ const familiaData = {
     foto: null
 };
 
-// Campos obrigatórios para validação
+// Campos obrigatÃ³rios para validaÃ§Ã£o
 const camposObrigatorios = [
     'nome',
     'dataNascimento',
@@ -44,9 +44,9 @@ const camposObrigatorios = [
     'cidade'
 ];
 
-// Inicialização da página
+// InicializaÃ§Ã£o da pÃ¡gina
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Nova Família: script carregado e DOM pronto');
+    console.log('Nova FamÃ­lia: script carregado e DOM pronto');
     initializeForm();
     setupEventListeners();
     setupFormValidation();
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const idFromUrl = urlParams.get('id');
 
         if (idFromUrl) {
-            // Se tem ID na URL, é edição: salva para persistência
+            // Se tem ID na URL, Ã© ediÃ§Ã£o: salva para persistÃªncia
             localStorage.setItem('editFamilyId', String(idFromUrl));
         }
     } catch (e) {
@@ -65,10 +65,10 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function initializeForm() {
-    // Aplicar máscaras nos campos
+    // Aplicar mÃ¡scaras nos campos
     applyMasks();
 
-    // Configurar validação em tempo real
+    // Configurar validaÃ§Ã£o em tempo real
     setupValidation();
 
     // Inicializar tabelas vazias
@@ -78,8 +78,8 @@ function initializeForm() {
     renderPetsTable();
 }
 
-// Prefill do formulário quando editando uma família existente
-// Prefill do formulário quando editando uma família existente
+// Prefill do formulÃ¡rio quando editando uma famÃ­lia existente
+// Prefill do formulÃ¡rio quando editando uma famÃ­lia existente
 async function prefillIfEditing() {
     // Cria/exibe overlay de loading
     const showLoadingOverlay = () => {
@@ -105,7 +105,7 @@ async function prefillIfEditing() {
     };
 
     try {
-        // Entra em modo edição SOMENTE se houver ID via parâmetro de URL
+        // Entra em modo ediÃ§Ã£o SOMENTE se houver ID via parÃ¢metro de URL
         const params = new URLSearchParams(window.location.search);
         const idFromUrl = params.get('id');
         let editId = String(idFromUrl || '').trim();
@@ -115,7 +115,7 @@ async function prefillIfEditing() {
         }
 
         if (!editId) {
-            return; // novo cadastro, não fazer prefill
+            return; // novo cadastro, nÃ£o fazer prefill
         }
 
         showLoadingOverlay();
@@ -123,7 +123,7 @@ async function prefillIfEditing() {
         let familias = JSON.parse(localStorage.getItem('familias') || '[]');
         let familia = familias.find(f => String(f.id) === String(editId));
 
-        // Se não encontrou localmente, tenta buscar do Supabase
+        // Se nÃ£o encontrou localmente, tenta buscar do Supabase
         if (!familia) {
             try {
                 let companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
@@ -151,23 +151,23 @@ async function prefillIfEditing() {
                             status: data.status,
                             companyId: data.company_id
                         };
-                        // cache local para futuras edições
+                        // cache local para futuras ediÃ§Ãµes
                         familias.push(familia);
                         try { localStorage.setItem('familias', JSON.stringify(familias)); } catch (e) { }
                     }
                 }
             } catch (sbErr) {
-                console.warn('Falha ao buscar família no Supabase para prefill:', sbErr);
+                console.warn('Falha ao buscar famÃ­lia no Supabase para prefill:', sbErr);
             }
         }
         if (!familia) {
-            showMessage('Família para edição não encontrada.', 'error');
+            showMessage('FamÃ­lia para ediÃ§Ã£o nÃ£o encontrada.', 'error');
             return;
         }
 
         let associados = JSON.parse(localStorage.getItem('associados') || '[]');
         let titularAssoc = associados.find(a => String(a.familiaId) === String(editId) && a.tipo === 'titular');
-        // Busca titular no Supabase caso não exista localmente
+        // Busca titular no Supabase caso nÃ£o exista localmente
         if (!titularAssoc) {
             try {
                 let companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
@@ -210,14 +210,14 @@ async function prefillIfEditing() {
 
         if (nomeEl) nomeEl.value = (titularAssoc?.nome || familia.titular?.nome || '');
         if (cpfEl) cpfEl.value = (titularAssoc?.cpf || familia.titular?.cpf || '');
-        if (rgEl) rgEl.value = (titularAssoc?.rg || '');
+        if (rgEl) rgEl.value = (titularAssoc?.rg || familia.titular?.rg || '');
         if (dnEl) {
             const dtNascTit = titularAssoc?.dataNascimento || titularAssoc?.data_nascimento || familia.titular?.dataNascimento || familia.titular?.data_nascimento || familia.titular?.nascimento || familia?.dataNascimento || '';
             dnEl.value = typeof formatDateForInput === 'function' ? formatDateForInput(dtNascTit) : dtNascTit;
         }
-        if (telEl) telEl.value = (titularAssoc?.telefone || '');
+        if (telEl) telEl.value = (titularAssoc?.telefone || familia.titular?.telefone || '');
         if (celEl) celEl.value = (titularAssoc?.celular || familia.titular?.celular || '');
-        if (emailEl) emailEl.value = (titularAssoc?.email || '');
+        if (emailEl) emailEl.value = (titularAssoc?.email || familia.titular?.email || '');
         if (seguradoraEl) seguradoraEl.value = (titularAssoc?.seguradora || familia.titular?.seguradora || '');
 
         // Genero / Sexo
@@ -231,7 +231,7 @@ async function prefillIfEditing() {
             if (radio) radio.checked = true;
         }
 
-        // Endereço
+        // EndereÃ§o
         const end = familia.endereco || {};
         const cepEl = document.getElementById('cep');
         const ruaEl = document.getElementById('rua');
@@ -248,7 +248,7 @@ async function prefillIfEditing() {
 
         // Dados auxiliares: tabelas
         familiaData.dependentes = Array.isArray(familia.dependentes) ? familia.dependentes : [];
-        // Normalizar produtos: mover 'produto' único para array 'produtos'
+        // Normalizar produtos: mover 'produto' Ãºnico para array 'produtos'
         familiaData.dependentes = (familiaData.dependentes || []).map(d => {
             try {
                 if (!d.produtos || !Array.isArray(d.produtos)) {
@@ -279,17 +279,17 @@ async function prefillIfEditing() {
                 preview.innerHTML = `<img src="${familiaData.foto}" alt="Foto do titular" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
             }
 
-            // Mostrar botão de remover
+            // Mostrar botÃ£o de remover
             const photoActions = document.querySelector('.photo-actions');
             if (photoActions) {
                 photoActions.style.display = 'block';
             }
         }
 
-        showMessage('Modo edição: dados carregados.', 'info');
+        showMessage('Modo ediÃ§Ã£o: dados carregados.', 'info');
     } catch (e) {
-        console.warn('Falha no prefill de edição:', e);
-        showMessage('Erro ao carregar dados da família.', 'error');
+        console.warn('Falha no prefill de ediÃ§Ã£o:', e);
+        showMessage('Erro ao carregar dados da famÃ­lia.', 'error');
     } finally {
         hideLoadingOverlay();
     }
@@ -306,30 +306,30 @@ function setupEventListeners() {
         });
     }
 
-    // Botão de buscar CEP
+    // BotÃ£o de buscar CEP
     const buscarBtn = document.getElementById('buscarCepBtn') || document.querySelector('.cep-input-group .btn.btn-primary');
     if (buscarBtn) {
-        console.log('Nova Família: botão Buscar CEP vinculado');
+        console.log('Nova FamÃ­lia: botÃ£o Buscar CEP vinculado');
         buscarBtn.addEventListener('click', function (e) {
             e.preventDefault();
-            console.log('Nova Família: clique em Buscar CEP');
+            console.log('Nova FamÃ­lia: clique em Buscar CEP');
             buscarCEP();
         });
     } else {
-        console.warn('Nova Família: botão Buscar CEP não encontrado');
+        console.warn('Nova FamÃ­lia: botÃ£o Buscar CEP nÃ£o encontrado');
     }
 
-    // Listener delegado para garantir que o clique funcione mesmo se o botão for re-renderizado
+    // Listener delegado para garantir que o clique funcione mesmo se o botÃ£o for re-renderizado
     document.addEventListener('click', function (e) {
         const delegatedBtn = e.target.closest('#buscarCepBtn');
         if (delegatedBtn) {
             e.preventDefault();
-            console.log('Nova Família: clique delegado em Buscar CEP');
+            console.log('Nova FamÃ­lia: clique delegado em Buscar CEP');
             buscarCEP();
         }
     });
 
-    // Event listeners para validação em tempo real
+    // Event listeners para validaÃ§Ã£o em tempo real
     const requiredFields = document.querySelectorAll('input[required]');
     requiredFields.forEach(field => {
         field.addEventListener('blur', function () {
@@ -340,20 +340,20 @@ function setupEventListeners() {
     // Event listeners para modais
     setupModalEventListeners();
 
-    // PROTEÇÃO CONTRA PERDA DE DADOS
+    // PROTEÃ‡ÃƒO CONTRA PERDA DE DADOS
     setupFormProtection();
 }
 
 /**
- * Configura sistema de proteção contra perda de dados
- * Avisa o usuário se tentar sair da página com alterações não salvas
+ * Configura sistema de proteÃ§Ã£o contra perda de dados
+ * Avisa o usuÃ¡rio se tentar sair da pÃ¡gina com alteraÃ§Ãµes nÃ£o salvas
  */
 function setupFormProtection() {
-    // Monitora mudanças em TODOS os inputs, selects e textareas do formulário principal
+    // Monitora mudanÃ§as em TODOS os inputs, selects e textareas do formulÃ¡rio principal
     const formElements = document.querySelectorAll('#familyForm input, #familyForm select, #familyForm textarea');
 
     formElements.forEach(element => {
-        // Ignora campos específicos que não devem marcar o form como dirty
+        // Ignora campos especÃ­ficos que nÃ£o devem marcar o form como dirty
         if (element.type === 'button' || element.type === 'submit') {
             return;
         }
@@ -362,42 +362,42 @@ function setupFormProtection() {
         element.addEventListener('change', markFormAsDirty);
     });
 
-    // Event listener para beforeunload (aviso ao sair da página)
+    // Event listener para beforeunload (aviso ao sair da pÃ¡gina)
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    console.log('✅ Proteção contra perda de dados ativada');
+    console.log('âœ… ProteÃ§Ã£o contra perda de dados ativada');
 }
 
 /**
- * Marca o formulário como modificado (dirty)
+ * Marca o formulÃ¡rio como modificado (dirty)
  */
 function markFormAsDirty() {
     if (!isDirty) {
         isDirty = true;
         hasUnsavedChanges = true;
-        console.log('⚠️ Formulário modificado - proteção ativa');
+        console.log('âš ï¸ FormulÃ¡rio modificado - proteÃ§Ã£o ativa');
     }
 }
 
 /**
- * Handler para beforeunload - mostra aviso se houver mudanças não salvas
+ * Handler para beforeunload - mostra aviso se houver mudanÃ§as nÃ£o salvas
  */
 function handleBeforeUnload(e) {
     if (hasUnsavedChanges) {
-        // Mensagem padrão do navegador (navegadores modernos ignoram mensagens customizadas)
+        // Mensagem padrÃ£o do navegador (navegadores modernos ignoram mensagens customizadas)
         e.preventDefault();
-        e.returnValue = ''; // Necessário para Chrome/Edge
-        return ''; // Necessário para Firefox/Safari
+        e.returnValue = ''; // NecessÃ¡rio para Chrome/Edge
+        return ''; // NecessÃ¡rio para Firefox/Safari
     }
 }
 
 /**
- * Limpa o estado de proteção (chamar após salvar com sucesso)
+ * Limpa o estado de proteÃ§Ã£o (chamar apÃ³s salvar com sucesso)
  */
 function clearFormProtection() {
     isDirty = false;
     hasUnsavedChanges = false;
-    console.log('✅ Proteção desativada - formulário salvo');
+    console.log('âœ… ProteÃ§Ã£o desativada - formulÃ¡rio salvo');
 }
 
 function setupModalEventListeners() {
@@ -420,7 +420,7 @@ function setupModalEventListeners() {
 }
 
 function applyMasks() {
-    // Máscara para CPF
+    // MÃ¡scara para CPF
     const cpfInput = document.getElementById('cpf');
     if (cpfInput) {
         cpfInput.addEventListener('input', function () {
@@ -428,7 +428,7 @@ function applyMasks() {
         });
     }
 
-    // Máscara para telefone
+    // MÃ¡scara para telefone
     const telefoneInput = document.getElementById('telefone');
     if (telefoneInput) {
         telefoneInput.addEventListener('input', function () {
@@ -436,7 +436,7 @@ function applyMasks() {
         });
     }
 
-    // Máscara para celular
+    // MÃ¡scara para celular
     const celularInput = document.getElementById('celular');
     if (celularInput) {
         celularInput.addEventListener('input', function () {
@@ -444,7 +444,7 @@ function applyMasks() {
         });
     }
 
-    // Máscara para CEP
+    // MÃ¡scara para CEP
     const cepInput = document.getElementById('cep');
     if (cepInput) {
         cepInput.addEventListener('input', function () {
@@ -452,7 +452,7 @@ function applyMasks() {
         });
     }
 
-    // Máscara para valores monetários
+    // MÃ¡scara para valores monetÃ¡rios
     const rendaInput = document.getElementById('rendaFamiliar');
     const beneficioInput = document.getElementById('valorBeneficio');
 
@@ -468,12 +468,12 @@ function applyMasks() {
         });
     }
 
-    // Aplicar máscaras nos modais quando abertos
+    // Aplicar mÃ¡scaras nos modais quando abertos
     applyModalMasks();
 }
 
 function applyModalMasks() {
-    // Máscaras para campos dos modais
+    // MÃ¡scaras para campos dos modais
     const modalCpfFields = ['depCpf', 'paiCpf'];
     const modalPhoneFields = ['depCelular', 'paiTelefone'];
     const modalCurrencyFields = ['contValor'];
@@ -506,7 +506,7 @@ function applyModalMasks() {
     });
 }
 
-// Funções de formatação
+// FunÃ§Ãµes de formataÃ§Ã£o
 function formatCPF(value) {
     return value
         .replace(/\D/g, '')
@@ -532,27 +532,27 @@ function formatCEP(value) {
 }
 
 function formatCurrency(value) {
-    // Remove tudo que não é dígito
+    // Remove tudo que nÃ£o Ã© dÃ­gito
     let numericValue = value.replace(/\D/g, '');
 
-    // Converte para número e divide por 100 para ter centavos
+    // Converte para nÃºmero e divide por 100 para ter centavos
     numericValue = (parseInt(numericValue) / 100).toFixed(2);
 
     // Formata como moeda brasileira
     return 'R$ ' + numericValue.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-// Função para buscar CEP
+// FunÃ§Ã£o para buscar CEP
 async function buscarCEP() {
     const cepInput = document.getElementById('cep');
     const cep = cepInput.value.replace(/\D/g, '');
 
     if (cep.length !== 8) {
-        showMessage('CEP deve conter 8 dígitos', 'error');
+        showMessage('CEP deve conter 8 dÃ­gitos', 'error');
         return;
     }
 
-    // Seleciona especificamente o botão de buscar CEP por id, com fallback seguro
+    // Seleciona especificamente o botÃ£o de buscar CEP por id, com fallback seguro
     const button = document.getElementById('buscarCepBtn') || document.querySelector('.cep-input-group .btn.btn-primary');
     if (button) {
         button.classList.add('loading');
@@ -560,9 +560,9 @@ async function buscarCEP() {
     }
 
     try {
-        // Verifica conectividade antes de fazer a requisição
+        // Verifica conectividade antes de fazer a requisiÃ§Ã£o
         if (!navigator.onLine) {
-            throw new Error('Sem conexão com a internet');
+            throw new Error('Sem conexÃ£o com a internet');
         }
 
         const controller = new AbortController();
@@ -585,7 +585,7 @@ async function buscarCEP() {
         const data = await response.json();
 
         if (data.erro) {
-            throw new Error('CEP não encontrado');
+            throw new Error('CEP nÃ£o encontrado');
         }
 
         // Preencher campos automaticamente
@@ -602,16 +602,16 @@ async function buscarCEP() {
         console.error('Erro ao buscar CEP:', error);
         cepInput.classList.add('error');
 
-        // Mensagens de erro específicas
+        // Mensagens de erro especÃ­ficas
         let errorMessage = 'Erro ao buscar CEP';
         if (error.name === 'AbortError') {
-            errorMessage = 'Timeout: Verifique sua conexão';
-        } else if (error.message.includes('Sem conexão')) {
-            errorMessage = 'Sem conexão com a internet';
-        } else if (error.message.includes('CEP não encontrado')) {
-            errorMessage = 'CEP não encontrado';
+            errorMessage = 'Timeout: Verifique sua conexÃ£o';
+        } else if (error.message.includes('Sem conexÃ£o')) {
+            errorMessage = 'Sem conexÃ£o com a internet';
+        } else if (error.message.includes('CEP nÃ£o encontrado')) {
+            errorMessage = 'CEP nÃ£o encontrado';
         } else if (error.message.includes('Erro HTTP')) {
-            errorMessage = 'Serviço temporariamente indisponível';
+            errorMessage = 'ServiÃ§o temporariamente indisponÃ­vel';
         }
 
         showMessage(errorMessage, 'error');
@@ -628,7 +628,7 @@ async function buscarCEP() {
     }
 }
 
-// Funções para gerenciar upload de foto
+// FunÃ§Ãµes para gerenciar upload de foto
 async function handlePhotoUpload(event) {
     const file = event.target.files[0];
     if (!file) {
@@ -641,10 +641,10 @@ async function handlePhotoUpload(event) {
         return;
     }
 
-    // Validar tamanho do arquivo (máximo 5MB)
+    // Validar tamanho do arquivo (mÃ¡ximo 5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB em bytes
     if (file.size > maxSize) {
-        showMessage('A foto deve ter no máximo 5MB', 'error');
+        showMessage('A foto deve ter no mÃ¡ximo 5MB', 'error');
         return;
     }
 
@@ -683,12 +683,12 @@ async function handlePhotoUpload(event) {
                     showMessage('Erro ao fazer upload da foto', 'error');
                 },
                 async () => {
-                    // Upload concluído com sucesso
+                    // Upload concluÃ­do com sucesso
                     try {
                         const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
                         familiaData.foto = downloadURL;
 
-                        // Mostrar botão de remover
+                        // Mostrar botÃ£o de remover
                         const photoActions = document.querySelector('.photo-actions');
                         if (photoActions) {
                             photoActions.style.display = 'block';
@@ -708,7 +708,7 @@ async function handlePhotoUpload(event) {
             reader2.onload = function (e) {
                 familiaData.foto = e.target.result;
 
-                // Mostrar botão de remover
+                // Mostrar botÃ£o de remover
                 const photoActions = document.querySelector('.photo-actions');
                 if (photoActions) {
                     photoActions.style.display = 'block';
@@ -743,7 +743,7 @@ function removePhoto() {
         photoInput.value = '';
     }
 
-    // Esconder botão de remover
+    // Esconder botÃ£o de remover
     const photoActions = document.querySelector('.photo-actions');
     if (photoActions) {
         photoActions.style.display = 'none';
@@ -752,7 +752,7 @@ function removePhoto() {
     showMessage('Foto removida', 'info');
 }
 
-// Funções para gerenciar modais
+// FunÃ§Ãµes para gerenciar modais
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -773,11 +773,11 @@ function closeModal(modalId) {
         modal.classList.remove('show');
         document.body.style.overflow = '';
 
-        // Limpar formulário do modal
+        // Limpar formulÃ¡rio do modal
         const form = modal.querySelector('form');
         if (form) {
             form.reset();
-            // Remover classes de validação
+            // Remover classes de validaÃ§Ã£o
             form.querySelectorAll('.form-group').forEach(group => {
                 group.classList.remove('error', 'success');
                 const message = group.querySelector('.error-message, .success-message');
@@ -802,7 +802,7 @@ function closeModal(modalId) {
     }
 }
 
-// Funções para abrir modais específicos
+// FunÃ§Ãµes para abrir modais especÃ­ficos
 function openDependenteModal() {
     editingDependenteId = null;
     const modal = document.getElementById('dependenteModal');
@@ -841,7 +841,7 @@ function openDependenteModal() {
 function openEditDependente(dependenteId) {
     const dep = (familiaData.dependentes || []).find(d => String(d.id) === String(dependenteId));
     if (!dep) {
-        showMessage('Dependente não encontrado para edição.', 'error');
+        showMessage('Dependente nÃ£o encontrado para ediÃ§Ã£o.', 'error');
         return;
     }
 
@@ -852,7 +852,7 @@ function openEditDependente(dependenteId) {
     const titleEl = modal.querySelector('.modal-header h3');
     if (titleEl) titleEl.textContent = 'Editar Dependente';
     const saveBtn = modal.querySelector('.modal-footer .btn.btn-success');
-    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar alterações';
+    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar alteraÃ§Ãµes';
 
     // Preencher campos
     const nomeEl = document.getElementById('depNome');
@@ -878,7 +878,7 @@ function openEditDependente(dependenteId) {
                 const info = document.createElement('div');
                 info.id = infoId;
                 info.className = 'form-text';
-                info.textContent = 'Este dependente é o titular; grau de parentesco não é obrigatório.';
+                info.textContent = 'Este dependente Ã© o titular; grau de parentesco nÃ£o Ã© obrigatÃ³rio.';
                 parentescoEl.insertAdjacentElement('afterend', info);
             }
         } else if (existingInfo) {
@@ -900,9 +900,9 @@ function openPaiModal() {
     openModal('paiModal');
 }
 
-// Helpers para multitenant e normalização de planos
+// Helpers para multitenant e normalizaÃ§Ã£o de planos
 function getActiveCompanyIdForPlans() {
-    // Preferir multitenantConfig se disponível
+    // Preferir multitenantConfig se disponÃ­vel
     try {
         const mt = window.multitenantConfig;
         if (mt && typeof mt.getActiveCompany === 'function') {
@@ -951,8 +951,33 @@ async function loadPlansFromSupabase(companyId) {
         if (error) throw error;
 
         if (data && data.length > 0) {
-            
-            return data;
+            // Extrair campos do metadata JSONB
+            return data.map(doc => {
+                let meta = {};
+                if (doc.metadata) {
+                    try { meta = typeof doc.metadata === 'string' ? JSON.parse(doc.metadata) : doc.metadata; } catch(e){}
+                }
+                return {
+                    id: doc.id,
+                    name: doc.name || doc.nome || meta.name,
+                    status: doc.status || meta.status,
+                    publicPage: meta.publicPage || doc.public_page,
+                    gracePeriod: meta.gracePeriod || doc.grace_period,
+                    adhesionValue: meta.adhesionValue || doc.adhesion_value,
+                    monthlyValue: meta.monthlyValue || doc.monthly_value,
+                    annualValue: meta.annualValue || doc.annual_value,
+                    maxPeople: meta.maxPeople || doc.max_people,
+                    additionalPerDependent: meta.additionalPerDependent || doc.additional_per_dependent,
+                    dependentAdditional: meta.dependentAdditional,
+                    description: meta.description,
+                    products: meta.products || [],
+                    services: meta.services || [],
+                    agePricing: meta.agePricing || [],
+                    clauseText: meta.clauseText,
+                    photo: meta.photo,
+                    company_id: doc.company_id
+                };
+            });
         }
     } catch (e) {
         console.warn('Falha ao carregar planos do Supabase:', e);
@@ -1004,20 +1029,20 @@ async function populatePlanoSelectFromSources(selectEl) {
             selectEl.appendChild(opt);
         }
     });
-    // Caso nenhum plano seja encontrado, mostrar fallback visível
+    // Caso nenhum plano seja encontrado, mostrar fallback visÃ­vel
     if (!planos.length) {
         const noOpt = document.createElement('option');
         noOpt.value = '';
-        noOpt.textContent = 'Nenhum plano cadastrado — verifique a empresa ativa';
+        noOpt.textContent = 'Nenhum plano cadastrado â€” verifique a empresa ativa';
         noOpt.disabled = true;
         selectEl.appendChild(noOpt);
-        console.warn('[Planos] Nenhum plano disponível para a empresa atual.');
+        console.warn('[Planos] Nenhum plano disponÃ­vel para a empresa atual.');
     }
 }
 
 async function openContratoModal() {
     openModal('contratoModal');
-    // Gerar número de contrato sequencial (apenas números, até 7 dígitos)
+    // Gerar nÃºmero de contrato sequencial (apenas nÃºmeros, atÃ© 7 dÃ­gitos)
     const numeroInput = document.getElementById('contNumero');
     if (numeroInput) {
         const nextNum = await window.SequenceManager.peek('contrato');
@@ -1051,7 +1076,7 @@ async function openContratoModal() {
         };
         const computePlanValue = (planObj, age) => {
             try {
-                // 1) Faixa etária: agePricing [{minAge,maxAge,value}] (novo)
+                // 1) Faixa etÃ¡ria: agePricing [{minAge,maxAge,value}] (novo)
                 const ap = planObj.agePricing;
                 if (Array.isArray(ap) && ap.length && age != null) {
                     const hit = ap.find(r => {
@@ -1061,7 +1086,7 @@ async function openContratoModal() {
                     });
                     if (hit && hit.value) return normalizeMoney(hit.value);
                 }
-                // 2) Faixa etária legado: agePrices [{range:'0-18', value:'R$ ...'}]
+                // 2) Faixa etÃ¡ria legado: agePrices [{range:'0-18', value:'R$ ...'}]
                 if (Array.isArray(planObj.agePrices) && planObj.agePricingEnabled && age != null) {
                     const hit = planObj.agePrices.find(ap2 => {
                         const r = parseRange(ap2.range);
@@ -1069,7 +1094,7 @@ async function openContratoModal() {
                     });
                     if (hit && hit.value) return normalizeMoney(hit.value);
                 }
-                // 3) Valores diretos possíveis
+                // 3) Valores diretos possÃ­veis
                 const candidates = [
                     planObj.monthlyValue,
                     planObj.valorMensalidade,
@@ -1100,7 +1125,7 @@ async function openContratoModal() {
                 }
             } catch (_) { }
         };
-        // Aplicar preço inicial se houver seleção (primeira opção após placeholder)
+        // Aplicar preÃ§o inicial se houver seleÃ§Ã£o (primeira opÃ§Ã£o apÃ³s placeholder)
         if (planoSelect.options.length > 1) {
             planoSelect.selectedIndex = 1;
             applyPrice();
@@ -1108,9 +1133,9 @@ async function openContratoModal() {
         planoSelect.addEventListener('change', applyPrice);
     }
 
-    // Campos de Produto foram removidos conforme solicitação
+    // Campos de Produto foram removidos conforme solicitaÃ§Ã£o
 
-    // Preencher a Data de início com a data atual (formato YYYY-MM-DD)
+    // Preencher a Data de inÃ­cio com a data atual (formato YYYY-MM-DD)
     const dataInicioInput = document.getElementById('contDataInicio');
     if (dataInicioInput) {
         const hoje = new Date();
@@ -1128,15 +1153,15 @@ async function openContratoModal() {
         }
     }
 
-    // Popular opções de Plano de Contas se houver no storage
+    // Popular opÃ§Ãµes de Plano de Contas se houver no storage
     const planoContasSelect = document.getElementById('contPlanoContas');
     if (planoContasSelect) {
-        // Mantém primeira opção placeholder
+        // MantÃ©m primeira opÃ§Ã£o placeholder
         const hasOnlyPlaceholder = planoContasSelect.options.length <= 1;
         if (hasOnlyPlaceholder) {
             try {
                 const saved = JSON.parse(localStorage.getItem('planoContasOptions') || '[]');
-                const defaults = ['Mensalidade', 'Adesão', 'Anuidade', 'Serviço', 'Outros'];
+                const defaults = ['Mensalidade', 'AdesÃ£o', 'Anuidade', 'ServiÃ§o', 'Outros'];
                 const options = Array.isArray(saved) && saved.length ? saved : defaults;
                 options.forEach(name => {
                     const opt = document.createElement('option');
@@ -1145,7 +1170,7 @@ async function openContratoModal() {
                     planoContasSelect.appendChild(opt);
                 });
             } catch (e) {
-                ['Mensalidade', 'Adesão', 'Anuidade', 'Serviço', 'Outros'].forEach(name => {
+                ['Mensalidade', 'AdesÃ£o', 'Anuidade', 'ServiÃ§o', 'Outros'].forEach(name => {
                     const opt = document.createElement('option');
                     opt.value = name;
                     opt.textContent = name;
@@ -1153,7 +1178,7 @@ async function openContratoModal() {
                 });
             }
         }
-        // Selecionar 'Mensalidades / Mensalidade' por padrão no seletor, conforme solicitado
+        // Selecionar 'Mensalidades / Mensalidade' por padrÃ£o no seletor, conforme solicitado
         const optMensalidade = Array.from(planoContasSelect.options).find(o => o.value && o.value.toLowerCase().includes('mensali'));
         if (optMensalidade) {
             planoContasSelect.value = optMensalidade.value;
@@ -1165,7 +1190,7 @@ async function openContratoModal() {
     initializeContractParticipantsUI();
 }
 
-// Idade do titular para precificação por faixa
+// Idade do titular para precificaÃ§Ã£o por faixa
 function getTitularAge() {
     try {
         const titular = (familiaData.dependentes || []).find(d => String(d.parentesco).toLowerCase() === 'titular');
@@ -1231,7 +1256,7 @@ function renderContractParticipants() {
         if (!selectedSet.has(String(p.id))) {
             const opt = document.createElement('option');
             opt.value = String(p.id);
-            opt.textContent = `${p.nome} (${p.parentesco || '—'})`;
+            opt.textContent = `${p.nome} (${p.parentesco || 'â€”'})`;
             addSelect.appendChild(opt);
         }
     });
@@ -1270,19 +1295,19 @@ try {
         }
     });
 } catch (e) {
-    console.warn('[Planos] Falha ao registrar listener de mudança de empresa:', e);
+    console.warn('[Planos] Falha ao registrar listener de mudanÃ§a de empresa:', e);
 }
 
 function openPetModal() {
     openModal('petModal');
 }
 
-// Funções para salvar dados dos modais
+// FunÃ§Ãµes para salvar dados dos modais
 async function salvarDependente() {
     const form = document.getElementById('dependenteForm');
     const formData = new FormData(form);
 
-    // Validar campos obrigatórios
+    // Validar campos obrigatÃ³rios
     const nome = formData.get('nome');
     let parentesco = (formData.get('parentesco') || '').trim();
     const dataNascimento = formData.get('dataNascimento');
@@ -1298,21 +1323,21 @@ async function salvarDependente() {
     }
 
     if (!nome || (!parentesco && !isEditingTitular) || !dataNascimento) {
-        showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
+        showMessage('Por favor, preencha todos os campos obrigatÃ³rios.', 'error');
         return;
     }
     if (isEditingTitular && !parentesco) {
         parentesco = 'Titular';
     }
 
-    // Validação estrita de CPF (se informado)
+    // ValidaÃ§Ã£o estrita de CPF (se informado)
     const cpf = formData.get('cpf') || '';
     if (cpf && !isValidCPF(cpf)) {
-        showMessage('O CPF informado é inválido.', 'error');
+        showMessage('O CPF informado Ã© invÃ¡lido.', 'error');
         return;
     }
 
-    // Atualização quando em modo edição
+    // AtualizaÃ§Ã£o quando em modo ediÃ§Ã£o
     if (editingDependenteId) {
         const idx = (familiaData.dependentes || []).findIndex(d => String(d.id) === String(editingDependenteId));
         if (idx >= 0) {
@@ -1339,7 +1364,7 @@ async function salvarDependente() {
         }
     }
 
-    // Inclusão de novo dependente
+    // InclusÃ£o de novo dependente
     const novoId = await window.SequenceManager.next('dependente');
     const dependente = {
         id: novoId,
@@ -1362,10 +1387,10 @@ async function salvarDependente() {
     closeModal('dependenteModal');
     showMessage('Dependente adicionado com sucesso!', 'success');
 
-    // Se carência não for a padrão, exibir uma notificação assíncrona
+    // Se carÃªncia nÃ£o for a padrÃ£o, exibir uma notificaÃ§Ã£o assÃ­ncrona
     if (dependente.carenciaCustomizada) {
         setTimeout(() => {
-            showMessage(`Carência customizada aplicada ao dependente ${dependente.nome}.`, 'info');
+            showMessage(`CarÃªncia customizada aplicada ao dependente ${dependente.nome}.`, 'info');
         }, 800);
     }
 }
@@ -1379,7 +1404,7 @@ function salvarPai() {
     const dataNascimento = formData.get('dataNascimento');
 
     if (!nome || !parentesco || !dataNascimento) {
-        showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
+        showMessage('Por favor, preencha todos os campos obrigatÃ³rios.', 'error');
         return;
     }
 
@@ -1396,10 +1421,10 @@ function salvarPai() {
     familiaData.pais.push(pai);
     renderPaisTable();
     closeModal('paiModal');
-    showMessage('Pai/Mãe adicionado com sucesso!', 'success');
+    showMessage('Pai/MÃ£e adicionado com sucesso!', 'success');
 }
 
-// Estado temporário para confirmação de contrato
+// Estado temporÃ¡rio para confirmaÃ§Ã£o de contrato
 let pendingContrato = null;
 
 async function salvarContrato() {
@@ -1413,33 +1438,33 @@ async function salvarContrato() {
     const planoContas = formData.get('planoContas');
     const parcelasStr = formData.get('parcelas');
 
-    // Validações básicas
+    // ValidaÃ§Ãµes bÃ¡sicas
     if (!plano) {
-        showMessage('Plano é obrigatório.', 'error');
+        showMessage('Plano Ã© obrigatÃ³rio.', 'error');
         return;
     }
     if (!formaPagamento) {
-        showMessage('Forma de pagamento é obrigatória.', 'error');
+        showMessage('Forma de pagamento Ã© obrigatÃ³ria.', 'error');
         return;
     }
     if (!planoContas) {
-        showMessage('Plano de Contas é obrigatório.', 'error');
+        showMessage('Plano de Contas Ã© obrigatÃ³rio.', 'error');
         return;
     }
     if (!valorCobranca || !/^R\$\s?\d{1,3}(\.\d{3})*,\d{2}$/.test(valorCobranca)) {
-        showMessage('Informe o Valor da Cobrança em formato válido (ex: R$ 117,00).', 'error');
+        showMessage('Informe o Valor da CobranÃ§a em formato vÃ¡lido (ex: R$ 117,00).', 'error');
         return;
     }
     const parcelas = parseInt(parcelasStr, 10);
     if (isNaN(parcelas) || parcelas <= 0) {
-        showMessage('Número de parcelas deve ser um número maior que 0.', 'error');
+        showMessage('NÃºmero de parcelas deve ser um nÃºmero maior que 0.', 'error');
         return;
     }
 
-    // Preparar objeto pendente (sem consumir sequência ainda)
+    // Preparar objeto pendente (sem consumir sequÃªncia ainda)
     const numeroPreview = await window.SequenceManager.peek('contrato');
     pendingContrato = {
-        id: null, // será definido na confirmação
+        id: null, // serÃ¡ definido na confirmaÃ§Ã£o
         numero: String(numeroPreview), // apenas preview
         plano,
         dataInicio: dataInicioRaw ? formatDateForDisplay(dataInicioRaw) : '',
@@ -1450,13 +1475,13 @@ async function salvarContrato() {
         participants: getSelectedParticipantsSnapshot()
     };
 
-    // Atualizar resumo no modal de confirmação
+    // Atualizar resumo no modal de confirmaÃ§Ã£o
     const summaryEl = document.getElementById('confirmContratoSummary');
     if (summaryEl) {
-        summaryEl.textContent = `Confirma a criação do contrato do Plano ${pendingContrato.plano}, no valor de ${pendingContrato.valor} em ${pendingContrato.parcelas} parcelas?`;
+        summaryEl.textContent = `Confirma a criaÃ§Ã£o do contrato do Plano ${pendingContrato.plano}, no valor de ${pendingContrato.valor} em ${pendingContrato.parcelas} parcelas?`;
     }
 
-    // Abrir modal de confirmação
+    // Abrir modal de confirmaÃ§Ã£o
     openModal('confirmContratoModal');
 }
 
@@ -1465,7 +1490,7 @@ async function confirmarSalvarContrato() {
         closeModal('confirmContratoModal');
         return;
     }
-    // Consumir sequência e finalizar dados
+    // Consumir sequÃªncia e finalizar dados
     const numeroEfetivo = await window.SequenceManager.next('contrato');
     const contrato = {
         id: String(numeroEfetivo),
@@ -1491,7 +1516,6 @@ async function confirmarSalvarContrato() {
 
     familiaData.contratos.push(contrato);
 
-    // Tentar salvar a família automaticamente para garantir que o contrato tenha um "pai"
     try {
         await saveFamilyInternal();
         console.log('Família salva automaticamente.');
@@ -1520,7 +1544,7 @@ async function confirmarSalvarContrato() {
                 if (f.includes('trimestral')) return 'Trimestral';
                 if (f.includes('semestral')) return 'Semestral';
                 if (f.includes('anual')) return 'Anual';
-                if (f.includes('vista')) return 'À vista';
+                if (f.includes('vista')) return 'Ã€ vista';
                 return contrato.formaPagamento || '';
             })(),
             valorMensalidade: (function () {
@@ -1534,7 +1558,7 @@ async function confirmarSalvarContrato() {
             })()
         }));
 
-        // Sincronização global imediata do contrato para não existir "ilha isolada"
+        // SincronizaÃ§Ã£o global imediata do contrato para nÃ£o existir "ilha isolada"
         const titName = (familiaData.dependentes||[]).find(d=>d && String(d.parentesco||'').toLowerCase()==='titular')?.nome || familiaData.titular?.nome || document.getElementById('nome')?.value || 'Cliente em Cadastramento';
         const cid = companyId || localStorage.getItem('activeCompanyId') || '';
         const globalContractDoc = {
@@ -1567,7 +1591,7 @@ async function confirmarSalvarContrato() {
     closeModal('contratoModal');
     showMessage('Contrato criado e sincronizado com sucesso!', 'success');
 
-    // Permanecer na página e permitir gestão pelo botão dedicado em listagens
+    // Permanecer na pÃ¡gina e permitir gestÃ£o pelo botÃ£o dedicado em listagens
 
     // Limpar estado pendente
     pendingContrato = null;
@@ -1587,7 +1611,7 @@ function salvarPet() {
     const idade = formData.get('idade');
 
     if (!nome || !especie || !idade) {
-        showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
+        showMessage('Por favor, preencha todos os campos obrigatÃ³rios.', 'error');
         return;
     }
 
@@ -1607,20 +1631,20 @@ function salvarPet() {
     showMessage('Pet adicionado com sucesso!', 'success');
 }
 
-// Função para remover itens das tabelas com modal design elegante e exclusão global unificada
+// FunÃ§Ã£o para remover itens das tabelas com modal design elegante e exclusÃ£o global unificada
 async function removerItem(tipo, id) {
     const nomeTipo = {
-        'contratos': 'este contrato financeiro/serviço',
-        'dependentes': 'este dependente da família',
-        'pais': 'este registro de pai/mãe',
-        'pets': 'este animal de estimação'
+        'contratos': 'este contrato financeiro/serviÃ§o',
+        'dependentes': 'este dependente da famÃ­lia',
+        'pais': 'este registro de pai/mÃ£e',
+        'pets': 'este animal de estimaÃ§Ã£o'
     }[tipo] || 'este item';
 
     let confirmado = false;
     if (typeof window.swalConfirm === 'function') {
         confirmado = await window.swalConfirm(
             'Excluir Registro Permanente?',
-            `Tem certeza que deseja apagar ${nomeTipo}?\nEsta ação não poderá ser desfeita e removerá os registros em todas as centrais!`,
+            `Tem certeza que deseja apagar ${nomeTipo}?\nEsta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita e removerÃ¡ os registros em todas as centrais!`,
             'warning',
             'Sim, apagar',
             'Cancelar'
@@ -1628,7 +1652,7 @@ async function removerItem(tipo, id) {
     } else if (window.Swal) {
         const res = await window.Swal.fire({
             title: 'Excluir Registro?',
-            text: `Tem certeza que deseja apagar ${nomeTipo}?\nEsta ação é definitiva e removerá os dados do sistema!`,
+            text: `Tem certeza que deseja apagar ${nomeTipo}?\nEsta aÃ§Ã£o Ã© definitiva e removerÃ¡ os dados do sistema!`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc3545',
@@ -1638,11 +1662,11 @@ async function removerItem(tipo, id) {
         });
         confirmado = res.isConfirmed;
     } else {
-        confirmado = confirm(`⚠️ SEGURANÇA E PROTEÇÃO DE DADOS SENSÍVEIS:\n\nTem certeza que deseja apagar permanentemente ${nomeTipo}?\n\nEsta ação não poderá ser desfeita!`);
+        confirmado = confirm(`âš ï¸ SEGURANÃ‡A E PROTEÃ‡ÃƒO DE DADOS SENSÃVEIS:\n\nTem certeza que deseja apagar permanentemente ${nomeTipo}?\n\nEsta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita!`);
     }
 
     if (!confirmado) {
-        if (typeof showMessage === 'function') showMessage('Exclusão cancelada para proteção dos dados.', 'info');
+        if (typeof showMessage === 'function') showMessage('ExclusÃ£o cancelada para proteÃ§Ã£o dos dados.', 'info');
         return;
     }
 
@@ -1650,7 +1674,7 @@ async function removerItem(tipo, id) {
         const contratoRemovido = familiaData.contratos.find(item => item.id === id || item.numero === id);
         const numeroCt = contratoRemovido?.numero || contratoRemovido?.id || id;
         if (numeroCt) {
-            console.log('🧹 Exclusão Geral Unificada: Removendo contrato ' + numeroCt + ' em todo o sistema!');
+            console.log('ðŸ§¹ ExclusÃ£o Geral Unificada: Removendo contrato ' + numeroCt + ' em todo o sistema!');
             try {
                 const cts = JSON.parse(localStorage.getItem('contratos') || '[]');
                 const ctsLimpo = cts.filter(c => String(c.numero || c.id) !== String(numeroCt) && String(c.numero || c.id).replace(/^0+/, '') !== String(numeroCt).replace(/^0+/, ''));
@@ -1670,7 +1694,7 @@ async function removerItem(tipo, id) {
                 if (modified) localStorage.setItem('familias', JSON.stringify(fams));
             } catch(e) {}
             if (window.supabase) {
-                window.supabase.from('contratos').delete().eq('numero', String(numeroCt)).then(() => console.log('✅ Deletado na tabela contratos (Supabase)')).catch(() => {});
+                window.supabase.from('contratos').delete().eq('numero', String(numeroCt)).then(() => console.log('âœ… Deletado na tabela contratos (Supabase)')).catch(() => {});
                 window.supabase.from('contratos').delete().eq('id', String(numeroCt)).then(() => {}).catch(() => {});
             }
         }
@@ -1697,7 +1721,7 @@ async function removerItem(tipo, id) {
     showMessage('Item removido com sucesso de todo o sistema!', 'success');
 }
 
-// Função auxiliar para formatar data para exibição
+// FunÃ§Ã£o auxiliar para formatar data para exibiÃ§Ã£o
 function formatDateForDisplay(dateString) {
     if (!dateString) return '';
     // Normaliza ISO 'YYYY-MM-DD' para evitar fuso
@@ -1711,7 +1735,7 @@ function formatDateForDisplay(dateString) {
     return dt.toLocaleDateString('pt-BR');
 }
 
-// Converter data de exibição (pt-BR) para valor de input (YYYY-MM-DD)
+// Converter data de exibiÃ§Ã£o (pt-BR) para valor de input (YYYY-MM-DD)
 function formatDateForInput(displayDate) {
     if (!displayDate) return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(displayDate)) return displayDate;
@@ -1727,7 +1751,7 @@ function formatDateForInput(displayDate) {
     return '';
 }
 
-// Funções para upload de foto
+// FunÃ§Ãµes para upload de foto
 function handlePhotoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1738,9 +1762,9 @@ function handlePhotoUpload(event) {
         return;
     }
 
-    // Validar tamanho (máximo 5MB)
+    // Validar tamanho (mÃ¡ximo 5MB)
     if (file.size > 5 * 1024 * 1024) {
-        showMessage('A imagem deve ter no máximo 5MB.', 'error');
+        showMessage('A imagem deve ter no mÃ¡ximo 5MB.', 'error');
         return;
     }
 
@@ -1753,10 +1777,10 @@ function handlePhotoUpload(event) {
         preview.style.display = 'block';
         uploadArea.style.display = 'none';
 
-        // Mostrar ações da foto
+        // Mostrar aÃ§Ãµes da foto
         document.querySelector('.photo-actions').style.display = 'flex';
 
-        // Armazenar a foto nos dados da família
+        // Armazenar a foto nos dados da famÃ­lia
         familiaData.foto = e.target.result;
 
         showMessage('Foto carregada com sucesso!', 'success');
@@ -1775,16 +1799,16 @@ function removePhoto() {
     uploadArea.style.display = 'flex';
     fileInput.value = '';
 
-    // Esconder ações da foto
+    // Esconder aÃ§Ãµes da foto
     document.querySelector('.photo-actions').style.display = 'none';
 
-    // Remover a foto dos dados da família
+    // Remover a foto dos dados da famÃ­lia
     familiaData.foto = null;
 
     showMessage('Foto removida com sucesso!', 'success');
 }
 
-// Funções de renderização das tabelas
+// FunÃ§Ãµes de renderizaÃ§Ã£o das tabelas
 function renderDependentesTable() {
     const tbody = document.querySelector('#tabelaDependentes tbody');
     tbody.innerHTML = '';
@@ -1817,11 +1841,11 @@ function renderDependentesTable() {
     });
 }
 
-// Abrir modal de edição por índice para evitar colisão de IDs
+// Abrir modal de ediÃ§Ã£o por Ã­ndice para evitar colisÃ£o de IDs
 function openEditDependenteIndex(index) {
     const dep = (familiaData.dependentes || [])[index];
     if (!dep) {
-        showMessage('Dependente não encontrado para edição.', 'error');
+        showMessage('Dependente nÃ£o encontrado para ediÃ§Ã£o.', 'error');
         return;
     }
     openEditDependente(String(dep.id));
@@ -1838,7 +1862,7 @@ function openDependenteProdutoModal(dependenteId) {
 
     hiddenId.value = String(dependenteId);
 
-    // Obter idade do dependente para precificação por faixa
+    // Obter idade do dependente para precificaÃ§Ã£o por faixa
     const dep = (familiaData.dependentes || []).find(d => String(d.id) === String(dependenteId));
     const computeAgeFromDisplay = (displayDate) => {
         if (!displayDate) return null;
@@ -1854,12 +1878,12 @@ function openDependenteProdutoModal(dependenteId) {
     };
     const age = dep ? computeAgeFromDisplay(dep.dataNascimento) : null;
 
-    // Carregar catálogo de produtos do storage
+    // Carregar catÃ¡logo de produtos do storage
     let catalogo = [];
     try {
         catalogo = JSON.parse(localStorage.getItem('catalogoProdutos') || '[]');
     } catch (e) {
-        console.warn('Falha ao carregar catálogo de produtos:', e);
+        console.warn('Falha ao carregar catÃ¡logo de produtos:', e);
     }
 
     // Popular options
@@ -1900,7 +1924,7 @@ function openDependenteProdutoModal(dependenteId) {
         valorInput.value = selected?.dataset?.valor || '';
     };
 
-    // Limpar seleção para adicionar novo produto (suporta múltiplos)
+    // Limpar seleÃ§Ã£o para adicionar novo produto (suporta mÃºltiplos)
     select.value = '';
     qtdInput.value = 1;
     valorInput.value = '';
@@ -1924,7 +1948,7 @@ function salvarDependenteProduto() {
 
     const depIndex = (familiaData.dependentes || []).findIndex(d => String(d.id) === String(dependenteId));
     if (depIndex === -1) {
-        showMessage('Dependente não encontrado.', 'error');
+        showMessage('Dependente nÃ£o encontrado.', 'error');
         return;
     }
 
@@ -1940,7 +1964,7 @@ function salvarDependenteProduto() {
     showMessage('Produto adicionado ao dependente!', 'success');
 }
 
-// Salvar titular dentro da seção de Informações pessoais e refletir como item na lista de dependentes
+// Salvar titular dentro da seÃ§Ã£o de InformaÃ§Ãµes pessoais e refletir como item na lista de dependentes
 async function salvarTitular() {
     const nome = document.getElementById('nome')?.value || '';
     const dataNasc = document.getElementById('dataNascimento')?.value || '';
@@ -1956,7 +1980,7 @@ async function salvarTitular() {
 
     const formattedDate = formatDateForDisplay(dataNasc);
 
-    // Verifica se já existe um registro de titular na lista de dependentes
+    // Verifica se jÃ¡ existe um registro de titular na lista de dependentes
     const existingIndex = (familiaData.dependentes || []).findIndex(d => (d.parentesco === 'Titular'));
     const titularEntry = {
         id: existingIndex !== -1 ? familiaData.dependentes[existingIndex].id : await window.SequenceManager.next('titular'),
@@ -1985,13 +2009,13 @@ window.salvarTitular = salvarTitular;
 
 function renderPaisTable() {
     const table = document.querySelector('#tabelaPais');
-    if (!table) return; // Seção de pais removida da UI
+    if (!table) return; // SeÃ§Ã£o de pais removida da UI
     const tbody = table.querySelector('tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
     if (familiaData.pais.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nenhum pai/mãe cadastrado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nenhum pai/mÃ£e cadastrado</td></tr>';
         return;
     }
 
@@ -2049,7 +2073,7 @@ function abrirResumoContrato(id) {
     try {
         const contrato = familiaData.contratos.find(c => c.id === id);
         if (!contrato) {
-            showMessage('Contrato não encontrado.', 'error');
+            showMessage('Contrato nÃ£o encontrado.', 'error');
             return;
         }
         contratoResumoAtual = contrato;
@@ -2076,32 +2100,32 @@ function abrirResumoContrato(id) {
         openModal('resumoContratoModal');
     } catch (e) {
         console.warn('Falha ao abrir resumo do contrato:', e);
-        showMessage('Não foi possível abrir o resumo do contrato.', 'error');
+        showMessage('NÃ£o foi possÃ­vel abrir o resumo do contrato.', 'error');
     }
 }
 
-// Redireciona para a edição do contrato atualmente exibido
+// Redireciona para a ediÃ§Ã£o do contrato atualmente exibido
 function acessarContratoCompleto() {
     if (!contratoResumoAtual) return;
     try {
         const num = contratoResumoAtual.numero || contratoResumoAtual.id;
         if (!num || num === 'undefined' || num === 'null') {
-            showMessage('Número do contrato inválido ou não encontrado.', 'error');
+            showMessage('NÃºmero do contrato invÃ¡lido ou nÃ£o encontrado.', 'error');
             return;
         }
         sessionStorage.setItem('currentContractNumero', num);
         window.location.href = `/pages/edicao-contrato.html?numero=${encodeURIComponent(num)}`;
     } catch (e) {
-        console.warn('Falha ao redirecionar para edição do contrato:', e);
+        console.warn('Falha ao redirecionar para ediÃ§Ã£o do contrato:', e);
     }
 }
 
-// Retorna o próximo número de contrato (7 dígitos) sem consumir a sequência
+// Retorna o prÃ³ximo nÃºmero de contrato (7 dÃ­gitos) sem consumir a sequÃªncia
 function getNextContractNumber() {
     return peekSequential('contrato');
 }
 
-// Salvamento interno rápido para persistir contratos na família em edição
+// Salvamento interno rÃ¡pido para persistir contratos na famÃ­lia em ediÃ§Ã£o
 async function saveFamilyInternal() {
     try {
         const params = new URLSearchParams(window.location.search);
@@ -2124,7 +2148,15 @@ async function saveFamilyInternal() {
             if (window.supabase) {
                 const { error } = await window.supabase
                     .from('familias')
-                    .update({ dependentes: Array.isArray(familiaData.dependentes) ? familiaData.dependentes : [] })
+                    .update({ 
+                        dependentes: Array.isArray(familiaData.dependentes) ? familiaData.dependentes : [],
+                        metadata: {
+                            pais: Array.isArray(familiaData.pais) ? familiaData.pais : [],
+                            contratos: Array.isArray(familiaData.contratos) ? familiaData.contratos : [],
+                            pets: Array.isArray(familiaData.pets) ? familiaData.pets : [],
+                            dataCriacao: new Date().toISOString()
+                        }
+                    })
                     .eq('id', editId)
                     .eq('company_id', companyId);
                 if (error) throw error;
@@ -2167,7 +2199,7 @@ function adicionarEndereco() {
     const safeGetValue = (id) => {
         const el = document.getElementById(id);
         if (!el) {
-            console.warn(`Campo não encontrado no HTML: ${id}. Retornando vazio.`);
+            console.warn(`Campo nÃ£o encontrado no HTML: ${id}. Retornando vazio.`);
             return '';
         }
         return el.value;
@@ -2183,15 +2215,15 @@ function adicionarEndereco() {
     };
 
     if (!endereco.cep || !endereco.rua || !endereco.numero || !endereco.bairro || !endereco.cidade) {
-        showMessage('Por favor, preencha todos os campos obrigatórios do endereço.', 'error');
+        showMessage('Por favor, preencha todos os campos obrigatÃ³rios do endereÃ§o.', 'error');
         return;
     }
 
     try { familiaData.endereco = endereco; } catch (_) { }
-    showMessage('Endereço adicionado com sucesso!', 'success');
+    showMessage('EndereÃ§o adicionado com sucesso!', 'success');
 }
 
-// Validação do formulário
+// ValidaÃ§Ã£o do formulÃ¡rio
 function setupValidation() {
     const form = document.getElementById('novaFamiliaForm');
 
@@ -2206,7 +2238,7 @@ function setupValidation() {
 function validateField(field) {
     const formGroup = (field && typeof field.closest === 'function') ? field.closest('.form-group') : null;
     if (!formGroup) {
-        console.warn(`Tentou validar o campo "${field?.id || field?.name || 'desconhecido'}" mas o contêiner .form-group não foi encontrado.`);
+        console.warn(`Tentou validar o campo "${field?.id || field?.name || 'desconhecido'}" mas o contÃªiner .form-group nÃ£o foi encontrado.`);
         return true;
     }
     let isValid = true;
@@ -2219,10 +2251,10 @@ function validateField(field) {
         existingMessage.remove();
     }
 
-    // Validar campo obrigatório
+    // Validar campo obrigatÃ³rio
     if (field.hasAttribute('required') && !field.value.trim()) {
         isValid = false;
-        message = 'Este campo é obrigatório';
+        message = 'Este campo Ã© obrigatÃ³rio';
     }
 
     // Validar email
@@ -2230,7 +2262,7 @@ function validateField(field) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(field.value)) {
             isValid = false;
-            message = 'Email inválido';
+            message = 'Email invÃ¡lido';
         }
     }
 
@@ -2238,7 +2270,7 @@ function validateField(field) {
     if (field.id === 'cpf' && field.value) {
         if (!isValidCPF(field.value)) {
             isValid = false;
-            message = 'CPF inválido';
+            message = 'CPF invÃ¡lido';
         }
     }
 
@@ -2261,7 +2293,7 @@ function validateForm() {
     let isValid = true;
 
     requiredFields.forEach(field => {
-        // Ignora campos dentro de modais que estão ocultos
+        // Ignora campos dentro de modais que estÃ£o ocultos
         const parentModal = field.closest('.modal');
         if (parentModal) {
             const style = window.getComputedStyle(parentModal);
@@ -2305,22 +2337,22 @@ function isValidCPF(cpf) {
     return true;
 }
 
-// Funções principais
+// FunÃ§Ãµes principais
 async function salvarFamilia(evt) {
-    if (evt) evt.preventDefault(); // <--- OBRIGATÓRIO: Impede o refresh/submit duplo
+    if (evt) evt.preventDefault(); // <--- OBRIGATÃ“RIO: Impede o refresh/submit duplo
 
     if (window.__saving === true) {
         return;
     }
 
-    // 1. TRAVA O BOTÃO E MUDA O TEXTO
+    // 1. TRAVA O BOTÃƒO E MUDA O TEXTO
     const button = (evt && evt.target && evt.target.closest('button')) ||
         document.querySelector('button[onclick*="salvarFamilia"]') ||
         document.querySelector('#novaFamiliaForm .btn.btn-success') || null;
 
     let originalBtnText = '';
     if (button) {
-        if (button.disabled) return; // Se já clicou, ignora
+        if (button.disabled) return; // Se jÃ¡ clicou, ignora
         button.disabled = true;
         originalBtnText = button.innerHTML;
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
@@ -2330,7 +2362,7 @@ async function salvarFamilia(evt) {
     window.__saving = true;
 
     if (!validateForm()) {
-        showMessage('Por favor, corrija os erros no formulário antes de salvar.', 'error');
+        showMessage('Por favor, corrija os erros no formulÃ¡rio antes de salvar.', 'error');
         window.__saving = false;
         if (button) {
             button.disabled = false;
@@ -2358,7 +2390,7 @@ async function salvarFamilia(evt) {
                     button.classList.remove('loading');
                     button.disabled = false;
                 }
-                showMessage('Selecione uma empresa ativa antes de salvar a família.', 'error');
+                showMessage('Selecione uma empresa ativa antes de salvar a famÃ­lia.', 'error');
                 return;
             }
             activeCompany = { id: fallbackId, name: fallbackName };
@@ -2369,13 +2401,13 @@ async function salvarFamilia(evt) {
         // Coletar dados do titular
         const titularData = coletarDadosTitular();
 
-        // Se estamos editando, atualizar registros existentes (somente quando há ?id= na URL)
+        // Se estamos editando, atualizar registros existentes (somente quando hÃ¡ ?id= na URL)
         const editId = new URLSearchParams(window.location.search).get('id');
         if (editId) {
             let familias = JSON.parse(localStorage.getItem('familias') || '[]');
             const idx = familias.findIndex(f => String(f.id) === String(editId));
             if (idx === -1) {
-                // Fallback: se não existir, cria como nova família usando o mesmo ID de edição
+                // Fallback: se nÃ£o existir, cria como nova famÃ­lia usando o mesmo ID de ediÃ§Ã£o
                 const novaFamilia = {
                     id: String(editId),
                     companyId: companyId,
@@ -2383,7 +2415,7 @@ async function salvarFamilia(evt) {
                         id: generateId(),
                         nome: titularData.nome,
                         cpf: titularData.cpf,
-                        dataNascimento: titularData.dataNascimento, // CRÍTICO: incluir data de nascimento!
+                        dataNascimento: titularData.dataNascimento, // CRÃTICO: incluir data de nascimento!
                         seguradora: titularData.seguradora || ''
                     },
                     endereco: {
@@ -2425,7 +2457,7 @@ async function salvarFamilia(evt) {
                     dataCadastro: new Date().toISOString(),
                     status: 'ativo'
                 });
-                // Dependentes atuais do formulário
+                // Dependentes atuais do formulÃ¡rio
                 (familiaData.dependentes || []).forEach(dependente => {
                     associados.push({
                         id: generateId(),
@@ -2450,7 +2482,7 @@ async function salvarFamilia(evt) {
                 button.classList.remove('loading');
                 button.disabled = false;
                 clearFormProtection(); // Desativa aviso de perda de dados
-                showMessage('Família criada para edição e salva com sucesso!', 'success');
+                showMessage('FamÃ­lia criada para ediÃ§Ã£o e salva com sucesso!', 'success');
                 const mode = window.__saveMode || 'exit';
                 if (mode === 'stay') {
                     if (button) {
@@ -2491,12 +2523,12 @@ async function salvarFamilia(evt) {
             familia.pais = Array.isArray(familiaData.pais) ? familiaData.pais : [];
             familia.contratos = Array.isArray(familiaData.contratos) ? familiaData.contratos : [];
             familia.pets = Array.isArray(familiaData.pets) ? familiaData.pets : [];
-            // Garante o vínculo da família com a empresa ativa
+            // Garante o vÃ­nculo da famÃ­lia com a empresa ativa
             familia.companyId = companyId;
             familias[idx] = familia;
             localStorage.setItem('familias', JSON.stringify(familias));
 
-            // Atualiza família no Supabase (modo edição)
+            // Atualiza famÃ­lia no Supabase (modo ediÃ§Ã£o)
             try {
                 const ready = await waitForSupabaseReady(3000);
                 if (ready && window.supabase) {
@@ -2519,7 +2551,7 @@ async function salvarFamilia(evt) {
                     if (error) throw error;
                 }
             } catch (e) {
-                console.warn('Falha ao atualizar família no Supabase:', e);
+                console.warn('Falha ao atualizar famÃ­lia no Supabase:', e);
             }
 
             // Atualiza associados (titular e dependentes)
@@ -2544,7 +2576,7 @@ async function salvarFamilia(evt) {
                     status: existe.status || 'ativo'
                 };
             } else {
-                // Cria titular caso não exista em associados
+                // Cria titular caso nÃ£o exista em associados
                 const associadoId = generateId();
                 associados.push({
                     id: associadoId,
@@ -2567,7 +2599,7 @@ async function salvarFamilia(evt) {
                 });
             }
 
-            // Atualiza dependentes preservando IDs quando possível
+            // Atualiza dependentes preservando IDs quando possÃ­vel
             const dependentesExistentes = associados.filter(a => String(a.familiaId) === String(editId) && a.tipo === 'dependente');
             const mapaPorCPF = new Map();
             const mapaPorNome = new Map();
@@ -2606,7 +2638,7 @@ async function salvarFamilia(evt) {
             });
             localStorage.setItem('associados', JSON.stringify(associados));
 
-            // Persistir titular e dependentes no Supabase (modo edição)
+            // Persistir titular e dependentes no Supabase (modo ediÃ§Ã£o)
             try {
                 if (window.supabase) {
                     // Mapear associado para snake_case apenas nas chaves estrangeiras
@@ -2714,7 +2746,7 @@ async function salvarFamilia(evt) {
                     }
                 }
             } catch (e) {
-                console.warn('Falha ao persistir associados/contratos no Supabase (edição):', e);
+                console.warn('Falha ao persistir associados/contratos no Supabase (ediÃ§Ã£o):', e);
             }
 
             if (button) {
@@ -2723,23 +2755,23 @@ async function salvarFamilia(evt) {
                 if (originalBtnText) button.innerHTML = originalBtnText;
             }
             clearFormProtection();
-            showMessage('Família atualizada com sucesso!', 'success');
+            showMessage('FamÃ­lia atualizada com sucesso!', 'success');
             const mode = window.__saveMode || 'confirm';
             if (mode === 'exit') {
                 setTimeout(() => { window.location.href = 'pesquisar-familias.html'; }, 1000);
             }
             window.__saving = false;
-            return; // Não seguir para fluxo de criação
+            return; // NÃ£o seguir para fluxo de criaÃ§Ã£o
         }
 
-        // Gerar ID ÚNICO para evitar sobrescrita de famílias
-        // CORRIGIDO: Agora usa UUID válido para compatibilidade com o Supabase
+        // Gerar ID ÃšNICO para evitar sobrescrita de famÃ­lias
+        // CORRIGIDO: Agora usa UUID vÃ¡lido para compatibilidade com o Supabase
         const familiaId = generateId();
 
-        // Manter ID do associado como aleatório para compatibilidade existente
+        // Manter ID do associado como aleatÃ³rio para compatibilidade existente
         const associadoId = generateId();
 
-        // Criar registro da família
+        // Criar registro da famÃ­lia
         const familia = {
             id: familiaId,
             companyId: companyId,
@@ -2747,7 +2779,7 @@ async function salvarFamilia(evt) {
                 id: associadoId,
                 nome: titularData.nome,
                 cpf: titularData.cpf,
-                dataNascimento: titularData.dataNascimento, // CRÍTICO: incluir data de nascimento!
+                dataNascimento: titularData.dataNascimento, // CRÃTICO: incluir data de nascimento!
                 genero: titularData.genero,
                 celular: titularData.celular,
                 seguradora: titularData.seguradora || ''
@@ -2790,11 +2822,11 @@ async function salvarFamilia(evt) {
             status: 'ativo'
         };
 
-        // Persistir em Supabase (criação)
+        // Persistir em Supabase (criaÃ§Ã£o)
         try {
             const ready = await waitForSupabaseReady(3000);
             if (ready && window.supabase) {
-                // Criar família
+                // Criar famÃ­lia
                 const { error: errorFamilia } = await window.supabase
                     .from('familias')
                     .insert({
@@ -2872,10 +2904,10 @@ async function salvarFamilia(evt) {
                 }
             }
         } catch (e) {
-            console.error('Falha ao salvar família/titular/contratos no Supabase:', e);
+            console.error('Falha ao salvar famÃ­lia/titular/contratos no Supabase:', e);
             window.swalAlert("Erro do Banco de Dados", (e.message || JSON.stringify(e)) + "\n\n(Tire um print desse erro e envie para o suporte)", "error");
             window.__saving = false;
-            return; // Bloqueia a continuação para não dar falso positivo
+            return; // Bloqueia a continuaÃ§Ã£o para nÃ£o dar falso positivo
         }
         salvarFamiliaLocalStorage(familia);
         salvarAssociadoLocalStorage(associado);
@@ -2893,14 +2925,14 @@ async function salvarFamilia(evt) {
                 dataNascimento: dependente.dataNascimento,
                 telefone: dependente.telefone,
                 email: dependente.email,
-                endereco: familia.endereco, // Herda endereço da família
+                endereco: familia.endereco, // Herda endereÃ§o da famÃ­lia
                 parentesco: dependente.parentesco,
                 seguradora: dependente.seguradora || '',
                 dataCadastro: new Date().toISOString(),
                 status: 'ativo'
             };
             salvarAssociadoLocalStorage(dependenteAssociado);
-            // Também persiste no Supabase
+            // TambÃ©m persiste no Supabase
             try {
                 if (window.supabase) {
                     const mappedDep = {
@@ -2932,9 +2964,9 @@ async function salvarFamilia(evt) {
             }
         }
 
-        // SUCESSO: MOSTRA SÓ O TOAST E REDIRECIONA
+        // SUCESSO: MOSTRA SÃ“ O TOAST E REDIRECIONA
         clearFormProtection();
-        showMessage('Família e Titular salvos com sucesso!', 'success');
+        showMessage('FamÃ­lia e Titular salvos com sucesso!', 'success');
 
         const mode = window.__saveMode || 'exit'; // Default: redirecionar (sem confirm)
 
@@ -2944,7 +2976,7 @@ async function salvarFamilia(evt) {
                 button.disabled = false;
                 if (originalBtnText) button.innerHTML = originalBtnText;
             }
-            // Transição para modo de edição para evitar duplicações se o usuário salvar novamente
+            // TransiÃ§Ã£o para modo de ediÃ§Ã£o para evitar duplicaÃ§Ãµes se o usuÃ¡rio salvar novamente
             try {
                 localStorage.setItem('editFamilyId', familiaId);
                 const urlParams = new URLSearchParams(window.location.search);
@@ -2952,7 +2984,7 @@ async function salvarFamilia(evt) {
                 window.history.replaceState({}, '', '?' + urlParams.toString());
             } catch (e) {}
         } else {
-            // Mantém botão travado e redireciona
+            // MantÃ©m botÃ£o travado e redireciona
             setTimeout(() => {
                 window.location.href = 'pesquisar-familias.html';
             }, 1500);
@@ -2964,8 +2996,8 @@ async function salvarFamilia(evt) {
             button.disabled = false;
             if (originalBtnText) button.innerHTML = originalBtnText;
         }
-        showMessage('Erro ao salvar família: ' + error.message, 'error');
-        console.error('Erro ao salvar família:', error);
+        showMessage('Erro ao salvar famÃ­lia: ' + error.message, 'error');
+        console.error('Erro ao salvar famÃ­lia:', error);
         window.__saving = false;
     }
     window.__saving = false;
@@ -2986,7 +3018,7 @@ async function salvarFamiliaExit(evt) {
 try { window.salvarFamiliaStay = salvarFamiliaStay; } catch (_) { }
 
 async function cancelarFormulario() {
-    const confirmed = await window.swalConfirm('Cancelar Edição', 'Tem certeza que deseja cancelar? Todos os dados não salvos serão perdidos.', 'warning', 'Sim, cancelar', 'Voltar');
+    const confirmed = await window.swalConfirm('Cancelar EdiÃ§Ã£o', 'Tem certeza que deseja cancelar? Todos os dados nÃ£o salvos serÃ£o perdidos.', 'warning', 'Sim, cancelar', 'Voltar');
     if (confirmed) {
         window.location.href = '../index.html';
     }
@@ -2995,7 +3027,7 @@ async function cancelarFormulario() {
 function limparFormulario() {
     document.getElementById('novaFamiliaForm').reset();
 
-    // Limpar dados da família
+    // Limpar dados da famÃ­lia
     familiaData.dependentes = [];
     familiaData.pais = [];
     familiaData.contratos = [];
@@ -3024,7 +3056,7 @@ function limparFormulario() {
         fileInput.value = '';
     }
 
-    // Esconder ações da foto
+    // Esconder aÃ§Ãµes da foto
     const photoActions = document.querySelector('.photo-actions');
     if (photoActions) {
         photoActions.style.display = 'none';
@@ -3036,7 +3068,7 @@ function limparFormulario() {
     contratosCount = 0;
     petsCount = 0;
 
-    // Remover classes de validação
+    // Remover classes de validaÃ§Ã£o
     document.querySelectorAll('.form-group').forEach(group => {
         group.classList.remove('error', 'success');
         const message = group.querySelector('.error-message, .success-message');
@@ -3045,10 +3077,10 @@ function limparFormulario() {
         }
     });
 
-    showMessage('Formulário limpo com sucesso!', 'success');
+    showMessage('FormulÃ¡rio limpo com sucesso!', 'success');
 }
 
-// Função para mostrar mensagens
+// FunÃ§Ã£o para mostrar mensagens
 function showMessage(message, type = 'info') {
     // Remover mensagem anterior se existir
     const existingMessage = document.querySelector('.alert-message');
@@ -3098,7 +3130,7 @@ function showMessage(message, type = 'info') {
             alertDiv.style.backgroundColor = '#6c757d';
     }
 
-    // Estilo do botão de fechar
+    // Estilo do botÃ£o de fechar
     const closeButton = alertDiv.querySelector('button');
     closeButton.style.cssText = `
         background: none;
@@ -3111,7 +3143,7 @@ function showMessage(message, type = 'info') {
 
     document.body.appendChild(alertDiv);
 
-    // Remover automaticamente após 5 segundos
+    // Remover automaticamente apÃ³s 5 segundos
     setTimeout(() => {
         if (alertDiv.parentElement) {
             alertDiv.remove();
@@ -3119,7 +3151,7 @@ function showMessage(message, type = 'info') {
     }, 5000);
 }
 
-// Funções auxiliares para salvamento
+// FunÃ§Ãµes auxiliares para salvamento
 function coletarDadosTitular() {
     return {
         nome: document.getElementById('nome')?.value || '',
@@ -3151,8 +3183,8 @@ function generateId() {
     });
 }
 
-// ===== Sequenciamento de IDs (7 dígitos) =====
-// Inicializa contadores com base nos dados existentes do usuário
+// ===== Sequenciamento de IDs (7 dÃ­gitos) =====
+// Inicializa contadores com base nos dados existentes do usuÃ¡rio
 function pad7(n) {
     const num = parseInt(n, 10) || 0;
     return String(Math.min(num, 9999999)).padStart(7, '0');
@@ -3172,7 +3204,7 @@ function readMaxFromArray(arr, field) {
     return arr.reduce((max, item) => {
         const raw = field ? (item?.[field]) : item;
         const onlyDigits = String(raw || '').replace(/\D/g, '');
-        // Considera somente valores numéricos até 7 dígitos
+        // Considera somente valores numÃ©ricos atÃ© 7 dÃ­gitos
         if (!onlyDigits) return max;
         const n = parseInt(onlyDigits, 10);
         if (isNaN(n)) return max;
@@ -3182,13 +3214,13 @@ function readMaxFromArray(arr, field) {
 
 function initSequentialCounters() {
     try {
-        // Família: olhar IDs de famílias salvas
+        // FamÃ­lia: olhar IDs de famÃ­lias salvas
         const familias = JSON.parse(localStorage.getItem('familias') || '[]');
         const maxFam = readMaxFromArray(familias, 'id');
         const currentFamSeq = parseInt(localStorage.getItem('seqFamilia') || '0', 10) || 0;
         if (maxFam > currentFamSeq) localStorage.setItem('seqFamilia', String(maxFam));
 
-        // Dependente: olhar associados tipo dependente e dependentes em família atual
+        // Dependente: olhar associados tipo dependente e dependentes em famÃ­lia atual
         const associados = JSON.parse(localStorage.getItem('associados') || '[]');
         const depAssociados = Array.isArray(associados) ? associados.filter(a => a?.tipo === 'dependente') : [];
         const maxAssocDep = readMaxFromArray(depAssociados, 'id');
@@ -3197,19 +3229,19 @@ function initSequentialCounters() {
         const currentDepSeq = parseInt(localStorage.getItem('seqDependente') || '0', 10) || 0;
         if (maxDep > currentDepSeq) localStorage.setItem('seqDependente', String(maxDep));
 
-        // Contrato: vasculhar número de contratos dentro das famílias
+        // Contrato: vasculhar nÃºmero de contratos dentro das famÃ­lias
         let maxContrato = 0;
         if (Array.isArray(familias)) {
             familias.forEach(f => {
                 maxContrato = Math.max(maxContrato, readMaxFromArray(f?.contratos || [], 'numero'));
             });
         }
-        // Também considerar contratos já adicionados no estado atual
+        // TambÃ©m considerar contratos jÃ¡ adicionados no estado atual
         maxContrato = Math.max(maxContrato, readMaxFromArray((typeof familiaData !== 'undefined' ? familiaData.contratos : []), 'numero'));
         const currentContrSeq = parseInt(localStorage.getItem('seqContrato') || '0', 10) || 0;
         if (maxContrato > currentContrSeq) localStorage.setItem('seqContrato', String(maxContrato));
     } catch (e) {
-        // Em caso de erro, mantém contadores como estão
+        // Em caso de erro, mantÃ©m contadores como estÃ£o
         console.warn('Falha ao inicializar contadores sequenciais:', e);
     }
 }
@@ -3226,7 +3258,7 @@ function generateSequentialId(entity) {
     return nextSequential(entity);
 }
 
-// Apenas consulta o próximo valor sem avançar o contador
+// Apenas consulta o prÃ³ximo valor sem avanÃ§ar o contador
 function peekSequential(entity) {
     const key = getSeqKey(entity);
     const current = parseInt(localStorage.getItem(key) || '0', 10) || 0;
@@ -3261,18 +3293,18 @@ function salvarAssociadoLocalStorage(associado) {
     localStorage.setItem('associados', JSON.stringify(associados));
 }
 
-// Função de validação em tempo real
+// FunÃ§Ã£o de validaÃ§Ã£o em tempo real
 function setupFormValidation() {
     camposObrigatorios.forEach(campoId => {
         const campo = document.getElementById(campoId);
         if (campo) {
-            // Validação em tempo real
+            // ValidaÃ§Ã£o em tempo real
             campo.addEventListener('blur', function () {
                 validarCampo(this);
             });
 
             campo.addEventListener('input', function () {
-                // Remove erro quando usuário começa a digitar
+                // Remove erro quando usuÃ¡rio comeÃ§a a digitar
                 const formGroup = this.closest('.form-group');
                 if (formGroup && formGroup.classList.contains('error')) {
                     formGroup.classList.remove('error');
@@ -3300,11 +3332,11 @@ function validarCampo(campo) {
     formGroup.classList.remove('error', 'success');
 
     if (!valor) {
-        // Campo obrigatório vazio
+        // Campo obrigatÃ³rio vazio
         formGroup.classList.add('error');
         const errorMessage = document.createElement('div');
         errorMessage.className = 'error-message';
-        errorMessage.textContent = 'Este campo é obrigatório';
+        errorMessage.textContent = 'Este campo Ã© obrigatÃ³rio';
         errorMessage.style.cssText = `
             color: #dc3545;
             font-size: 12px;
@@ -3344,7 +3376,7 @@ function validateForm() {
     return isValid;
 }
 
-// Expor funções críticas globalmente para uso em handlers inline
+// Expor funÃ§Ãµes crÃ­ticas globalmente para uso em handlers inline
 // Garante que onclick="buscarCEP()" e onclick="salvarFamilia()" funcionem mesmo com escopo estrito
 try {
     window.buscarCEP = buscarCEP;
@@ -3359,3 +3391,5 @@ try {
 } catch (e) {
     // ignore
 }
+
+

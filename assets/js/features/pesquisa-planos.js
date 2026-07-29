@@ -1,4 +1,4 @@
-// Pesquisa de Planos - Versão Supabase com Recuperação Total e Design Aprimorado
+﻿// Pesquisa de Planos - VersÃ£o Supabase com RecuperaÃ§Ã£o Total e Design Aprimorado
 (function(){
   function getActiveCompanyId() {
     try {
@@ -45,7 +45,7 @@
     const companyId = getActiveCompanyId();
     const plans = [];
 
-    // 1) Aguardar inicialização do Supabase para não falhar silenciosamente
+    // 1) Aguardar inicializaÃ§Ã£o do Supabase para nÃ£o falhar silenciosamente
     const ready = await waitForSupabaseReady(3500);
     if (ready && window.supabase) {
       try {
@@ -64,7 +64,25 @@
         }
 
         if (!error && data && data.length > 0) {
-          data.forEach(p => plans.push(p));
+                              data.forEach(p => {
+            let meta = {};
+            if (p.metadata) {
+                try { meta = typeof p.metadata === 'string' ? JSON.parse(p.metadata) : p.metadata; } catch(e){}
+            }
+            plans.push({
+                id: p.id,
+                name: p.name || p.nome,
+                status: p.status,
+                publicPage: p.public_page || p.publicPage || meta.publicPage,
+                gracePeriod: p.grace_period || p.gracePeriod || meta.gracePeriod,
+                adhesionValue: p.adhesion_value || p.adhesionValue || meta.adhesionValue,
+                monthlyValue: p.monthly_value || p.monthlyValue || meta.monthlyValue,
+                annualValue: p.annual_value || p.annualValue || meta.annualValue,
+                maxPeople: p.max_people || p.maxPeople || meta.maxPeople,
+                additionalPerDependent: p.additional_per_dependent || p.additionalPerDependent || meta.additionalPerDependent,
+                company_id: p.company_id
+            });
+          });
         }
       } catch (err) {
         console.warn('Erro ao consultar planos no Supabase:', err);
@@ -73,7 +91,7 @@
 
     // 2) Resgate completo no LocalStorage (por empresa, global e varredura de todas as chaves da conta)
     try {
-      // Varrer todas as chaves do localStorage que contêm planos
+      // Varrer todas as chaves do localStorage que contÃªm planos
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && (key.startsWith('planos') || key.includes('catalogo') || key.includes('meus_planos'))) {
@@ -86,7 +104,7 @@
         }
       }
 
-      // 3) Resgate Inteligente: varrer contratos, famílias e inadimplentes da sua conta para resgatar planos registrados em uso
+      // 3) Resgate Inteligente: varrer contratos, famÃ­lias e inadimplentes da sua conta para resgatar planos registrados em uso
       const extraSources = ['familias', 'contratos', 'inadimplentes'];
       let autoId = 1000;
       extraSources.forEach(src => {
@@ -97,7 +115,7 @@
               const planoNome = item.plano || (item.contratos && item.contratos[0] && item.contratos[0].plano);
               if (planoNome && typeof planoNome === 'string' && planoNome.trim() !== '') {
                 const cleanName = planoNome.trim();
-                // Se esse plano ainda não estiver na nossa lista, recriamos o registro oficial para o catálogo
+                // Se esse plano ainda nÃ£o estiver na nossa lista, recriamos o registro oficial para o catÃ¡logo
                 if (!plans.some(p => String(p.name || p.nome || p.title || '').trim().toLowerCase() === cleanName.toLowerCase())) {
                   plans.push({
                     id: autoId++,
@@ -118,7 +136,7 @@
         } catch(e){}
       });
 
-      // Mesclar com deduplicação rigorosa por nome do plano (ou ID se nome faltar)
+      // Mesclar com deduplicaÃ§Ã£o rigorosa por nome do plano (ou ID se nome faltar)
       const map = new Map();
       plans.forEach(p => {
         const nome = String(p.name || p.nome || p.title || p.plano || '').trim();
@@ -150,7 +168,7 @@
     const tbody = document.getElementById('plansTableBody');
     const countEl = document.getElementById('plansCount');
     if (!tbody) return;
-    if (countEl) countEl.innerHTML = `<i class="fas fa-layer-group me-2" style="color:#3b82f6"></i><strong>${plans.length}</strong> plano(s) ativo(s) no portfólio`;
+    if (countEl) countEl.innerHTML = `<i class="fas fa-layer-group me-2" style="color:#3b82f6"></i><strong>${plans.length}</strong> plano(s) ativo(s) no portfÃ³lio`;
 
     if (plans.length === 0) {
       tbody.innerHTML = `
@@ -159,7 +177,7 @@
             <div style="max-width: 400px; margin: 0 auto;">
               <i class="fas fa-folder-open fa-3x mb-3" style="color: #cbd5e1;"></i>
               <h5 style="color: #475569; font-weight: 700; font-size: 1.1rem;">Nenhum plano cadastrado</h5>
-              <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Crie o primeiro plano comercial do seu portfólio clicando no botão "Novo Plano" acima.</p>
+              <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Crie o primeiro plano comercial do seu portfÃ³lio clicando no botÃ£o "Novo Plano" acima.</p>
               <a href="novo-plano.html" class="btn btn-primary px-4 py-2" style="border-radius: 8px; font-weight: 600;">
                 <i class="fas fa-plus me-2"></i>Criar Novo Plano
               </a>
@@ -177,7 +195,7 @@
             <a class="btn btn-sm btn-light border d-flex align-items-center justify-content-center" href="novo-plano.html?id=${plan.id}" style="width: 32px; height: 32px; border-radius: 8px; color: #3b82f6;" title="Editar Plano">
               <i class="fas fa-pencil-alt"></i>
             </a>
-            <a class="btn btn-sm btn-light border d-flex align-items-center justify-content-center" href="catalogo-planos.html?planId=${plan.id}" style="width: 32px; height: 32px; border-radius: 8px; color: #10b981;" title="Visualizar Detalhes do Catálogo">
+            <a class="btn btn-sm btn-light border d-flex align-items-center justify-content-center" href="catalogo-planos.html?planId=${plan.id}" style="width: 32px; height: 32px; border-radius: 8px; color: #10b981;" title="Visualizar Detalhes do CatÃ¡logo">
               <i class="fas fa-external-link-alt"></i>
             </a>
           </div>
@@ -194,7 +212,7 @@
         <td class="text-center">
           <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; background-color: ${plan.publicPage === 'sim' ? '#dcfce7' : '#f1f5f9'}; color: ${plan.publicPage === 'sim' ? '#15803d' : '#64748b'};">
             <i class="fas ${plan.publicPage === 'sim' ? 'fa-eye' : 'fa-eye-slash'}"></i>
-            ${plan.publicPage === 'sim' ? 'Pública' : 'Restrita'}
+            ${plan.publicPage === 'sim' ? 'PÃºblica' : 'Restrita'}
           </span>
         </td>
         <td class="text-center" style="font-weight: 600; color: #475569;">${normalizeGrace(plan.gracePeriod)}</td>
@@ -241,3 +259,5 @@
     init();
   }
 })();
+
+

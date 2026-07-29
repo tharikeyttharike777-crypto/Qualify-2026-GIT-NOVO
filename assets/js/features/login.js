@@ -112,6 +112,10 @@ class LoginSystem {
         this.setButtonLoading(loginBtn, true, 'Entrando...');
 
         try {
+            // Limpa o localStorage ANTES de autenticar, para não apagar o token do Supabase recém-criado
+            try { localStorage.clear(); } catch(e){}
+            try { sessionStorage.clear(); } catch(e){}
+
             const { data, error } = await window.supabase.auth.signInWithPassword({
                 email,
                 password
@@ -151,6 +155,10 @@ class LoginSystem {
         this.setButtonLoading(registerBtn, true, 'Criando conta...');
 
         try {
+            // Limpa o localStorage ANTES de registrar, para não apagar o token
+            try { localStorage.clear(); } catch(e){}
+            try { sessionStorage.clear(); } catch(e){}
+
             const { data, error } = await window.supabase.auth.signUp({
                 email,
                 password,
@@ -176,6 +184,9 @@ class LoginSystem {
 
     async handleGoogleLogin() {
         try {
+            try { localStorage.clear(); } catch(e){}
+            try { sessionStorage.clear(); } catch(e){}
+            
             const { error } = await window.supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {

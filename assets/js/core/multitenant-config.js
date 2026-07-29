@@ -95,22 +95,33 @@ class MultitenantConfig {
      * Define/Carrega a empresa ativa
      */
     async loadActiveCompany() {
-        const empresaId = localStorage.getItem('empresaSelecionadaId');
+        const empresaId = localStorage.getItem('empresaSelecionadaId') || localStorage.getItem('activeCompanyId') || localStorage.getItem('companyId');
 
         if (empresaId && this.userCompanies.length > 0) {
             const found = this.userCompanies.find(c => String(c.id) === String(empresaId));
             if (found) {
                 this.activeCompany = found;
-                console.log('🏢 Empresa ativa:', this.activeCompany.nome);
+                localStorage.setItem('empresaSelecionadaId', this.activeCompany.id);
+                localStorage.setItem('activeCompanyId', this.activeCompany.id);
+                localStorage.setItem('companyId', this.activeCompany.id);
+                console.log('✅ Empresa ativa validada:', this.activeCompany.nome || this.activeCompany.name);
                 return;
             }
         }
 
-        // Fallback: primeira empresa disponível
+        // Fallback: primeira empresa disponível ou limpar se não houver nenhuma
         if (this.userCompanies.length > 0) {
             this.activeCompany = this.userCompanies[0];
             localStorage.setItem('empresaSelecionadaId', this.activeCompany.id);
-            console.log('🏢 Definida empresa padrão:', this.activeCompany.nome);
+            localStorage.setItem('activeCompanyId', this.activeCompany.id);
+            localStorage.setItem('companyId', this.activeCompany.id);
+            console.log('⚠️ Definida empresa padrão (fallback):', this.activeCompany.nome || this.activeCompany.name);
+        } else {
+            this.activeCompany = null;
+            localStorage.removeItem('empresaSelecionadaId');
+            localStorage.removeItem('activeCompanyId');
+            localStorage.removeItem('companyId');
+            console.warn('⚠️ Usuário não possui empresas ou ID inválido removido.');
         }
     }
 

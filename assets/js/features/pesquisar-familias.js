@@ -430,13 +430,25 @@ function handleViewFamily(familyId) {
             .replace(/^,\s*|\s*,\s*$/g, '') : '-';
     // Dependentes
     const dependentesHtml = (family.dependentes && family.dependentes.length)
-        ? family.dependentes.map(dep => `
+        ? family.dependentes.map(dep => {
+            let idadeStr = dep.idade || '';
+            if (!idadeStr && dep.dataNascimento) {
+                const parts = String(dep.dataNascimento).split('-');
+                if (parts.length === 3) {
+                    const dob = new Date(parts[0], parts[1] - 1, parts[2]);
+                    const ageDifMs = Date.now() - dob.getTime();
+                    const ageDate = new Date(ageDifMs);
+                    const calcAge = Math.abs(ageDate.getUTCFullYear() - 1970);
+                    idadeStr = calcAge + ' anos';
+                }
+            }
+            return `
             <div class="border rounded p-2 mb-2">
                 <strong>${dep.nome || '-'}</strong>
-                ${dep.idade ? ` - ${dep.idade}` : ''}
+                ${idadeStr ? ` - ${idadeStr}` : ''}
                 ${dep.parentesco ? ` - ${dep.parentesco}` : ''}
             </div>
-        `).join('')
+        `;}).join('')
         : '<p class="text-muted">Nenhum dependente cadastrado</p>';
     // Conteúdo do modal (visualização não editável)
     detailsEl.innerHTML = `
@@ -549,30 +561,26 @@ function handleDeleteFamily(familyId) {
                     .eq('id', id);
                     
                 if (error) throw error;
-
-                showToast('Cadastro excluído com sucesso!', 'success');
-                await loadData();
-                return;
             }
-            throw new Error('Supabase indisponível, usando fallback local');
         } catch (fsErr) {
             console.warn('Falha na exclusão via Supabase:', fsErr);
-            // Fallback para localStorage
-            try {
-                let familias = JSON.parse(localStorage.getItem('familias') || '[]');
-                familias = familias.filter(f => String(f.id) !== id);
-                localStorage.setItem('familias', JSON.stringify(familias));
+        }
+        
+        // Sempre remove do localStorage (Retrocompatibilidade e limpeza)
+        try {
+            let familias = JSON.parse(localStorage.getItem('familias') || '[]');
+            familias = familias.filter(f => String(f.id) !== id);
+            localStorage.setItem('familias', JSON.stringify(familias));
 
-                let associados = JSON.parse(localStorage.getItem('associados') || '[]');
-                associados = associados.filter(a => String(a.familiaId) !== id);
-                localStorage.setItem('associados', JSON.stringify(associados));
+            let associados = JSON.parse(localStorage.getItem('associados') || '[]');
+            associados = associados.filter(a => String(a.familiaId) !== id);
+            localStorage.setItem('associados', JSON.stringify(associados));
 
-                showToast('Cadastro excluído com sucesso! (modo offline)', 'success');
-                await loadData();
-            } catch (e) {
-                console.error('Erro ao excluir família no fallback local:', e);
-                showToast('Erro ao excluir cadastro', 'error');
-            }
+            showToast('Cadastro excluído com sucesso!', 'success');
+            await loadData();
+        } catch (e) {
+            console.error('Erro ao remover do localStorage:', e);
+            showToast('Erro ao excluir cadastro', 'error');
         }
     })();
 }

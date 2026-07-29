@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -17,7 +17,7 @@
     <!-- CabeÃ§alho -->
     <header class="header">
         <div class="header-left">
-            <button id="voltarBtn" class="btn-voltar">â† Voltar</button>
+            <button id="voltarBtn" class="btn-voltar"><i class="fas fa-arrow-left"></i> Voltar</button>
         </div>
         <div class="header-center">
             <h1>Trocar Empresa</h1>
@@ -41,7 +41,7 @@
                 <p>Carregando empresas...</p>
             </div>
 
-            <!-- Ãrea de Empresas Existentes -->
+            <!-- Área de Empresas Existentes -->
             <div class="empresas-section" style="display:none;">
                 <h2>Empresas Existentes</h2>
                 <div id="empresasGrid" class="empresas-grid">
@@ -256,7 +256,7 @@
 
             // Monitora logout
             window.supabase.auth.onAuthStateChange(function(event, sess) {
-                if (event === 'SIGNED_OUT' || !sess) window.location.href = '../login.html';
+                if (event === 'SIGNED_OUT') window.location.href = '../login.html';
             });
 
             carregarEmpresas();

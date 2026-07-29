@@ -170,9 +170,16 @@ function atualizarInterfaceGlobal(contrato, familia) {
         ids.forEach(id => setTxt(id, val));
     };
 
+    let meta = {};
+    if (typeof contrato.metadata === 'string') {
+        try { meta = JSON.parse(contrato.metadata); } catch(e) {}
+    } else {
+        meta = contrato.metadata || {};
+    }
+
     setMulti(['numero-contrato', 'ivNumero', 'cvNumero'], contrato.numero || contrato.id || '---');
     setMulti(['status-contrato', 'ivSituacao', 'svSituacao'], contrato.status || 'Em Análise');
-    let nomePlanoFinal = contrato.plano || contrato.nome_plano || contrato.planoNome || contrato.plano_nome || '';
+    let nomePlanoFinal = contrato.plano || contrato.nome_plano || contrato.planoNome || contrato.plano_nome || meta.plano || '';
     if (!nomePlanoFinal && familia && Array.isArray(familia.contratos)) {
         const ctLocal = familia.contratos.find(c => String(c.numero || c.id) === String(contrato.numero || contrato.id) || String(c.numero || c.id).replace(/^0+/, '') === String(contrato.numero || contrato.id).replace(/^0+/, ''));
         if (ctLocal) nomePlanoFinal = ctLocal.plano || ctLocal.nome_plano || '';
@@ -194,8 +201,14 @@ function atualizarInterfaceGlobal(contrato, familia) {
     }
     setMulti(['plano-nome', 'ivPlano', 'cvPlano'], nomePlanoFinal || 'Plano Assistencial Contratado');
 
+    setMulti(['ivDataContrato'], formatarData(contrato.dataInicio || contrato.date || meta.dataInicio || meta.date || contrato.created_at || new Date().toISOString()));
+
+    let valorFinal = contrato.valor || contrato.mensalidade || contrato.valorCobranca || meta.valor || meta.mensalidade || 0;
+    setMulti(['ivValor'], formatarMoeda(valorFinal));
+
     // Outros campos úteis
-    setMulti(['ivTipo', 'cvTipo', 'tipo-cobranca'], contrato.tipo_cobranca || 'Boleto/Pix');
+    let tipoCobrancaFinal = contrato.tipo_cobranca || contrato.formaPagamento || meta.formaPagamento || 'Boleto/Pix';
+    setMulti(['ivTipo', 'cvTipo', 'tipo-cobranca'], tipoCobrancaFinal);
     setMulti(['ivQtdParcelas', 'svQtdParcelas'], contrato.qtd_parcelas || 'N/A');
     setMulti(['ivTotalRecebido', 'svTotalRecebido'], formatarMoeda(contrato.total_recebido));
 

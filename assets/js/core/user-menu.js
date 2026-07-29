@@ -624,25 +624,9 @@
     UserMenu.prototype.clearUserSession = function () {
         console.log('Limpando sessão do usuário');
 
-        // Limpar localStorage
-        const keysToRemove = [
-            'empresaSelecionadaId',
-            'user',
-            'userToken',
-            'activeCompanyId',
-            'userCompanies',
-            'selectedCompany',
-            'currentUser',
-            'authToken',
-            'firebaseUser'
-        ];
-
-        keysToRemove.forEach(key => {
-            localStorage.removeItem(key);
-        });
-
-        // Limpar sessionStorage
-        sessionStorage.clear();
+        // Limpar todos os dados do localStorage e sessionStorage de forma segura para evitar cruzamento de dados
+        try { localStorage.clear(); } catch (e) { }
+        try { sessionStorage.clear(); } catch (e) { }
 
         // Limpar cookies
         document.cookie.split(";").forEach(function (c) {
@@ -661,9 +645,13 @@
                 await window.supabase.auth.signOut();
                 console.log('Supabase signOut() SUCESSO.');
             }
-            // Limpeza total de storages e caches
+        } catch (error) {
+            console.error('*** ERRO AO DESLOGAR DO SUPABASE:', error);
+        } finally {
+            // A limpeza deve ocorrer sempre, garantindo que não haja cruzamento de dados de empresas ou sessões
             try { localStorage.clear(); } catch (e) { }
             try { sessionStorage.clear(); } catch (e) { }
+            
             // Limpar caches (Service Worker)
             try {
                 if (window.caches && caches.keys) {
@@ -671,11 +659,8 @@
                     await Promise.all(keys.map(k => caches.delete(k)));
                 }
             } catch (e) { console.warn('Falha ao limpar caches', e); }
-            console.log('*** Logout completo. Redirecionando... ***');
-            const base = window.location.pathname.includes('/pages/') ? '../login.html' : '/login.html';
-            window.location.href = base;
-        } catch (error) {
-            console.error('*** ERRO CRÍTICO DURANTE LOGOUT:', error);
+            
+            console.log('*** Logout completo e storage limpo. Redirecionando... ***');
             const base = window.location.pathname.includes('/pages/') ? '../login.html' : '/login.html';
             window.location.href = base;
         }
@@ -832,7 +817,7 @@
                         const base = window.location.pathname.includes('/pages/') ? '../login.html' : 'login.html';
                         window.location.href = base;
                     }
-                }, { once: true });
+                }, false);
             } catch (error) {
                 console.error('Erro ao inicializar UserMenu:', error);
             }

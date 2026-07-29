@@ -1,6 +1,6 @@
 /**
- * Novo Plano - Gerenciador de Cadastro/Edição
- * Sistema de criação e edição de planos
+ * Novo Plano - Gerenciador de Cadastro/EdiÃ§Ã£o
+ * Sistema de criaÃ§Ã£o e ediÃ§Ã£o de planos
  */
 
 class NovoPlano {
@@ -19,13 +19,13 @@ class NovoPlano {
         // 1. Carregar TODOS os planos (Merge Firestore + LocalStorage)
         await this.loadExistingPlans();
         
-        // 2. Verificar modo edição (agora que temos os dados)
+        // 2. Verificar modo ediÃ§Ã£o (agora que temos os dados)
         this.checkEditMode();
         
         // 3. Renderizar tabela lateral
         this.renderExistingPlans();
         
-        console.log('Novo Plano inicializado com suporte a múltiplos planos.');
+        console.log('Novo Plano inicializado com suporte a mÃºltiplos planos.');
         
         // Expor para testes
         window.novoPlano = this;
@@ -78,7 +78,32 @@ class NovoPlano {
                     .eq('company_id', companyId);
                 
                 if (!error && data) {
-                    data.forEach(doc => plansFromSupabase.push(doc));
+                    data.forEach(doc => {
+                        let meta = {};
+                        if (doc.metadata) {
+                            try { meta = typeof doc.metadata === 'string' ? JSON.parse(doc.metadata) : doc.metadata; } catch(e){}
+                        }
+                        plansFromSupabase.push({
+                            id: doc.id,
+                            name: doc.name || doc.nome || meta.name,
+                            status: doc.status || meta.status,
+                            publicPage: meta.publicPage || doc.public_page,
+                            gracePeriod: meta.gracePeriod || doc.grace_period,
+                            adhesionValue: meta.adhesionValue || doc.adhesion_value,
+                            monthlyValue: meta.monthlyValue || doc.monthly_value,
+                            annualValue: meta.annualValue || doc.annual_value,
+                            maxPeople: meta.maxPeople || doc.max_people,
+                            additionalPerDependent: meta.additionalPerDependent || doc.additional_per_dependent,
+                            dependentAdditional: meta.dependentAdditional,
+                            description: meta.description,
+                            products: meta.products || [],
+                            services: meta.services || [],
+                            agePricing: meta.agePricing || [],
+                            clauseText: meta.clauseText,
+                            photo: meta.photo,
+                            company_id: doc.company_id
+                        });
+                    });
                 }
             } catch (e) { console.warn('Falha load Supabase:', e); }
         }
@@ -91,7 +116,7 @@ class NovoPlano {
         } catch (e) { console.warn('Erro localStorage:', e); }
 
         // 3. Mesclar (Deduplicar por ID)
-        // A prioridade é do Firestore se houver conflito, mas aqui assumimos que Firestore é mais atual
+        // A prioridade Ã© do Firestore se houver conflito, mas aqui assumimos que Firestore Ã© mais atual
         const mergedMap = new Map();
         
         // Primeiro popula com local (pode ter dados offline)
@@ -144,15 +169,15 @@ class NovoPlano {
 
         tbody.innerHTML = this.existingPlans.map(plan => `
             <tr>
-                <td><strong>${plan.name || '—'}</strong></td>
+                <td><strong>${plan.name || 'â€”'}</strong></td>
                 <td>
                     <span class="badge ${plan.status === 'ativo' ? 'bg-success' : 'bg-secondary'}">
-                        ${plan.status || '—'}
+                        ${plan.status || 'â€”'}
                     </span>
                 </td>
                 <td>${formatGrace(plan.gracePeriod)}</td>
                 <td>${formatMoney(plan.monthlyValue ?? plan.valorMensalidade)}</td>
-                <td>${plan.maxPeople ?? '—'}</td>
+                <td>${plan.maxPeople ?? 'â€”'}</td>
             </tr>
             <tr>
                 <td colspan="5" class="py-2">
@@ -227,7 +252,7 @@ class NovoPlano {
             this.isEditMode = false;
             this.currentPlanId = null;
             this.loadPlanData(cloneId, true);
-            this.updatePageTitle('Novo Plano (cópia)');
+            this.updatePageTitle('Novo Plano (cÃ³pia)');
         }
     }
 
@@ -238,7 +263,7 @@ class NovoPlano {
     }
 
     loadPlanData(planId, isClone = false) {
-        // Busca na lista já carregada (this.existingPlans)
+        // Busca na lista jÃ¡ carregada (this.existingPlans)
         const plan = this.existingPlans.find(p => String(p.id) === String(planId));
         
         if (plan) {
@@ -262,8 +287,8 @@ class NovoPlano {
             this.planData = plan;
             this.populateForm(mapToForm);
         } else {
-            console.warn('Plano não encontrado para carregamento:', planId);
-            if(this.isEditMode) this.showAlert('Erro: Plano não encontrado.', 'danger');
+            console.warn('Plano nÃ£o encontrado para carregamento:', planId);
+            if(this.isEditMode) this.showAlert('Erro: Plano nÃ£o encontrado.', 'danger');
         }
     }
 
@@ -319,7 +344,7 @@ class NovoPlano {
         const isValid = field.checkValidity();
         if (!isValid) {
             field.classList.add('is-invalid');
-            this.showFieldError(field, 'Este campo é obrigatório');
+            this.showFieldError(field, 'Este campo Ã© obrigatÃ³rio');
         } else {
             field.classList.remove('is-invalid');
             this.hideFieldError(field);
@@ -347,7 +372,7 @@ class NovoPlano {
     validateForm() {
         const planName = document.getElementById('plan-name');
         if (!planName || !planName.value.trim()) {
-            this.showAlert('O nome do plano é obrigatório.', 'danger');
+            this.showAlert('O nome do plano Ã© obrigatÃ³rio.', 'danger');
             if (planName) {
                 planName.focus();
                 planName.classList.add('is-invalid');
@@ -401,14 +426,14 @@ class NovoPlano {
         const serviceHtml = `
             <div class="service-item border rounded p-3 mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6>Serviço ${serviceCount + 1}</h6>
+                    <h6>ServiÃ§o ${serviceCount + 1}</h6>
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.service-item').remove()">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
                 <div class="row">
                     <div class="col-md-8">
-                        <label class="form-label">Nome do Serviço</label>
+                        <label class="form-label">Nome do ServiÃ§o</label>
                         <input type="text" class="form-control" name="service_name_${serviceCount}">
                     </div>
                     <div class="col-md-4">
@@ -421,7 +446,7 @@ class NovoPlano {
                 </div>
                 <div class="row mt-2">
                     <div class="col-md-12">
-                        <label class="form-label">Descrição</label>
+                        <label class="form-label">DescriÃ§Ã£o</label>
                         <textarea class="form-control" name="service_description_${serviceCount}" rows="2"></textarea>
                     </div>
                 </div>
@@ -433,7 +458,7 @@ class NovoPlano {
     }
 
     loadProducts() { console.log('Carregando produtos do plano (placeholder)'); }
-    loadServices() { console.log('Carregando serviços do plano (placeholder)'); }
+    loadServices() { console.log('Carregando serviÃ§os do plano (placeholder)'); }
 
     collectFormData() {
         const formData = {};
@@ -524,7 +549,7 @@ class NovoPlano {
 
     async savePlan() {
         if (!this.validateForm()) {
-            this.showAlert('Por favor, preencha todos os campos obrigatórios.', 'danger');
+            this.showAlert('Por favor, preencha todos os campos obrigatÃ³rios.', 'danger');
             return;
         }
 
@@ -546,9 +571,9 @@ class NovoPlano {
         }
     }
 
-    // Persistência Centralizada: Salva no localStorage e tenta no Supabase
+    // PersistÃªncia Centralizada: Salva no localStorage e tenta no Supabase
     async saveToStorageAndFirestore(plan, isUpdate) {
-        // 1. Atualizar localStorage (Sincronização imediata)
+        // 1. Atualizar localStorage (SincronizaÃ§Ã£o imediata)
         localStorage.setItem('planos', JSON.stringify(this.existingPlans));
         try {
             const companyId = this.getActiveCompanyId();
@@ -561,13 +586,34 @@ class NovoPlano {
             const companyId = this.getActiveCompanyId();
             
             if (window.supabase) {
-                const payload = { ...plan, company_id: companyId };
+                const payload = { 
+                    id: String(plan.id),
+                    company_id: String(companyId),
+                    name: plan.name,
+                    status: plan.status,
+                    metadata: {
+                        publicPage: plan.publicPage,
+                        gracePeriod: plan.gracePeriod,
+                        adhesionValue: plan.adhesionValue,
+                        monthlyValue: plan.monthlyValue,
+                        annualValue: plan.annualValue,
+                        maxPeople: plan.maxPeople,
+                        additionalPerDependent: plan.additionalPerDependent,
+                        dependentAdditional: plan.dependentAdditional,
+                        description: plan.description,
+                        products: plan.products,
+                        services: plan.services,
+                        agePricing: plan.agePricing,
+                        clauseText: plan.clauseText,
+                        photo: plan.photo
+                    }
+                };
                 const { error } = await window.supabase
                     .from('planos')
                     .upsert(payload);
                     
                 if (error) {
-                    console.warn('Falha ao salvar no Supabase:', error);
+                    console.warn('Falha ao salvar no Supabase:', error); alert('Erro ao salvar plano no banco de dados (Supabase): ' + JSON.stringify(error) + '\n\nPlano salvo apenas no cache local. Tire um print e avise o suporte.');
                 } else {
                     console.log(`Plano ${plan.id} salvo no Supabase.`);
                 }
@@ -580,13 +626,13 @@ class NovoPlano {
     async createPlan(data) {
         
         try {
-            // CORREÇÃO: Usar this.existingPlans que contém o merge de Firestore + LocalStorage
-            // Calcula novo ID baseado no maior ID existente
-            const maxId = this.existingPlans.reduce((acc, p) => {
-                const pid = parseInt(p.id, 10);
-                return Math.max(acc, Number.isFinite(pid) ? pid : 0);
-            }, 0);
-            const newId = maxId + 1;
+            // Gera UUID para o novo plano (compatível com Supabase UUID columns)
+            const newId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+                ? crypto.randomUUID() 
+                : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                    const r = Math.random() * 16 | 0;
+                    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                });
 
             const newPlan = {
                 id: newId,
@@ -609,7 +655,7 @@ class NovoPlano {
                 updatedAt: new Date().toISOString()
             };
 
-            // Adiciona ao array em memória
+            // Adiciona ao array em memÃ³ria
             this.existingPlans.push(newPlan);
 
             // Persiste
@@ -667,7 +713,7 @@ class NovoPlano {
                     window.location.href = '../pages/pesquisa-planos.html';
                 }, 2000);
             } else {
-                throw new Error('Plano não encontrado para atualização.');
+                throw new Error('Plano nÃ£o encontrado para atualizaÃ§Ã£o.');
             }
         } catch (error) {
             console.error('Erro ao atualizar plano:', error);
@@ -705,14 +751,14 @@ document.addEventListener('DOMContentLoaded', () => {
     novoPlanoInstance = new NovoPlano();
     window.addAgeRange = () => novoPlanoInstance.addAgeRange();
     
-    // Teste Manual (Disponível no console)
+    // Teste Manual (DisponÃ­vel no console)
     window.testPlanStorage = async function() {
         console.log("Iniciando teste de armazenamento...");
         const initialCount = novoPlanoInstance.existingPlans.length;
         console.log(`Planos iniciais: ${initialCount}`);
         
         const dummyPlan = {
-            planName: "Teste Automático " + Date.now(),
+            planName: "Teste AutomÃ¡tico " + Date.now(),
             planStatus: "ativo",
             monthlyValue: "R$ 100,00",
             maxPeople: 5
@@ -721,20 +767,24 @@ document.addEventListener('DOMContentLoaded', () => {
         await novoPlanoInstance.createPlan(dummyPlan);
         
         const newCount = novoPlanoInstance.existingPlans.length;
-        console.log(`Planos após adição: ${newCount}`);
+        console.log(`Planos apÃ³s adiÃ§Ã£o: ${newCount}`);
         
         if(newCount === initialCount + 1) {
-            console.log("✅ Sucesso: Plano adicionado corretamente (incremento verificado).");
+            console.log("âœ… Sucesso: Plano adicionado corretamente (incremento verificado).");
         } else {
-            console.error("❌ Falha: Contagem de planos incorreta.");
+            console.error("âŒ Falha: Contagem de planos incorreta.");
         }
         
-        // Verificar persistência no localStorage
+        // Verificar persistÃªncia no localStorage
         const stored = JSON.parse(localStorage.getItem('planos') || '[]');
         if(stored.length === newCount) {
-             console.log("✅ Sucesso: LocalStorage sincronizado.");
+             console.log("âœ… Sucesso: LocalStorage sincronizado.");
         } else {
-             console.error("❌ Falha: LocalStorage desatualizado.");
+             console.error("âŒ Falha: LocalStorage desatualizado.");
         }
     }
 });
+
+
+
+
