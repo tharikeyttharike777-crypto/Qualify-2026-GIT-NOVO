@@ -14,9 +14,9 @@ const wooviBankService = require('../services/wooviBank');
  */
 router.post('/criar-link', async (req, res) => {
     try {
-        const { empresaId, cpfCnpj, nomeCliente, email, telefone, value, nextDueDate, description, cycle, cobrarImediatamente, validadeQrCode, name } = req.body;
+        const { empresaId, cpfCnpj, nomeCliente, email, telefone, value, nextDueDate, description, cycle, cobrarImediatamente, validadeQrCode, name, contratoNumero } = req.body;
 
-        console.log('💳 Criando assinatura recorrente (Woovi):', { empresaId, value, cycle, cobrarImediatamente, validadeQrCode });
+        console.log('💳 Criando assinatura recorrente (Woovi):', { empresaId, value, cycle, cobrarImediatamente, validadeQrCode, contratoNumero });
 
         // Validações básicas
         if (!empresaId) {
@@ -119,6 +119,7 @@ router.post('/criar-link', async (req, res) => {
                     pix_copia_e_cola: qrCodeData ? qrCodeData.pixCopiaECola : null,
 
                     company_id: empresaId,
+                    contrato_numero: contratoNumero ? String(contratoNumero) : null,
                     pagador_nome: nomeCliente,
                     pagador_documento: cpfCnpj,
                     descricao: description || 'Assinatura Qualify'
