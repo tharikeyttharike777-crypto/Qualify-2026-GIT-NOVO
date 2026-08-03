@@ -89,14 +89,6 @@ async function criarAssinatura(config, dados) {
     const valorEmCentavos = Math.round(parseFloat(dados.value) * 100);
 
     const dataVencimento = dados.nextDueDate || dados.vencimento;
-    let dayDue = 28;
-    if (dataVencimento) {
-        const partes = String(dataVencimento).split('-');
-        if (partes.length === 3) {
-            dayDue = parseInt(partes[2], 10);
-            if (dayDue > 28) dayDue = 28; // Evitar problema com fevereiro
-        }
-    }
     
     // Define a frequência (padrão MONTHLY)
     const frequency = dados.cycle || 'MONTHLY';
@@ -106,30 +98,62 @@ async function criarAssinatura(config, dados) {
     // ONLY_RECURRENCY: Cobra apenas na data programada (respeitando regra dos 3 dias do Bacen)
     const journey = dados.cobrarImediatamente ? "PAYMENT_ON_APPROVAL" : "ONLY_RECURRENCY";
 
+    const hojeObj = new Date();
+    hojeObj.setUTCHours(0,0,0,0);
+    const diaHojeUTC = hojeObj.getUTCDate();
 
-    // AVISO CRÍTICO: O erro que você tomou na tela prova que dayGenerateCharge
-    // É SIM O DIA DO MÊS! Quando mandamos 3 e o vencimento era 27, ele calculou
-    // 27 - 3 = 24 dias, que é maior que 7. Por isso deu erro!
-    // Para resolver de vez, temos que voltar a matemática exata:
-    let prazoPadrao = 3;
-    let validadeFinal = Math.max(dados.validadeQrCode || 3, prazoPadrao);
+    // Data de vencimento baseada no input
+    const dataVencimentoObj = dataVencimento ? new Date(dataVencimento + 'T12:00:00Z') : new Date();
+    dataVencimentoObj.setUTCHours(0,0,0,0);
+    
+    // Calcula diferença em dias do vencimento para hoje
+    const diffTime = dataVencimentoObj.getTime() - hojeObj.getTime();
+    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Fallback de segurança (se a data já passou, usamos 0 como base)
+    if (diffDays < 0) {
+        diffDays = 0;
+    }
+
+    let dayGenerate;
+    let computedDaysDueDate;
+
+    if (journey === 'PAYMENT_ON_APPROVAL') {
+        // A API exige que seja o dia atual (UTC) para PAYMENT_ON_APPROVAL
+        dayGenerate = diaHojeUTC;
+        computedDaysDueDate = diffDays;
+    } else {
+        // A Woovi exige que dayGenerateCharge seja pelo menos 3 dias no futuro para ONLY_RECURRENCY
+        if (diffDays < 3) {
+            // Empurra a geração para 3 dias a partir de hoje (Fallback de segurança)
+            const genDate = new Date(hojeObj);
+            genDate.setUTCDate(genDate.getUTCDate() + 3);
+            dayGenerate = genDate.getUTCDate();
+            computedDaysDueDate = 0;
+        } else {
+            // Gera 3 dias antes do vencimento
+            const genDate = new Date(dataVencimentoObj);
+            genDate.setUTCDate(genDate.getUTCDate() - 3);
+            dayGenerate = genDate.getUTCDate();
+            computedDaysDueDate = 3;
+        }
+    }
 
     const rawComment = dados.description || 'Assinatura Mensal';
 
-    // A API da Woovi tem um bug crítico onde ela valida o dayDue ao invés da diferença
-    // quando usamos PAYMENT_ON_APPROVAL, permitindo apenas dayDue de 3 a 7.
-    // E exige dayGenerateCharge = dia atual (UTC).
-    const diaHojeUTC = new Date().getUTCDate();
-
+    // O PULO DO GATO: A API da Woovi tem um bug onde valida o campo "dayDue" exigindo
+    // que seja sempre entre 3 e 7, independentemente do vencimento desejado.
+    // Para contornar e permitir QUALQUER data, nós OMITIMOS o campo "dayDue" 
+    // e enviamos a diferença exata de dias no campo "daysDueDate".
     const payload = {
         name: dados.name || rawComment.substring(0, 99) || 'Assinatura Mensal',
         value: valorEmCentavos,
         type: 'PIX_RECURRING',
         frequency: frequency,
-        dayDue: dayDue,
-        dayGenerateCharge: journey === 'PAYMENT_ON_APPROVAL' ? diaHojeUTC : undefined,
-        daysDueDate: validadeFinal, 
-        chargeDaysDueDate: validadeFinal,
+        // dayDue: OMITIDO PROPOSITALMENTE PARA EVITAR O ERRO 'menor ou igual a 7'
+        dayGenerateCharge: dayGenerate,
+        daysDueDate: computedDaysDueDate, 
+        chargeDaysDueDate: computedDaysDueDate,
         pixRecurringOptions: {
             journey: journey,
             retryPolicy: "NON_PERMITED" // Ignora regras absurdas de retentativa
