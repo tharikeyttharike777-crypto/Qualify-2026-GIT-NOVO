@@ -257,7 +257,19 @@ export default function NovaFamilia() {
           try {
             const { data: centralConts } = await supabase.from('contratos').select('*');
             if (Array.isArray(centralConts)) {
-              const matched = centralConts.filter(c => String(c.family_id) === String(editId) || String(c.titular).toLowerCase() === String(rawTitular.nome).toLowerCase());
+              const matched = centralConts.filter(c => {
+                let cMeta = {};
+                try { cMeta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : (c.metadata || {}); } catch(e){}
+                
+                const fId = String(c.family_id || c.familyId || c.familia_id || cMeta.family_id || cMeta.familyId || cMeta.familia_id);
+                if (fId === String(editId)) return true;
+                
+                const cTitular = String(c.titular || c.cliente || cMeta.titular || '').trim().toLowerCase();
+                const rTitular = String(rawTitular.nome || data.nome || meta.nome || '').trim().toLowerCase();
+                
+                return cTitular && rTitular && cTitular === rTitular;
+              });
+              
               if (matched.length > 0) setContratos(matched);
               else if (Array.isArray(data.contratos || meta.contratos)) setContratos(data.contratos || meta.contratos);
             } else if (Array.isArray(data.contratos || meta.contratos)) {

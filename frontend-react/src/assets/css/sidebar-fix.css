@@ -99,7 +99,7 @@
     transition: all var(--transition-speed) ease !important;
 }
 
-.sidebar-overlay.active {
+.sidebar-overlay.active, .sidebar-overlay.show {
     opacity: 1 !important;
     visibility: visible !important;
 }

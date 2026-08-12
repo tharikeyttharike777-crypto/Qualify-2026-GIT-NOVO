@@ -33,7 +33,6 @@ export default function Header({ toggleSidebar }) {
           <i className="fas fa-bars"></i>
         </button>
         <Link to="/dashboard" className="logo" style={{ textDecoration: 'none' }}>
-          <img src="/assets/images/qualify-logo.svg" alt="Qualify Logo" width="24" height="24" style={{ marginRight: '8px' }} />
           <span className="logo-text">QUALIFY - Sistema de gestão</span>
         </Link>
       </div>

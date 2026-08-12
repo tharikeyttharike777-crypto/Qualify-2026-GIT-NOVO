@@ -81,6 +81,12 @@ export default function EdicaoContrato() {
     cobrarImediatamente: false, valorImediato: '', cycle: 'MONTHLY'
   });
   const [baixandoId, setBaixandoId] = useState(null);
+  
+  // Novo modal para exibir o PIX/Link de pagamento gerado
+  const [successLinkModal, setSuccessLinkModal] = useState({ isOpen: false, data: null });
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isGeneratingCard, setIsGeneratingCard] = useState(false);
+  const [isSavingCobranca, setIsSavingCobranca] = useState(false);
 
   const [confirmModalState, setConfirmModalState] = useState({
     isOpen: false, title: '', message: '', onConfirm: () => {}
@@ -296,6 +302,8 @@ export default function EdicaoContrato() {
 
   const handleAddCobranca = async (e) => {
     e.preventDefault();
+    if (isSavingCobranca) return;
+    setIsSavingCobranca(true);
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
       
@@ -362,6 +370,7 @@ export default function EdicaoContrato() {
         if (!res.ok) throw new Error(result.error || 'Erro ao gerar Assinatura na API');
         
         setNovaCobrancaModal(false);
+        setSuccessLinkModal({ isOpen: true, data: result });
         setTimeout(() => loadCobrancas(contract), 1500);
       } else if (cobrancaForm.metodo === 'pix') {
         const token = (await supabase.auth.getSession())?.data?.session?.access_token || '';
@@ -378,15 +387,11 @@ export default function EdicaoContrato() {
           endereco: { cep: cobrancaForm.cep, logradouro: cobrancaForm.logradouro, numero: cobrancaForm.numero, bairro: cobrancaForm.bairro, cidade: cobrancaForm.cidade, uf: cobrancaForm.uf }
         };
 
-        const res = await fetch(`${API_BASE}/pix/cob`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-          body: JSON.stringify(apiPayload)
-        });
-
-        if (!res.ok) throw new Error('Erro ao gerar PIX avulso na API');
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Erro ao gerar PIX avulso na API');
         
         setNovaCobrancaModal(false);
+        setSuccessLinkModal({ isOpen: true, data: result });
         setTimeout(() => loadCobrancas(contract), 1500);
       } else {
         // FLUXO NORMAL: Loop de parcelas para Pix avulso, dinheiro, cartão etc.
@@ -431,6 +436,8 @@ export default function EdicaoContrato() {
       console.error("ERRO AO SALVAR COBRANÇA:", err);
       alert('Erro: ' + err.message);
       setActionMsg({ type: 'error', text: 'Erro ao adicionar cobrança: ' + err.message });
+    } finally {
+      setIsSavingCobranca(false);
     }
   };
 
@@ -577,6 +584,155 @@ export default function EdicaoContrato() {
     });
   };
 
+  const handleGerarContrato = async () => {
+    if (!contract) return;
+    setIsGeneratingPdf(true);
+    setActionMsg(null);
+    try {
+      const { jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+      const doc = new jsPDF();
+      
+      const numeroContrato = contract.numero || contract.id || 'S/N';
+      const nomePlano = contract.plano || 'Plano QUALIFY';
+      
+      // Fetch plan clauses
+      let clausulasTexto = [
+        '1. O presente contrato tem vigência conforme período estipulado, podendo ser renovado automaticamente.',
+        '2. O CONTRATANTE se compromete a manter os pagamentos em dia conforme modalidade escolhida.',
+        '3. Os serviços serão prestados conforme especificações do plano contratado.',
+        '4. O cancelamento deve ser solicitado com no mínimo 30 (trinta) dias de antecedência.',
+        '5. Em caso de inadimplência superior a 60 dias, o contrato poderá ser suspenso.',
+        '6. Ambas as partes concordam com as condições aqui estabelecidas, firmando o presente instrumento.'
+      ].join('\n\n');
+
+      let planoId = contract.plano_id;
+      let planoName = contract.plano;
+      
+      if (!planoId && contract.metadata) {
+          let cMeta = typeof contract.metadata === 'string' ? JSON.parse(contract.metadata) : contract.metadata;
+          planoId = cMeta.plano_id || cMeta.planoId;
+          if (!planoName) planoName = cMeta.plano;
+      }
+
+      if (planoId || planoName) {
+        let query = supabase.from('planos').select('id, metadata, name');
+        if (planoId) {
+            query = query.eq('id', planoId);
+        } else if (planoName) {
+            query = query.ilike('name', `%${planoName}%`);
+        }
+        
+        const { data: planosList } = await query;
+        if (planosList && planosList.length > 0) {
+          const planos = planosList[0];
+          let cMeta = {};
+          try { cMeta = typeof planos.metadata === 'string' ? JSON.parse(planos.metadata) : (planos.metadata || {}); } catch(e){}
+          
+          const source = cMeta.clausulas || cMeta.contrato || cMeta.descricao || cMeta.plan_clause || cMeta.planClause;
+          if (source) clausulasTexto = source;
+        }
+      }
+
+      // Title
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = 20;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(30);
+      doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS', pageWidth / 2, y, { align: 'center' });
+      y += 10;
+      
+      doc.setFontSize(11);
+      doc.text(`Contrato nº ${numeroContrato} — Plano ${nomePlano}`, pageWidth / 2, y, { align: 'center' });
+      y += 15;
+      
+      // Details
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const companyName = localStorage.getItem('empresaSelecionadaNome') || 'QUALIFY';
+      const valorStr = parseFloat(contract.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      
+      const textoObjeto = `O presente contrato tem por objeto a prestação de serviços de ${nomePlano}, celebrado entre ${companyName} ("CONTRATADA"), e ${titularNome} ("CONTRATANTE"), CPF/CNPJ ${titularCpf || 'não informado'}, sob o valor mensal de ${valorStr}, com cobrança via ${contract.forma_pagamento || 'Pix'}, conforme condições abaixo estabelecidas.`;
+      
+      const objLines = doc.splitTextToSize(textoObjeto, pageWidth - 40);
+      doc.text(objLines, 20, y);
+      y += objLines.length * 6 + 10;
+      
+      // Dependents
+      if (dependentes && dependentes.length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Lista de Dependentes:', 20, y);
+        y += 5;
+        const depData = dependentes.map(d => [d.nome || '—', d.parentesco || '—', d.cpf || d.documento || '—']);
+        autoTable(doc, {
+          startY: y,
+          head: [['Nome', 'Parentesco', 'CPF']],
+          body: depData,
+          theme: 'striped',
+          styles: { fontSize: 9 },
+          margin: { left: 20, right: 20 }
+        });
+        y = doc.lastAutoTable.finalY + 15;
+      }
+      
+      // Clauses
+      doc.setFont('helvetica', 'bold');
+      doc.text('Cláusulas do Contrato:', 20, y);
+      y += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      
+      const clauseLines = doc.splitTextToSize(clausulasTexto, pageWidth - 40);
+      
+      for (let i = 0; i < clauseLines.length; i++) {
+        if (y > pageHeight - 30) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(clauseLines[i], 20, y);
+        y += 5;
+      }
+      
+      y += 20;
+      if (y > pageHeight - 40) {
+         doc.addPage();
+         y = 30;
+      }
+      
+      // Signatures
+      doc.line(30, y, pageWidth / 2 - 10, y);
+      doc.line(pageWidth / 2 + 10, y, pageWidth - 30, y);
+      y += 5;
+      doc.setFontSize(8);
+      doc.text('Assinatura da CONTRATADA', 30, y);
+      doc.text('Assinatura do CONTRATANTE', pageWidth / 2 + 10, y);
+      
+      doc.save(`Contrato_${numeroContrato}.pdf`);
+      setActionMsg({ type: 'success', text: 'Contrato gerado com sucesso! O download foi iniciado.' });
+    } catch (e) {
+      console.error(e);
+      setActionMsg({ type: 'error', text: 'Erro ao gerar PDF: ' + e.message });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleGerarCarteirinha = async () => {
+    setIsGeneratingCard(true);
+    try {
+      const { gerarPdfCarteirinhaBuffer } = await import('../utils/pdfUtils');
+      await gerarPdfCarteirinhaBuffer(contract, family, true);
+      setActionMsg({ type: 'success', text: 'Carteirinha gerada com sucesso!' });
+    } catch (err) {
+      setActionMsg({ type: 'error', text: 'Erro ao gerar carteirinha: ' + err.message });
+    } finally {
+      setIsGeneratingCard(false);
+    }
+  };
+
   // ─── Render Guards ─────────────────────────────────────────────
   if (loading) {
     return (
@@ -674,6 +830,15 @@ export default function EdicaoContrato() {
           <button onClick={() => navigate('/contratos/ativos')} style={{ background: 'white', border: '1px solid #cbd5e1', padding: '9px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <i className="fas fa-arrow-left"></i> Voltar
           </button>
+          
+          {/* Botões Novos: Gerar PDF e Carteirinha */}
+          <button onClick={handleGerarContrato} disabled={isGeneratingPdf} style={{ background: '#10b981', color: 'white', border: 'none', padding: '9px 16px', borderRadius: '8px', cursor: isGeneratingPdf ? 'not-allowed' : 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', opacity: isGeneratingPdf ? 0.7 : 1 }}>
+            <i className={`fas ${isGeneratingPdf ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`}></i> {isGeneratingPdf ? 'Gerando...' : 'Contrato (PDF)'}
+          </button>
+          <button onClick={handleGerarCarteirinha} disabled={isGeneratingCard} style={{ background: '#8b5cf6', color: 'white', border: 'none', padding: '9px 16px', borderRadius: '8px', cursor: isGeneratingCard ? 'not-allowed' : 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', opacity: isGeneratingCard ? 0.7 : 1 }}>
+            <i className={`fas ${isGeneratingCard ? 'fa-spinner fa-spin' : 'fa-id-badge'}`}></i> {isGeneratingCard ? 'Gerando...' : 'Carteirinha'}
+          </button>
+          
           <button onClick={handleDuplicate} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '9px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
             <i className="fas fa-copy"></i> Duplicar
           </button>
@@ -1243,11 +1408,57 @@ export default function EdicaoContrato() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setNovaCobrancaModal(false)} style={{ padding: '10px 20px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
-                <button type="submit" style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Salvar Cobrança</button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '30px' }}>
+                <button type="button" onClick={() => setNovaCobrancaModal(false)} style={{ padding: '10px 20px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#475569', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                <button type="submit" disabled={isSavingCobranca} style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: isSavingCobranca ? 'not-allowed' : 'pointer', opacity: isSavingCobranca ? 0.7 : 1 }}>
+                  {isSavingCobranca ? 'Gerando...' : 'Salvar Cobrança'}
+                </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Sucesso (Link/QR Code) ── */}
+      {successLinkModal.isOpen && successLinkModal.data && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
+          <div style={{ background: 'white', padding: '30px', borderRadius: '20px', width: '100%', maxWidth: '500px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', margin: 'auto' }}>
+            <div style={{ width: '60px', height: '60px', background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#166534', fontSize: '24px' }}>
+              <i className="fas fa-check"></i>
+            </div>
+            <h3 style={{ margin: '0 0 10px', color: '#1e293b', fontSize: '1.4rem' }}>Cobrança Gerada!</h3>
+            
+            {successLinkModal.data.imagemQrcode && (
+              <div style={{ margin: '20px 0' }}>
+                <p style={{ margin: '0 0 10px', color: '#64748b', fontSize: '13px' }}>Escaneie o QR Code para pagar:</p>
+                <img src={successLinkModal.data.imagemQrcode.startsWith('http') ? successLinkModal.data.imagemQrcode : `data:image/png;base64,${successLinkModal.data.imagemQrcode}`} alt="QR Code PIX" style={{ maxWidth: '200px', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
+              </div>
+            )}
+            
+            {successLinkModal.data.pixCopiaECola && (
+              <div style={{ margin: '20px 0', textAlign: 'left' }}>
+                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Ou use o Pix Copia e Cola:</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" value={successLinkModal.data.pixCopiaECola} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#f8fafc', color: '#475569' }} />
+                  <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.pixCopiaECola); alert('Copiado!'); }} style={{ padding: '0 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}><i className="fas fa-copy"></i></button>
+                </div>
+              </div>
+            )}
+            
+            {successLinkModal.data.paymentLink && (
+              <div style={{ margin: '20px 0', textAlign: 'left' }}>
+                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Link de Pagamento da Assinatura:</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" value={successLinkModal.data.paymentLink} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#f8fafc', color: '#2563eb' }} />
+                  <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.paymentLink); alert('Copiado!'); }} style={{ padding: '0 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}><i className="fas fa-copy"></i></button>
+                </div>
+                <a href={successLinkModal.data.paymentLink} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: '10px', fontSize: '13px', color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>Acessar link externamente <i className="fas fa-external-link-alt" style={{ fontSize: '11px', marginLeft: '4px' }}></i></a>
+              </div>
+            )}
+            
+            <button onClick={() => setSuccessLinkModal({ isOpen: false, data: null })} style={{ marginTop: '10px', padding: '12px 30px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, width: '100%' }}>
+              Fechar e Voltar
+            </button>
           </div>
         </div>
       )}

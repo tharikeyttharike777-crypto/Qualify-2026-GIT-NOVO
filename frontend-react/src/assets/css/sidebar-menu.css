@@ -16,10 +16,10 @@
 /* Sobrescrever estilos conflitantes do styles.css */
 .modern-sidebar {
     position: fixed !important;
-    top: var(--header-height) !important;
+    top: 0 !important;
     left: -var(--sidebar-width) !important;
     width: var(--sidebar-width) !important;
-    height: calc(100vh - var(--header-height)) !important;
+    height: 100vh !important;
     background: var(--sidebar-bg) !important;
     color: var(--sidebar-text) !important;
     transform: translateX(-100%) !important;
@@ -45,10 +45,10 @@
 /* Compatibilidade com classe .sidebar também */
 .sidebar {
     position: fixed !important;
-    top: var(--header-height) !important;
+    top: 0 !important;
     left: -var(--sidebar-width) !important;
     width: var(--sidebar-width) !important;
-    height: calc(100vh - var(--header-height)) !important;
+    height: 100vh !important;
     background: var(--sidebar-bg) !important;
     color: var(--sidebar-text) !important;
     transform: translateX(-100%) !important;
@@ -696,16 +696,17 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.4); /* Fundo um pouco mais elegante */
+    backdrop-filter: blur(2px);
+    z-index: 9998;
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease;
 }
 
-.sidebar-overlay.active {
+.sidebar-overlay.active, .sidebar-overlay.show {
     opacity: 1;
     visibility: visible;
 }
@@ -764,9 +765,7 @@
 }
 
 @media (min-width: 769px) {
-    .sidebar-overlay {
-        display: none;
-    }
+    /* Removido o display: none do overlay para que funcione também no desktop */
 }
 
 .sidebar-close:focus {

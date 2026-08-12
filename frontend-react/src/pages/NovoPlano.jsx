@@ -78,24 +78,24 @@ export default function NovoPlano() {
           name: data.name || data.nome || data.title || '',
           status: data.status || 'ativo',
           description: data.description || data.descricao || meta.description || '',
-          maxPeople: String(data.max_people || data.maxPeople || meta.maxPeople || '5'),
-          publicPage: data.public_page || data.publicPage || meta.publicPage || 'sim',
+          maxPeople: String(data.max_people || data.maxPeople || meta.max_people || meta.maxPeople || '5'),
+          publicPage: data.public_page || data.publicPage || meta.public_page || meta.publicPage || 'sim',
 
-          gracePeriod: String(data.grace_period || data.gracePeriod || meta.gracePeriod || '30'),
-          graceType: data.grace_type || data.graceType || meta.graceType || 'geral',
-          graceDescription: data.grace_description || data.graceDescription || meta.graceDescription || '',
+          gracePeriod: String(data.grace_period || data.gracePeriod || meta.grace_period || meta.gracePeriod || '30'),
+          graceType: data.grace_type || data.graceType || meta.grace_type || meta.graceType || 'geral',
+          graceDescription: data.grace_description || data.graceDescription || meta.grace_description || meta.graceDescription || '',
 
-          adhesionValue: data.adhesion_value || data.adhesionValue || data.adesao || meta.adhesionValue || '',
-          monthlyValue: data.monthly_value || data.monthlyValue || data.mensalidade || data.valor || meta.monthlyValue || '',
-          annualValue: data.annual_value || data.annualValue || data.anual || meta.annualValue || '',
-          dependentAdditional: data.dependent_additional || data.dependentAdditional || meta.dependentAdditional || '',
-          discountPercentage: data.discount_percentage || data.discountPercentage || meta.discountPercentage || '',
+          adhesionValue: data.adhesion_value || data.adhesionValue || data.adesao || meta.adhesion_value || meta.adhesionValue || '',
+          monthlyValue: data.monthly_value || data.monthlyValue || data.mensalidade || data.valor || meta.monthly_value || meta.monthlyValue || '',
+          annualValue: data.annual_value || data.annualValue || data.anual || meta.annual_value || meta.annualValue || '',
+          dependentAdditional: data.dependent_additional || data.dependentAdditional || meta.dependent_additional || meta.dependentAdditional || '',
+          discountPercentage: data.discount_percentage || data.discountPercentage || meta.discount_percentage || meta.discountPercentage || '',
 
-          planClause: data.plan_clause || data.planClause || meta.planClause || ''
+          planClause: data.plan_clause || data.planClause || meta.plan_clause || meta.planClause || meta.clausulas || ''
         });
 
-        if (Array.isArray(data.age_prices || data.agePrices || meta.agePrices)) {
-          setAgePrices(data.age_prices || data.agePrices || meta.agePrices);
+        if (Array.isArray(data.age_prices || data.agePrices || meta.age_prices || meta.agePrices)) {
+          setAgePrices(data.age_prices || data.agePrices || meta.age_prices || meta.agePrices);
         }
       }
     } catch (err) {
@@ -142,28 +142,30 @@ export default function NovoPlano() {
       const payload = {
         name: form.name,
         status: form.status,
-        description: form.description,
-        max_people: parseInt(form.maxPeople, 10) || 1,
-        public_page: form.publicPage,
-        grace_period: parseInt(form.gracePeriod, 10) || 0,
-        grace_type: form.graceType,
-        grace_description: form.graceDescription,
-        adhesion_value: form.adhesionValue,
-        monthly_value: form.monthlyValue,
-        annual_value: form.annualValue,
-        dependent_additional: form.dependentAdditional,
-        discount_percentage: form.discountPercentage,
-        plan_clause: form.planClause,
-        age_prices: agePrices,
         company_id: companyId,
-        updated_at: new Date().toISOString()
+        metadata: {
+          description: form.description,
+          max_people: parseInt(form.maxPeople, 10) || 1,
+          public_page: form.publicPage,
+          grace_period: parseInt(form.gracePeriod, 10) || 0,
+          grace_type: form.graceType,
+          grace_description: form.graceDescription,
+          adhesion_value: form.adhesionValue,
+          monthly_value: form.monthlyValue,
+          annual_value: form.annualValue,
+          dependent_additional: form.dependentAdditional,
+          discount_percentage: form.discountPercentage,
+          plan_clause: form.planClause,
+          clausulas: form.planClause, // Para compatibilidade com a geração de PDF
+          age_prices: agePrices
+        }
       };
 
       let result;
       if (editId) {
         result = await supabase.from('planos').update(payload).eq('id', editId);
       } else {
-        result = await supabase.from('planos').insert([payload]);
+        result = await supabase.from('planos').insert([payload]).select();
       }
 
       if (result.error) throw result.error;
@@ -176,7 +178,14 @@ export default function NovoPlano() {
       } catch (e) {}
 
       setMsg({ type: 'success', text: 'Plano salvo com sucesso!' });
-      setTimeout(() => navigate('/planos/pesquisa'), 1200);
+      
+      // Se era um plano novo, atualiza a URL para modo edição silenciosamente
+      if (!editId && result.data && result.data.length > 0) {
+          navigate(`?id=${result.data[0].id}`, { replace: true });
+      }
+      
+      // Atualiza a lista de planos existentes
+      fetchExistingPlans();
     } catch (err) {
       setMsg({ type: 'error', text: 'Erro ao salvar plano: ' + err.message });
     } finally {

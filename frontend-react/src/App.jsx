@@ -96,8 +96,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         
         {/* Rotas Públicas Externas */}
-        <Route path="/area-associado/login" element={<AreaAssociadoLogin />} />
-        <Route path="/catalogo" element={<CatalogoPlanos />} />
+        <Route path="/area-associado-login" element={<AreaAssociadoLogin />} />
+        <Route path="/catalogo-planos" element={<CatalogoPlanos />} />
         
         {/* Rota Privada SEM o Layout (Menu Lateral) */}
         <Route path="/trocar-empresa" element={<PrivateRoute><TrocarEmpresa /></PrivateRoute>} />
@@ -143,7 +143,7 @@ function App() {
           <Route path="/minha-conta" element={<MinhaConta />} />
           
           {/* Configurações */}
-          <Route path="/configuracoes/bancarias" element={<ConfiguracoesBancarias />} />
+          <Route path="/configuracoes-bancarias" element={<ConfiguracoesBancarias />} />
           <Route path="/config/bancaria" element={<ConfiguracoesBancarias />} />
 
           {/* Qualquer outra aba clicada permanece dentro do Layout sem deslogar ou redirecionar */}
