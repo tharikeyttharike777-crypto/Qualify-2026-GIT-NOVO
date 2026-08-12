@@ -90,10 +90,10 @@ export default function Header({ toggleSidebar }) {
                 <span>Área do Associado</span>
               </a>
 
-              <Link to="/catalogo-planos" className="dropdown-item" role="menuitem" data-action="catalog">
-                <i className="fas fa-book"></i>
+              <a href="/catalogo-planos" className="dropdown-item" role="menuitem" data-action="catalog" target="_blank">
+                <i className="fas fa-external-link-alt"></i>
                 <span>Catálogo de Planos</span>
-              </Link>
+              </a>
 
               {/* Separador */}
               <div className="dropdown-separator"></div>
