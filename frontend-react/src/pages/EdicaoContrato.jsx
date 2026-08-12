@@ -75,9 +75,10 @@ export default function EdicaoContrato() {
   // Nova Cobranca state
   const [novaCobrancaModal, setNovaCobrancaModal] = useState(false);
   const [cobrancaForm, setCobrancaForm] = useState({ 
-    valor: '', vencimento: '', descricao: '', tipo: 'Mensalidade',
-    cpfPagador: '', metodo: 'pix', parcelas: 1, 
-    cep: '', logradouro: '', numero: '', bairro: '', cidade: '', uf: '', mensagem: ''
+    valor: '', vencimento: '', descricao: '', tipo: 'Mensalidade', 
+    cpfPagador: '', metodo: 'pix_automatico', parcelas: 1, 
+    cep: '', logradouro: '', numero: '', bairro: '', cidade: '', uf: '', mensagem: '',
+    cobrarImediatamente: false, valorImediato: '', cycle: 'MONTHLY'
   });
   const [baixandoId, setBaixandoId] = useState(null);
 
@@ -298,10 +299,12 @@ export default function EdicaoContrato() {
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
       
-      const payload = {
+      const valorOriginal = parseFloat(String(cobrancaForm.valor).replace(',', '.'));
+      const parcelas = parseInt(cobrancaForm.parcelas) || 1;
+      
+      const basePayload = {
         contrato_numero: contract?.numero || contract?.id,
-        valor: parseFloat(String(cobrancaForm.valor).replace(',', '.')),
-        vencimento: cobrancaForm.vencimento,
+        valor: valorOriginal,
         descricao: cobrancaForm.descricao,
         tipo: cobrancaForm.tipo,
         status: 'pendente',
@@ -309,53 +312,111 @@ export default function EdicaoContrato() {
         titular: titularNome
       };
       
-      if (cobrancaForm.metodo === 'pix_automatico' || cobrancaForm.metodo === 'pix') {
+      if (cobrancaForm.metodo === 'pix_automatico') {
         const token = (await supabase.auth.getSession())?.data?.session?.access_token || '';
-        const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:4570/api' : 'https://qualify-2026.onrender.com/api');
         
-        let endpoint = cobrancaForm.metodo === 'pix_automatico' ? '/subscriptions/criar-link' : '/pix/cob';
+        const valorImediato = parseFloat(String(cobrancaForm.valorImediato || cobrancaForm.valor).replace(',', '.'));
+        const isDifferentValue = cobrancaForm.cobrarImediatamente && valorImediato !== valorOriginal;
+
+        // Se tiver valor imediato diferente, cria a cobrança avulsa primeiro
+        if (isDifferentValue) {
+          const avulsaPayload = {
+            empresaId: companyId,
+            cpfCnpj: cobrancaForm.cpfPagador,
+            nomeCliente: titularNome,
+            value: valorImediato,
+            description: `Taxa Inicial / Adesão - Contrato ${basePayload.contrato_numero}`,
+            endereco: { cep: cobrancaForm.cep, logradouro: cobrancaForm.logradouro, numero: cobrancaForm.numero, bairro: cobrancaForm.bairro, cidade: cobrancaForm.cidade, uf: cobrancaForm.uf }
+          };
+          const resAvulso = await fetch(`${API_BASE}/pix/cob`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+            body: JSON.stringify(avulsaPayload)
+          });
+          if (!resAvulso.ok) throw new Error('Erro ao gerar PIX de adesão');
+        }
+
+        const apiPayload = {
+          empresaId: companyId,
+          cpfCnpj: cobrancaForm.cpfPagador,
+          nomeCliente: titularNome,
+          value: valorOriginal,
+          nextDueDate: cobrancaForm.vencimento,
+          description: basePayload.descricao || `Assinatura Contrato ${basePayload.contrato_numero}`,
+          cycle: cobrancaForm.cycle || 'MONTHLY',
+          contratoNumero: basePayload.contrato_numero,
+          // Se gerou avulso, não pede pra Woovi cobrar imediatamente de novo na assinatura
+          cobrarImediatamente: isDifferentValue ? false : cobrancaForm.cobrarImediatamente,
+          endereco: { cep: cobrancaForm.cep, logradouro: cobrancaForm.logradouro, numero: cobrancaForm.numero, bairro: cobrancaForm.bairro, cidade: cobrancaForm.cidade, uf: cobrancaForm.uf }
+        };
+
+        const res = await fetch(`${API_BASE}/subscriptions/criar-link`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify(apiPayload)
+        });
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Erro ao gerar Assinatura na API');
+        
+        setNovaCobrancaModal(false);
+        setTimeout(() => loadCobrancas(contract), 1500);
+      } else if (cobrancaForm.metodo === 'pix') {
+        const token = (await supabase.auth.getSession())?.data?.session?.access_token || '';
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:4570/api' : 'https://qualify-2026.onrender.com/api');
         
         const apiPayload = {
           empresaId: companyId,
           cpfCnpj: cobrancaForm.cpfPagador,
           nomeCliente: titularNome,
-          value: payload.valor,
-          nextDueDate: payload.vencimento,
-          description: payload.descricao || `Cobrança Contrato ${payload.contrato_numero}`,
-          cycle: 'MONTHLY',
-          contratoNumero: payload.contrato_numero,
-          cobrarImediatamente: cobrancaForm.cobrarImediatamente,
-          validadeQrCode: cobrancaForm.validadeQrCode,
-          endereco: {
-            cep: cobrancaForm.cep,
-            logradouro: cobrancaForm.logradouro,
-            numero: cobrancaForm.numero,
-            bairro: cobrancaForm.bairro,
-            cidade: cobrancaForm.cidade,
-            uf: cobrancaForm.uf
-          }
+          value: valorOriginal,
+          nextDueDate: cobrancaForm.vencimento,
+          description: basePayload.descricao || `Cobrança Contrato ${basePayload.contrato_numero}`,
+          endereco: { cep: cobrancaForm.cep, logradouro: cobrancaForm.logradouro, numero: cobrancaForm.numero, bairro: cobrancaForm.bairro, cidade: cobrancaForm.cidade, uf: cobrancaForm.uf }
         };
 
-        const res = await fetch(`${API_BASE}${endpoint}`, {
+        const res = await fetch(`${API_BASE}/pix/cob`, {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          },
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
           body: JSON.stringify(apiPayload)
         });
 
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error || 'Erro ao gerar PIX na API');
+        if (!res.ok) throw new Error('Erro ao gerar PIX avulso na API');
         
-        // A API já insere a cobrança no Supabase (em /subscriptions/criar-link e /pix/cob). 
-        // Então não precisamos fazer o insert aqui manualmente, basta recarregar a lista.
+        setNovaCobrancaModal(false);
         setTimeout(() => loadCobrancas(contract), 1500);
       } else {
-        // Se for outro método, insere direto no banco (manual)
-        const { data, error } = await supabase.from('cobrancas').insert([payload]).select().single();
+        // FLUXO NORMAL: Loop de parcelas para Pix avulso, dinheiro, cartão etc.
+        const [anoStr, mesStr, diaStr] = cobrancaForm.vencimento.split('-');
+        let anoBase = parseInt(anoStr);
+        let mesBase = parseInt(mesStr);
+        const diaBase = parseInt(diaStr);
+
+        const payloadsToInsert = [];
+        
+        for (let i = 0; i < parcelas; i++) {
+          let mesCalc = mesBase + i;
+          let anoCalc = anoBase;
+          while (mesCalc > 12) {
+            mesCalc -= 12;
+            anoCalc++;
+          }
+          const vencimentoParcela = `${anoCalc}-${String(mesCalc).padStart(2, '0')}-${String(diaBase).padStart(2, '0')}`;
+          const msgParcela = parcelas > 1 ? `${basePayload.descricao || basePayload.tipo} (${i + 1}/${parcelas})` : (basePayload.descricao || basePayload.tipo);
+          
+          payloadsToInsert.push({
+            ...basePayload,
+            vencimento: vencimentoParcela,
+            descricao: msgParcela
+          });
+        }
+        
+        const { data, error } = await supabase.from('cobrancas').insert(payloadsToInsert).select();
         if (error) throw error;
-        setCobrancasAbertas(prev => [data, ...prev]);
+        setCobrancasAbertas(prev => [...data, ...prev].sort((a,b) => new Date(a.vencimento) - new Date(b.vencimento)));
       }
       
       setNovaCobrancaModal(false);
@@ -367,6 +428,8 @@ export default function EdicaoContrato() {
       });
       setActionMsg({ type: 'success', text: 'Cobrança gerada com sucesso!' });
     } catch(err) {
+      console.error("ERRO AO SALVAR COBRANÇA:", err);
+      alert('Erro: ' + err.message);
       setActionMsg({ type: 'error', text: 'Erro ao adicionar cobrança: ' + err.message });
     }
   };
@@ -411,8 +474,9 @@ export default function EdicaoContrato() {
       uf: ufVal.toUpperCase(),
       valor: valorNum > 0 ? valorNum.toFixed(2) : '',
       vencimento: vencimentoDefault,
-      cobrarImediatamente: true,
-      validadeQrCode: ''
+      cobrarImediatamente: false,
+      valorImediato: valorNum > 0 ? valorNum.toFixed(2) : '',
+      cycle: 'MONTHLY'
     }));
     setNovaCobrancaModal(true);
   };
@@ -435,6 +499,57 @@ export default function EdicaoContrato() {
       setActionMsg({ type: 'error', text: 'Erro ao dar baixa: ' + err.message });
     } finally {
       setBaixandoId(null);
+    }
+  };
+
+  const [selectedCobrancas, setSelectedCobrancas] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleToggleSelectCobranca = (id) => {
+    setSelectedCobrancas(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleToggleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedCobrancas(cobrancasAbertas.map(c => c.id));
+    } else {
+      setSelectedCobrancas([]);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedCobrancas.length === 0) return;
+    if (!window.confirm(`Tem certeza que deseja excluir ${selectedCobrancas.length} cobrança(s)?`)) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.from('cobrancas').delete().in('id', selectedCobrancas);
+      if (error) throw error;
+      
+      setCobrancasAbertas(prev => prev.filter(c => !selectedCobrancas.includes(c.id)));
+      setSelectedCobrancas([]);
+      setActionMsg({ type: 'success', text: 'Cobranças excluídas com sucesso!' });
+      setTimeout(() => setActionMsg(null), 3000);
+    } catch (err) {
+      console.error(err);
+      setActionMsg({ type: 'error', text: 'Erro ao excluir cobranças: ' + err.message });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCobranca = async (id) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta cobrança?')) return;
+    try {
+      const { error } = await supabase.from('cobrancas').delete().eq('id', id);
+      if (error) throw error;
+      setCobrancasAbertas(prev => prev.filter(c => c.id !== id));
+      setSelectedCobrancas(prev => prev.filter(x => x !== id));
+      setActionMsg({ type: 'success', text: 'Cobrança excluída!' });
+      setTimeout(() => setActionMsg(null), 3000);
+    } catch(err) {
+      console.error(err);
+      setActionMsg({ type: 'error', text: 'Erro ao excluir: ' + err.message });
     }
   };
 
@@ -714,13 +829,16 @@ export default function EdicaoContrato() {
               </button>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '500px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
                 <thead>
                   <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #e2e8f0', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
-                    <th style={{ padding: '12px' }}>Tipo</th>
-                    <th style={{ padding: '12px' }}>Vencimento</th>
-                    <th style={{ padding: '12px' }}>Valor</th>
-                    <th style={{ padding: '12px' }}>Status</th>
+                    <th style={{ padding: '12px', width: '40px', textAlign: 'center' }}>
+                      <input type="checkbox" onChange={handleToggleSelectAll} checked={cobrancasAbertas.length > 0 && selectedCobrancas.length === cobrancasAbertas.length} style={{ cursor: 'pointer' }} />
+                    </th>
+                    <th style={{ padding: '12px', textAlign: 'left' }}>Tipo</th>
+                    <th style={{ padding: '12px', textAlign: 'left' }}>Vencimento</th>
+                    <th style={{ padding: '12px', textAlign: 'left' }}>Valor</th>
+                    <th style={{ padding: '12px', textAlign: 'left' }}>Status</th>
                     <th style={{ padding: '12px', textAlign: 'center' }}>Ações</th>
                   </tr>
                 </thead>
@@ -733,25 +851,50 @@ export default function EdicaoContrato() {
                       </td>
                     </tr>
                   ) : cobrancasAbertas.map(c => (
-                    <tr key={c.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <tr key={c.id} style={{ borderBottom: '1px solid #e2e8f0', background: selectedCobrancas.includes(c.id) ? '#eff6ff' : 'transparent' }}>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <input type="checkbox" checked={selectedCobrancas.includes(c.id)} onChange={() => handleToggleSelectCobranca(c.id)} style={{ cursor: 'pointer' }} />
+                      </td>
                       <td style={{ padding: '12px', fontWeight: 600 }}>{c.tipo || 'Mensalidade'}</td>
                       <td style={{ padding: '12px' }}>{fmtDate(c.vencimento || c.data_vencimento)}</td>
                       <td style={{ padding: '12px', fontWeight: 700, color: '#dc2626' }}>{fmtCurrency(c.valor)}</td>
                       <td style={{ padding: '12px' }}><StatusBadge status={c.status || 'pendente'} /></td>
                       <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <button 
-                          onClick={() => handleBaixaCobranca(c.id)}
-                          disabled={baixandoId === c.id}
-                          style={{ background: '#dcfce7', color: '#166534', border: 'none', padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
-                        >
-                          {baixandoId === c.id ? <i className="fas fa-spinner fa-spin"></i> : <><i className="fas fa-check"></i> Dar baixa</>}
-                        </button>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                          <button 
+                            onClick={() => handleBaixaCobranca(c.id)}
+                            disabled={baixandoId === c.id}
+                            style={{ background: '#dcfce7', color: '#166534', border: 'none', padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                          >
+                            {baixandoId === c.id ? <i className="fas fa-spinner fa-spin"></i> : <><i className="fas fa-check"></i> Dar baixa</>}
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteCobranca(c.id)}
+                            style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                            title="Excluir Cobrança"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            {selectedCobrancas.length > 0 && (
+              <div style={{ padding: '10px 16px', background: '#f1f5f9', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>{selectedCobrancas.length} cobrança(s) selecionada(s)</span>
+                <button 
+                  onClick={handleDeleteSelected}
+                  disabled={isDeleting}
+                  style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  {isDeleting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-trash"></i>} 
+                  Excluir Selecionadas
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Pagas */}
@@ -978,74 +1121,114 @@ export default function EdicaoContrato() {
 
       {/* ── Modal Nova Cobrança ── */}
       {novaCobrancaModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem', overflowY: 'auto' }}>
-          <div style={{ background: 'white', padding: '24px', borderRadius: '20px', width: '100%', maxWidth: '600px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', margin: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2rem 1rem' }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '100%', maxWidth: '750px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', margin: '2rem auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
               <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.2rem', fontWeight: 700 }}>Adicionar Cobranças</h3>
               <button onClick={() => setNovaCobrancaModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '1.2rem' }}><i className="fas fa-times"></i></button>
             </div>
             
-            <form onSubmit={handleAddCobranca} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Vencimento</label>
-                  <input type="date" value={cobrancaForm.vencimento} onChange={e => setCobrancaForm(prev => ({ ...prev, vencimento: e.target.value }))} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Valor (R$)</label>
-                  <input type="number" step="0.01" placeholder="0.00" value={cobrancaForm.valor} onChange={e => setCobrancaForm(prev => ({ ...prev, valor: e.target.value }))} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>CPF do Pagador *</label>
-                  <input type="text" placeholder="000.000.000-00" value={cobrancaForm.cpfPagador} onChange={e => setCobrancaForm(prev => ({ ...prev, cpfPagador: e.target.value }))} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Método de cobrança</label>
-                  <select value={cobrancaForm.metodo} onChange={e => setCobrancaForm(prev => ({ ...prev, metodo: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', background: '#f8f9fa' }}>
-                    <option value="pix">Pix</option>
-                    <option value="pix_automatico">Pix Automático (Recorrente)</option>
-                    <option value="cartao">Cartão (Crédito/Débito)</option>
-                    <option value="money">Dinheiro (Manual)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Quantidade de parcelas</label>
-                  <input type="number" min="1" value={cobrancaForm.parcelas} onChange={e => setCobrancaForm(prev => ({ ...prev, parcelas: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Tipo / Descrição</label>
-                  <select value={cobrancaForm.tipo} onChange={e => setCobrancaForm(prev => ({ ...prev, tipo: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}>
-                    <option value="Mensalidade">Mensalidade</option>
-                    <option value="Adesao">Adesão / Taxa Inicial</option>
-                    <option value="Avulsa">Cobrança Avulsa</option>
-                    <option value="Multa">Multa / Juros</option>
-                  </select>
-                </div>
-              </div>
-
-              {cobrancaForm.metodo === 'pix_automatico' && (
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <h4 style={{ margin: '0 0 12px', fontSize: '13px', color: '#0f172a' }}><i className="fas fa-bolt" style={{ color: '#eab308' }}></i> Configurações do Pix Automático</h4>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={cobrancaForm.cobrarImediatamente} onChange={e => setCobrancaForm(prev => ({ ...prev, cobrarImediatamente: e.target.checked }))} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                      Cobrar 1ª mensalidade imediatamente
-                    </label>
-                    <div style={{ flex: 1 }}>
-                      <input type="number" placeholder="Validade QR Code (dias)" value={cobrancaForm.validadeQrCode} onChange={e => setCobrancaForm(prev => ({ ...prev, validadeQrCode: e.target.value }))} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }} />
-                    </div>
+            <form onSubmit={handleAddCobranca} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              
+              {/* BLOCO 1: IDENTIFICAÇÃO BÁSICA */}
+              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
+                <h4 style={{ margin: '0 0 12px', fontSize: '13px', color: '#64748b', textTransform: 'uppercase' }}>1. Informações Básicas</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Método de cobrança</label>
+                    <select value={cobrancaForm.metodo} onChange={e => setCobrancaForm(prev => ({ ...prev, metodo: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #3b82f6', fontSize: '14px', background: '#eff6ff', color: '#1e293b', fontWeight: 600 }}>
+                      <option value="pix_automatico">Pix Automático (Assinatura)</option>
+                      <option value="pix">Pix (Avulso / Parcelado)</option>
+                      <option value="cartao">Cartão (Crédito/Débito)</option>
+                      <option value="money">Dinheiro (Manual)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>CPF do Pagador *</label>
+                    <input type="text" placeholder="000.000.000-00" value={cobrancaForm.cpfPagador} onChange={e => setCobrancaForm(prev => ({ ...prev, cpfPagador: e.target.value }))} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* BLOCO 2: REGRAS DE VALOR E DATA */}
+              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
+                <h4 style={{ margin: '0 0 12px', fontSize: '13px', color: '#64748b', textTransform: 'uppercase' }}>2. Detalhes do Pagamento</h4>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>
+                      {cobrancaForm.metodo === 'pix_automatico' ? 'Valor da Mensalidade (R$)' : 'Valor (R$)'}
+                    </label>
+                    <input type="number" step="0.01" placeholder="0.00" value={cobrancaForm.valor} onChange={e => setCobrancaForm(prev => ({ ...prev, valor: e.target.value, valorImediato: prev.cobrarImediatamente ? e.target.value : prev.valorImediato }))} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', background: '#f8fafc' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>
+                      {cobrancaForm.metodo === 'pix_automatico' ? 'Vencimento Base' : 'Data de Vencimento'}
+                    </label>
+                    <input type="date" value={cobrancaForm.vencimento} onChange={e => setCobrancaForm(prev => ({ ...prev, vencimento: e.target.value }))} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
+                  </div>
+                </div>
+
+                {cobrancaForm.metodo === 'pix_automatico' ? (
+                  <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#475569', fontWeight: 600 }}>Frequência (Ciclo)</label>
+                        <select value={cobrancaForm.cycle} onChange={e => setCobrancaForm(prev => ({ ...prev, cycle: e.target.value }))} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}>
+                          <option value="MONTHLY">Mensal</option>
+                          <option value="YEARLY">Anual</option>
+                          <option value="WEEKLY">Semanal</option>
+                        </select>
+                      </div>
+                      
+                      <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '16px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#0f172a', fontWeight: 600, cursor: 'pointer', marginBottom: cobrancaForm.cobrarImediatamente ? '12px' : 0 }}>
+                          <input type="checkbox" checked={cobrancaForm.cobrarImediatamente} onChange={e => setCobrancaForm(prev => ({ ...prev, cobrarImediatamente: e.target.checked, valorImediato: e.target.checked ? prev.valor : '' }))} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                          Cobrar uma taxa IMEDIATAMENTE (No ato da assinatura)
+                        </label>
+                        
+                        {cobrancaForm.cobrarImediatamente && (
+                          <div style={{ paddingLeft: '26px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <label style={{ fontSize: '12px', color: '#64748b' }}>Valor da cobrança inicial (Adesão/Matrícula):</label>
+                            <input type="number" step="0.01" value={cobrancaForm.valorImediato} onChange={e => setCobrancaForm(prev => ({ ...prev, valorImediato: e.target.value }))} style={{ width: '150px', padding: '8px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '14px', background: '#fff' }} />
+                            <small style={{ color: '#059669', fontSize: '11px' }}>* Uma cobrança avulsa será gerada para HOJE no valor de R$ {cobrancaForm.valorImediato || '0.00'}.</small>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Quantidade de parcelas</label>
+                      <input type="number" min="1" value={cobrancaForm.parcelas} onChange={e => setCobrancaForm(prev => ({ ...prev, parcelas: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* BLOCO 3: COMPLEMENTOS */}
+              <div>
+                <h4 style={{ margin: '0 0 12px', fontSize: '13px', color: '#64748b', textTransform: 'uppercase' }}>3. Complementos</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Tipo / Descrição</label>
+                    <select value={cobrancaForm.tipo} onChange={e => setCobrancaForm(prev => ({ ...prev, tipo: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}>
+                      <option value="Mensalidade">Mensalidade</option>
+                      <option value="Adesao">Adesão / Taxa Inicial</option>
+                      <option value="Avulsa">Cobrança Avulsa</option>
+                      <option value="Multa">Multa / Juros</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Mensagem (Opcional)</label>
+                    <input type="text" placeholder="Mensagem para o cliente..." value={cobrancaForm.mensagem} onChange={e => setCobrancaForm(prev => ({ ...prev, mensagem: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
+                  </div>
+                </div>
+              </div>
 
               <div>
-                <h4 style={{ margin: '16px 0 8px', color: '#64748b', fontSize: '14px' }}>
+                <h4 style={{ margin: '0 0 8px', color: '#64748b', fontSize: '14px', textTransform: 'uppercase' }}>
                   <i className="fas fa-map-marker-alt"></i> Endereço do Pagador
                 </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 80px', gap: '10px', marginBottom: '10px' }}>
@@ -1058,11 +1241,6 @@ export default function EdicaoContrato() {
                   <input type="text" placeholder="Cidade" value={cobrancaForm.cidade} onChange={e => setCobrancaForm(prev => ({ ...prev, cidade: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
                   <input type="text" placeholder="UF" value={cobrancaForm.uf} onChange={e => setCobrancaForm(prev => ({ ...prev, uf: e.target.value }))} maxLength={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', textTransform: 'uppercase' }} />
                 </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Mensagem (Opcional)</label>
-                <input type="text" placeholder="Mensagem para o cliente..." value={cobrancaForm.mensagem} onChange={e => setCobrancaForm(prev => ({ ...prev, mensagem: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px', justifyContent: 'flex-end' }}>
