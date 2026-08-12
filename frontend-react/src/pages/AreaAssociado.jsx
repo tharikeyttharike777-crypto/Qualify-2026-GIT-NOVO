@@ -110,87 +110,16 @@ export default function AreaAssociado() {
     }
     setIsGeneratingPdf(true);
     try {
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
-      
-      const numeroContrato = contrato.numero || contrato.id || 'S/N';
-      let meta = {};
-      if (contrato.metadata) try { meta = typeof contrato.metadata === 'string' ? JSON.parse(contrato.metadata) : contrato.metadata; } catch(e){}
-      const nomePlano = contrato.plano || meta.plano || 'Plano QUALIFY';
-      const titularNome = contrato.titular || contrato.cliente || meta.titular || associado?.nome || 'CLIENTE NÃO IDENTIFICADO';
-      
-      // Fetch plan clauses
-      let clausulasTexto = [
-        '1. O presente contrato tem vigência conforme período estipulado, podendo ser renovado automaticamente.',
-        '2. O CONTRATANTE se compromete a manter os pagamentos em dia conforme modalidade escolhida.',
-        '3. Os serviços serão prestados conforme especificações do plano contratado.',
-        '4. O cancelamento deve ser solicitado com no mínimo 30 (trinta) dias de antecedência.',
-        '5. Em caso de inadimplência superior a 60 dias, o contrato poderá ser suspenso.',
-        '6. Ambas as partes concordam com as condições aqui estabelecidas, firmando o presente instrumento.'
-      ].join('\n\n');
-      
-      // Cabeçalho
-      doc.setFillColor(30, 41, 59); // Slate 800
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      doc.text('QUALIFY', 14, 20);
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Clube de Benefícios', 14, 28);
-      
-      doc.setFontSize(16);
-      doc.text('CONTRATO DE ADESÃO', 196, 24, { align: 'right' });
-      
-      doc.setTextColor(0, 0, 0);
-      
-      // Detalhes do Contrato
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('1. DADOS DO CONTRATO', 14, 55);
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Número: #${numeroContrato}`, 14, 65);
-      doc.text(`Titular: ${titularNome}`, 14, 72);
-      doc.text(`Plano Contratado: ${nomePlano}`, 14, 79);
-      
-      const docDate = new Date().toLocaleDateString('pt-BR');
-      doc.text(`Data de Emissão: ${docDate}`, 14, 86);
-      
-      // Cláusulas
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('2. TERMOS E CONDIÇÕES', 14, 105);
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      
-      const splitText = doc.splitTextToSize(clausulasTexto, 180);
-      doc.text(splitText, 14, 115);
-      
-      // Assinatura
-      doc.setDrawColor(150, 150, 150);
-      doc.line(14, 220, 90, 220);
-      doc.text(String(titularNome).toUpperCase(), 14, 227);
-      doc.setFontSize(8);
-      doc.text('CONTRATANTE / TITULAR', 14, 232);
-      
-      doc.line(110, 220, 186, 220);
-      doc.setFontSize(10);
-      doc.text('QUALIFY CLUBE DE BENEFÍCIOS', 110, 227);
-      doc.setFontSize(8);
-      doc.text('CONTRATADA', 110, 232);
-      
-      // Rodapé
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text('Este documento foi gerado digitalmente e possui validade jurídica entre as partes.', 105, 280, { align: 'center' });
-      
-      doc.save(`Contrato_${numeroContrato}.pdf`);
+      const familyMock = {
+        id: associado?.id,
+        titular: {
+          nome: associado?.nome,
+          cpf: associado?.cpf
+        },
+        cpf: associado?.cpf
+      };
+      const { gerarPdfContratoBuffer } = await import('../utils/pdfUtils');
+      await gerarPdfContratoBuffer(contrato, familyMock, supabase);
     } catch (error) {
       console.error(error);
       alert('Erro ao gerar PDF: ' + error.message);
