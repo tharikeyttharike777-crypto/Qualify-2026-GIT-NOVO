@@ -21,33 +21,40 @@ export default function AreaAssociadoLogin() {
       // Limpa pontuações do documento para busca
       const cleanDoc = documento.replace(/[^\d]/g, '');
       
-      // Busca cliente na tabela contratos pelo CPF
-      const { data: contracts, error } = await supabase
-        .from('contratos')
-        .select('id, titular, cpf, family_id')
-        .ilike('cpf', `%${cleanDoc}%`)
-        .limit(1);
+      // Busca todas as familias para encontrar pelo CPF (como está salvo com formatação, é mais seguro filtrar no JS)
+      const { data: familias, error } = await supabase
+        .from('familias')
+        .select('id, titular, metadata');
 
       if (error) throw error;
 
-      if (contracts && contracts.length > 0) {
-        // Sucesso! O cliente tem um contrato.
-        const cliente = contracts[0];
-        // Em um sistema real, aqui criaríamos um token JWT ou sessão de cliente.
-        // Como é uma área de associado simples, vamos armazenar os dados no sessionStorage.
+      // Encontra a família correspondente
+      const familiaEncontrada = familias?.find(f => {
+        let meta = {};
+        if (f.metadata) {
+          try { meta = typeof f.metadata === 'string' ? JSON.parse(f.metadata) : f.metadata; } catch(e){}
+        }
+        const cpf = String(f.titular?.cpf || f.titular?.documento || meta.cpf || '').replace(/[^\d]/g, '');
+        return cpf === cleanDoc;
+      });
+
+      if (familiaEncontrada) {
+        // Sucesso! O cliente existe.
+        const nomeTitular = familiaEncontrada.titular?.nome || familiaEncontrada.titular?.name || 'Associado';
+        
         sessionStorage.setItem('associado_auth', JSON.stringify({
-          id: cliente.id,
-          nome: cliente.titular,
-          cpf: cliente.cpf,
-          family_id: cliente.family_id
+          id: familiaEncontrada.id,
+          nome: nomeTitular,
+          cpf: cleanDoc,
+          family_id: familiaEncontrada.id
         }));
         
         navigate('/associado/painel');
       } else {
-        setErrorMsg('Cadastro não encontrado. Verifique se o documento está correto.');
+        setErrorMsg('Cadastro não encontrado. Verifique se o CPF/CNPJ está correto.');
       }
     } catch (err) {
-      console.error(err);
+      console.error('Erro no login:', err);
       setErrorMsg('Erro ao tentar conectar. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
