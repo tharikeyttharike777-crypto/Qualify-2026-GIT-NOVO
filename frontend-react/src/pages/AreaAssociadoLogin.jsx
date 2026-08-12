@@ -5,7 +5,6 @@ import { supabase } from '../services/supabase';
 export default function AreaAssociadoLogin() {
   const navigate = useNavigate();
   const [documento, setDocumento] = useState('');
-  const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
@@ -73,28 +72,13 @@ export default function AreaAssociadoLogin() {
         )}
 
         <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: '1.2rem', textAlign: 'left' }}>
+          <div style={{ marginBottom: '2rem', textAlign: 'left' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#475569', fontSize: '0.9rem' }}>CPF ou CNPJ do Titular</label>
             <input 
               type="text" 
               value={documento}
               onChange={(e) => setDocumento(e.target.value)}
               placeholder="Digite apenas números" 
-              style={{ width: '100%', padding: '14px', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none', background: '#f8fafc', fontSize: '1rem', transition: 'border-color 0.2s' }} 
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-              onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
-            />
-          </div>
-          <div style={{ marginBottom: '2rem', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <label style={{ fontWeight: 600, color: '#475569', fontSize: '0.9rem' }}>Senha de Acesso</label>
-              <a href="#" style={{ color: '#3b82f6', fontSize: '0.8rem', textDecoration: 'none', fontWeight: 600 }}>Primeiro acesso?</a>
-            </div>
-            <input 
-              type="password" 
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="Sua senha ou data de nascimento" 
               style={{ width: '100%', padding: '14px', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none', background: '#f8fafc', fontSize: '1rem', transition: 'border-color 0.2s' }} 
               onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
               onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}

@@ -180,21 +180,7 @@ export default function ConfiguracoesBancarias() {
           </div>
         </div>
 
-        {/* MERCADO PAGO CARD (Desabilitado) */}
-        <div style={{ background: 'white', padding: '2rem', borderRadius: '16px', border: '1px dashed #cbd5e1', opacity: 0.7 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
-            <div style={{ width: '56px', height: '56px', background: '#f8fafc', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-              <i className="fas fa-handshake fa-2x"></i>
-            </div>
-            <div>
-              <h2 style={{ margin: '0 0 4px', fontSize: '1.3rem', color: '#64748b' }}>Mercado Pago</h2>
-              <span style={{ background: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>EM BREVE</span>
-            </div>
-          </div>
-          <p style={{ color: '#94a3b8', lineHeight: '1.6' }}>
-            A integração com o Mercado Pago para cobranças no cartão de crédito está em desenvolvimento e será liberada em atualizações futuras.
-          </p>
-        </div>
+
 
       </div>
     </div>
