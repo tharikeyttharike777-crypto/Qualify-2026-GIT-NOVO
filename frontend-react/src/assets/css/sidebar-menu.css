@@ -1,0 +1,1029 @@
+/* ===== MENU LATERAL FIXO ===== */
+
+/* Variáveis CSS para consistência */
+:root {
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 60px;
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #333333;
+    --sidebar-hover: #f5f5f5;
+    --sidebar-active: #2196F3;
+    --sidebar-border: #e0e0e0;
+    --transition-speed: 0.3s;
+    --header-height: 60px;
+}
+
+/* Sobrescrever estilos conflitantes do styles.css */
+.modern-sidebar {
+    position: fixed !important;
+    top: var(--header-height) !important;
+    left: -var(--sidebar-width) !important;
+    width: var(--sidebar-width) !important;
+    height: calc(100vh - var(--header-height)) !important;
+    background: var(--sidebar-bg) !important;
+    color: var(--sidebar-text) !important;
+    transform: translateX(-100%) !important;
+    transition: transform var(--transition-speed) ease !important;
+    z-index: 9999 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+    border-right: 1px solid var(--sidebar-border) !important;
+    padding: 0 !important;
+}
+
+/* Estado aberto do sidebar - classe .menu-aberto conforme especificação */
+.modern-sidebar.menu-aberto {
+    transform: translateX(0) !important;
+}
+
+/* Manter compatibilidade com classe .open existente */
+.modern-sidebar.open {
+    transform: translateX(0) !important;
+}
+
+/* Compatibilidade com classe .sidebar também */
+.sidebar {
+    position: fixed !important;
+    top: var(--header-height) !important;
+    left: -var(--sidebar-width) !important;
+    width: var(--sidebar-width) !important;
+    height: calc(100vh - var(--header-height)) !important;
+    background: var(--sidebar-bg) !important;
+    color: var(--sidebar-text) !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 9999 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+    border-right: 1px solid var(--sidebar-border) !important;
+    padding: 0 !important;
+}
+
+.sidebar.menu-aberto {
+    transform: translateX(0) !important;
+}
+
+.sidebar.open {
+    transform: translateX(0) !important;
+}
+
+/* Conteúdo principal empurrado suavemente pelo sidebar */
+.main-content {
+    margin-top: var(--header-height) !important;
+    transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-left: 0;
+}
+
+@media (min-width: 769px) {
+    .main-content.sidebar-open {
+        margin-left: 300px !important;
+    }
+    .main-content.sidebar-closed {
+        margin-left: 0 !important;
+    }
+}
+
+/* Header do sidebar */
+.sidebar-header {
+    padding: 20px;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--sidebar-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logotipo clicável */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--sidebar-text);
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.sidebar-logo:hover {
+    color: var(--sidebar-active);
+}
+
+.sidebar-logo i {
+    font-size: 1.5rem;
+    color: var(--sidebar-active);
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--sidebar-text);
+}
+
+.sidebar-logo h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: inherit;
+}
+
+.sidebar-close {
+    background: none;
+    border: none;
+    color: var(--sidebar-text);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.sidebar-close:hover {
+    background: var(--sidebar-hover);
+}
+
+/* Conteúdo do sidebar */
+.sidebar-content {
+    padding: 0;
+}
+
+/* Estilos para a nova seção de informações do usuário */
+.sidebar-user-info {
+    padding: 1rem;
+    border-bottom: 1px solid var(--sidebar-border);
+    background-color: #f8f9fa;
+}
+
+.sidebar-user-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+.sidebar-user-info span {
+    font-weight: 600;
+    color: #343a40;
+}
+
+/* ===== MENU PRINCIPAL ===== */
+.sidebar-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item {
+    border-bottom: 1px solid var(--sidebar-border);
+    width: 100%;
+}
+
+/* ===== SUBMENU (ACCORDION) ===== */
+.submenu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #f8f9fa;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.2s ease;
+    opacity: 0;
+    position: static;
+    width: 100%;
+    display: block;
+}
+
+.menu-item.expanded .submenu {
+    max-height: 600px;
+    opacity: 1;
+    transition: max-height 0.4s ease-in, opacity 0.4s ease 0.1s;
+    padding: 8px 0;
+    visibility: visible !important;
+    display: block !important;
+}
+.menu-link {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    font-weight: 500;
+    border-radius: 0;
+    margin: 2px 8px;
+    border-radius: 12px;
+}
+
+.menu-link:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-active);
+}
+
+.menu-link.active {
+    background: rgba(33, 150, 243, 0.15);
+    color: #1976d2;
+    font-weight: 600;
+    border-left: 3px solid #2196F3;
+}
+
+.menu-link.active:hover {
+    background: rgba(33, 150, 243, 0.1);
+}
+
+/* Remover indicador duplicado - já usando border-left */
+
+/* Ícones do menu */
+.menu-link i[class^="icon-"] {
+    width: 24px;
+    height: 24px;
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.menu-link:hover i[class^="icon-"] {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.menu-link.active i[class^="icon-"] {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Ícones personalizados usando Font Awesome (substitui emojis) */
+.menu-link i { font-style: normal; }
+.icon-star::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f005"; /* fa-star */
+    font-size: 16px;
+}
+.icon-contract::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f56c"; /* fa-file-contract */
+    font-size: 16px;
+}
+.icon-money::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f0d6"; /* fa-money-bill */
+    font-size: 16px;
+}
+.icon-family::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f0c0"; /* fa-users */
+    font-size: 16px;
+}
+/* Novos ícones: Planos e Operações */
+.icon-plan::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f46d"; /* fa-clipboard-list */
+    font-size: 16px;
+}
+.icon-ops::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f085"; /* fa-gears */
+    font-size: 16px;
+}
+
+/* Texto do menu */
+.menu-text {
+    flex: 1;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+}
+
+/* Seta do accordion */
+.arrow-icon {
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    margin-left: auto;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 4px 6px;
+    border-radius: 6px;
+    font-style: normal; /* prevent italic */
+}
+
+/* Show chevron icon via Font Awesome */
+.arrow-icon::before {
+    content: "\f078"; /* fa-chevron-down */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.menu-link:hover .arrow-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.menu-link.active .arrow-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.menu-item.expanded .arrow-icon {
+    transform: rotate(180deg);
+}
+
+/* Itens do submenu */
+.submenu li {
+    margin: 2px 0;
+}
+
+.submenu a {
+    display: block;
+    padding: 12px 20px 12px 50px;
+    color: #2c3e50; /* Cor mais escura para melhor contraste */
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    margin: 0 12px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.8); /* Fundo semi-transparente para melhor visibilidade */
+}
+
+.submenu a:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-active);
+    padding-left: 56px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra para destacar */
+}
+
+.submenu a.active {
+    background: rgba(33, 150, 243, 0.15); /* Fundo mais visível para item ativo */
+    color: #1976d2; /* Cor mais forte para item ativo */
+    font-weight: 600;
+    border-left: 3px solid #2196F3; /* Borda lateral para destacar */
+}
+
+.submenu a::before {
+    content: '•';
+    position: absolute;
+    left: 25px;
+    color: #495057; /* Cor mais escura para o bullet point */
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+.submenu a:hover::before,
+.submenu a.active::before {
+    color: #2196F3; /* Cor azul para hover e ativo */
+}
+
+/* ===== SUBMENU (ACCORDION) ===== */
+/* Remover qualquer posicionamento lateral dos submenus */
+.submenu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #f8f9fa;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.3s ease,
+                padding 0.3s ease;
+    opacity: 0;
+    position: static !important; /* Força o posicionamento estático */
+    width: 100% !important;
+    left: auto !important; /* Remove qualquer posicionamento à esquerda */
+    right: auto !important; /* Remove qualquer posicionamento à direita */
+    top: auto !important; /* Remove qualquer posicionamento ao topo */
+    transform: none !important; /* Remove qualquer transformação */
+    display: block !important; /* Força exibição como bloco */
+    visibility: hidden;
+}
+
+/* Garante visibilidade quando expandido */
+.menu-item.expanded .submenu {
+    visibility: visible !important;
+    max-height: 1000px !important; /* Aumentado para acomodar mais itens */
+    opacity: 1 !important;
+    padding: 8px 0 !important;
+}
+
+/* Garante que o menu principal seja um contêiner de coluna flexível */
+.sidebar-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+}
+
+/* Garante que cada item do menu ocupe toda a largura */
+.menu-item {
+    border-bottom: 1px solid var(--sidebar-border);
+    width: 100% !important;
+    position: relative !important;
+    display: block !important;
+}
+
+.submenu li {
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+.submenu li:last-child {
+    border-bottom: none;
+}
+
+.submenu a {
+    display: block;
+    padding: 12px 20px 12px 52px;
+    color: #666;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.submenu a:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-active);
+    padding-left: 56px;
+}
+
+.submenu a.active {
+    background: rgba(33, 150, 243, 0.15);
+    color: #1976D2;
+    font-weight: 600;
+    border-left: 3px solid #2196F3;
+}
+
+/* ===== OVERLAY PARA MOBILE ===== */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ===== BOTÃO HAMBURGER NO HEADER ===== */
+.hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 24px;
+    height: 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: var(--sidebar-text);
+    border-radius: 1px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.hamburger-menu.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 1024px) {
+    .sidebar {
+        left: -100% !important;
+        z-index: 1001 !important;
+        box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .sidebar.open {
+        left: 0 !important;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    /* Ajustes para telas menores */
+    .menu-text {
+        font-size: 14px;
+    }
+    
+    .submenu a {
+        padding: 10px 15px 10px 40px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 280px !important;
+        max-width: 90vw !important;
+    }
+    
+    .sidebar-header h3 {
+        font-size: 18px;
+    }
+    
+    .menu-text {
+        font-size: 13px;
+    }
+    
+    .submenu a {
+        padding: 8px 12px 8px 35px;
+        font-size: 12px;
+    }
+}
+
+/* Animação do ícone de seta */
+.arrow-icon {
+    transition: transform 0.3s ease;
+    display: inline-block;
+    font-size: 12px;
+    margin-left: auto;
+    font-style: normal; /* prevent italic */
+}
+
+.menu-item.expanded .arrow-icon {
+    transform: rotate(180deg);
+}
+
+/* Efeitos de foco para acessibilidade */
+.menu-link:focus {
+    outline: 2px solid var(--sidebar-active);
+    outline-offset: 2px;
+    background-color: var(--sidebar-hover);
+}
+
+.hamburger-menu:focus {
+    outline: 2px solid var(--sidebar-active);
+    outline-offset: 2px;
+}
+
+/* Estados de carregamento */
+.sidebar.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.sidebar.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--sidebar-active);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Melhorias visuais adicionais */
+.menu-item:not(:last-child) {
+    margin-bottom: 1px;
+}
+
+.submenu {
+    border-left: 2px solid var(--sidebar-border);
+    margin-left: 20px;
+}
+
+.submenu a:hover {
+    background-color: var(--sidebar-hover);
+    border-left: 3px solid var(--sidebar-active);
+    padding-left: 49px;
+}
+
+/* O indicador visual é tratado exclusivamente pela classe .arrow-icon e seu pseudo-elemento ::before */
+
+@media (max-width: 480px) {
+    .sidebar {
+        width: 260px !important;
+        max-width: 85vw !important;
+    }
+    
+    .sidebar-header {
+        padding: 15px;
+    }
+    
+    .menu-link {
+        padding: 12px 15px;
+    }
+    
+    .submenu a {
+        padding: 10px 15px 10px 45px;
+    }
+}
+
+/* ===== SCROLLBAR CUSTOMIZADA ===== */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* ===== ANIMAÇÕES ADICIONAIS ===== */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.sidebar.open {
+    animation: slideIn 0.3s ease;
+}
+
+/* Estados de foco para acessibilidade */
+.menu-link:focus,
+.submenu a:focus {
+    outline: 2px solid var(--sidebar-active);
+    outline-offset: -2px;
+}
+
+/* ===== OVERLAY PARA MOBILE ===== */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ===== BOTÃO HAMBURGER ===== */
+.hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu span {
+    width: 25px;
+    height: 3px;
+    background: var(--sidebar-text);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.hamburger-menu:hover span {
+    background: var(--sidebar-active);
+}
+
+/* Animação do botão hamburger quando ativo */
+.hamburger-menu.active span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* ===== RESPONSIVIDADE MELHORADA ===== */
+@media (max-width: 768px) {
+    .sidebar-overlay {
+        display: block;
+    }
+    
+    .sidebar {
+        top: 0 !important;
+        height: 100vh !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .sidebar-overlay {
+        display: none;
+    }
+}
+
+.sidebar-close:focus {
+    outline: 2px solid var(--sidebar-active);
+    outline-offset: 2px;
+}
+
+/* ===== SEÇÃO DO USUÁRIO ===== */
+.sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px;
+    background: var(--sidebar-bg);
+    border-top: 1px solid var(--sidebar-border);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 10px;
+}
+
+.user-avatar {
+    margin-right: 12px;
+}
+
+.user-avatar i {
+    font-size: 32px;
+    color: var(--sidebar-active);
+}
+
+.user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--sidebar-text);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-email {
+    font-size: 12px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-profile,
+.btn-logout {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-profile {
+    background: #f8f9fa;
+    color: #495057;
+    flex: 1;
+}
+
+.btn-profile:hover {
+    background: #e9ecef;
+    color: var(--sidebar-active);
+}
+
+.btn-logout {
+    background: #dc3545;
+    color: white;
+    flex: 1;
+}
+
+.btn-logout:hover {
+    background: #c82333;
+}
+
+.btn-profile i,
+.btn-logout i {
+    font-size: 16px;
+}
+
+/* Responsividade para seção do usuário */
+@media (max-width: 768px) {
+    .sidebar-footer {
+        padding: 12px;
+    }
+    
+    .user-info {
+        padding: 8px 0;
+        margin-bottom: 8px;
+    }
+    
+    .user-avatar i {
+        font-size: 28px;
+    }
+    
+    .user-name {
+        font-size: 13px;
+    }
+    
+    .user-email {
+        font-size: 11px;
+    }
+}
+
+/* ===== ESTILOS PARA INFORMAÇÕES DO USUÁRIO E EMPRESA ===== */
+.sidebar-user-company {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--sidebar-border);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    margin: 0;
+}
+
+.user-company-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.user-info,
+.company-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border-left: 3px solid var(--sidebar-active);
+    transition: all 0.2s ease;
+}
+
+.user-info:hover,
+.company-info:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateX(2px);
+}
+
+.user-info i,
+.company-info i {
+    font-size: 16px;
+    color: var(--sidebar-active);
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.user-email,
+.company-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2c3e50;
+    line-height: 1.3;
+    word-break: break-word;
+    flex: 1;
+}
+
+.user-email {
+    font-family: 'Courier New', monospace;
+}
+
+.company-name {
+    font-weight: 600;
+}
+
+/* Responsividade para informações do usuário e empresa */
+@media (max-width: 768px) {
+    .sidebar-user-company {
+        padding: 12px 15px;
+    }
+    
+    .user-company-info {
+        gap: 10px;
+    }
+    
+    .user-info,
+    .company-info {
+        padding: 6px 10px;
+        gap: 8px;
+    }
+    
+    .user-info i,
+    .company-info i {
+        font-size: 14px;
+        width: 18px;
+    }
+    
+    .user-email,
+    .company-name {
+        font-size: 12px;
+    }
+}
+
+/* ===== FIX: SUBMENUS NÃO DEVEM SOBREPOR OUTROS ITENS DO MENU ===== */
+/*
+ * Garante que todos os submenus se comportem como accordion (empurram conteúdo para baixo),
+ * sem nunca flutuar sobre os outros itens do menu lateral.
+ * Corrige o problema relatado com "Produto Planos" sobrepondo outros menus.
+ */
+.sidebar .submenu,
+.modern-sidebar .submenu,
+nav#sidebar .submenu {
+    position: static !important;
+    float: none !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    max-height: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    overflow: hidden !important;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.3s ease-in-out, 
+                visibility 0.35s ease !important;
+}
+
+/* Quando expandido, desdobra suavemente a sanfona */
+.sidebar .menu-item.expanded > .submenu,
+.modern-sidebar .menu-item.expanded > .submenu,
+nav#sidebar .menu-item.expanded > .submenu {
+    max-height: 500px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: hidden !important;
+}
+
+/* Itens de menu pai (li com .has-submenu) não devem ter overflow:hidden */
+.sidebar .menu-item.has-submenu,
+.modern-sidebar .menu-item.has-submenu,
+nav#sidebar .menu-item.has-submenu {
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* O item expandido ganha z-index levemente maior para destaque visual, mas sem sair do fluxo */
+.sidebar .menu-item.has-submenu.expanded,
+.modern-sidebar .menu-item.has-submenu.expanded,
+nav#sidebar .menu-item.has-submenu.expanded {
+    z-index: 2 !important;
+}

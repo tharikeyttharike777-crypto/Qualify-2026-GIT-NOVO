@@ -1,0 +1,244 @@
+
+
+.login-page-wrapper {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.login-container {
+    background: white;
+    padding: 1.953125rem;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 800px;
+    margin: 4vh 0;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease-out;
+    zoom: 0.75;
+}
+
+.login-container.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h1 {
+    color: #333;
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.login-header p {
+    color: #666;
+    margin: 0.5rem 0 0 0;
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+    position: relative;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+    font-size: 1.1rem;
+    z-index: 10;
+    padding: 5px;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #667eea;
+}
+
+.form-group.has-toggle input {
+    padding-right: 45px;
+}
+
+.input-with-toggle {
+    position: relative;
+}
+
+.input-with-toggle .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.9rem;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-hint {
+    display: block;
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.login-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.login-options {
+    margin: 1.5rem 0;
+}
+
+.google-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: #fff;
+    color: #333;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.google-btn:hover {
+    border-color: #db4437;
+    background: #f8f9fa;
+}
+
+.google-btn i {
+    color: #db4437;
+}
+
+.forgot-password {
+    display: block;
+    text-align: center;
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.switch-form {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e1e5e9;
+}
+
+.switch-form p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.switch-form a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.switch-form a:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    color: #e74c3c;
+    text-align: center;
+    margin-top: 1rem;
+    padding: 0.8rem;
+    background: #fdf2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.success-message {
+    color: #27ae60;
+    text-align: center;
+    margin-top: 1rem;
+    padding: 0.8rem;
+    background: #f0f9f4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .login-header h1 {
+        font-size: 1.7rem;
+    }
+}

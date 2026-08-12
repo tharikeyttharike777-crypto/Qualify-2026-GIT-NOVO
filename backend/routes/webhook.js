@@ -24,13 +24,14 @@ router.post('/woovi', async (req, res) => {
         // Para PIX Automático, a Woovi envia o objeto "pixAutomatic" ou "subscription"
         const pixAutomatic = payload.pixAutomatic || payload.subscription || null;
 
-        console.log(`📨 Webhook Woovi recebido: ${event}`, charge ? `ChargeID: ${charge.correlationID}` : '', pixAutomatic ? `SubID: ${pixAutomatic.globalID || pixAutomatic.correlationID || '?'}` : '');
+        const webhookId = payload.webhookId || payload.id || 'N/A';
+        console.log(`📨 Webhook Woovi recebido: ${event} | WebhookID: ${webhookId}`, charge ? `ChargeID: ${charge.correlationID}` : '', pixAutomatic ? `SubID: ${pixAutomatic.globalID || pixAutomatic.correlationID || '?'}` : '');
 
         // Responde rápido para a Woovi não dar timeout
         res.status(200).send({ received: true });
 
         if (!event) {
-            console.warn('⚠️ Webhook recebido sem campo "event". Ignorado.');
+            console.warn(`⚠️ Webhook recebido sem campo "event" (WebhookID: ${webhookId}). Payload:`, JSON.stringify(payload, null, 2));
             return;
         }
 
@@ -41,7 +42,7 @@ router.post('/woovi', async (req, res) => {
         // -----------------------------------------------------------------------
         if (event === 'OPENPIX:CHARGE_COMPLETED' || event === 'CHARGE_COMPLETED') {
             if (!charge || !charge.correlationID) {
-                console.warn('⚠️ CHARGE_COMPLETED sem charge.correlationID. Ignorado.');
+                console.warn(`⚠️ CHARGE_COMPLETED sem charge.correlationID (WebhookID: ${webhookId}). Ignorado.`);
                 return;
             }
 
@@ -67,24 +68,26 @@ router.post('/woovi', async (req, res) => {
         // 2. PIX AVULSO — CHARGE_EXPIRED
         // -----------------------------------------------------------------------
         if (event === 'OPENPIX:CHARGE_EXPIRED' || event === 'CHARGE_EXPIRED') {
-            if (!charge || !charge.correlationID) return;
+            if (!charge || !charge.correlationID) {
+                console.warn(`⚠️ CHARGE_EXPIRED sem charge.correlationID (WebhookID: ${webhookId}).`);
+                return;
+            }
 
-            await supabase
+            const { error } = await supabase
                 .from('cobrancas')
                 .update({ status: 'vencida', updated_at: new Date() })
                 .eq('id_asaas', charge.correlationID);
 
-            console.log(`⏰ PIX avulso ${charge.correlationID} marcado como VENCIDO`);
+            if (!error) {
+                console.log(`⏰ PIX avulso ${charge.correlationID} marcado como VENCIDO`);
+            } else {
+                console.warn(`⚠️ Erro ao atualizar VENCIMENTO de ${charge.correlationID}:`, error.message);
+            }
             return;
         }
 
         // -----------------------------------------------------------------------
         // 3. PIX AUTOMÁTICO — PARCELA PAGA (evento principal de baixa de parcela)
-        //    Evento: PIX_AUTOMATIC_COBR_COMPLETED
-        //
-        //    A Woovi envia o "charge" da parcela e o "pixAutomatic" (assinatura).
-        //    A cobrança no banco foi salva com id_asaas = subscription.globalID.
-        //    Precisamos buscar tanto por subscription_id quanto por id_asaas.
         // -----------------------------------------------------------------------
         if (event === 'PIX_AUTOMATIC_COBR_COMPLETED') {
             const subscriptionGlobalID = pixAutomatic?.globalID || pixAutomatic?.correlationID || null;
@@ -94,38 +97,33 @@ router.post('/woovi', async (req, res) => {
 
             console.log(`💳 PIX_AUTOMATIC_COBR_COMPLETED — SubID: ${subscriptionGlobalID} | ChargeID: ${chargeCorrelationID}`);
 
-            // Tentativa 1: busca pelo subscription_id (forma padrão para PIX Automático)
+            // Tentativa 1: busca pelo subscription_id
+            let targetCobranca = null;
             if (subscriptionGlobalID) {
-                const { data: rows, error: errBusca } = await supabase
+                const { data: rows } = await supabase
                     .from('cobrancas')
-                    .select('id, status')
+                    .select('id, contrato_numero, company_id')
                     .eq('subscription_id', subscriptionGlobalID)
-                    .neq('status', 'paga') // não sobrescreve se já estava paga
+                    .neq('status', 'paga')
                     .limit(1);
-
-                if (!errBusca && rows && rows.length > 0) {
-                    const { error: errUpdate } = await supabase
-                        .from('cobrancas')
-                        .update({
-                            status: 'paga',
-                            data_pagamento: dataPagamento,
-                            valor_pago: valorPago,
-                            updated_at: new Date()
-                        })
-                        .eq('subscription_id', subscriptionGlobalID);
-
-                    if (!errUpdate) {
-                        console.log(`✅ Parcela do PIX Automático (sub: ${subscriptionGlobalID}) marcada como PAGA via subscription_id`);
-                        return;
-                    } else {
-                        console.warn(`⚠️ Erro ao atualizar via subscription_id:`, errUpdate.message);
-                    }
-                }
+                
+                if (rows && rows.length > 0) targetCobranca = rows[0];
             }
 
-            // Tentativa 2: busca pelo id_asaas com o correlationID da charge (fallback)
-            if (chargeCorrelationID) {
-                const { error: errUpdate2 } = await supabase
+            // Tentativa 2: fallback busca pelo id_asaas
+            if (!targetCobranca && chargeCorrelationID) {
+                const { data: rows } = await supabase
+                    .from('cobrancas')
+                    .select('id, contrato_numero, company_id')
+                    .eq('id_asaas', chargeCorrelationID)
+                    .neq('status', 'paga')
+                    .limit(1);
+                
+                if (rows && rows.length > 0) targetCobranca = rows[0];
+            }
+
+            if (targetCobranca) {
+                const { error: errUpdate } = await supabase
                     .from('cobrancas')
                     .update({
                         status: 'paga',
@@ -133,40 +131,56 @@ router.post('/woovi', async (req, res) => {
                         valor_pago: valorPago,
                         updated_at: new Date()
                     })
-                    .eq('id_asaas', chargeCorrelationID);
+                    .eq('id', targetCobranca.id);
 
-                if (!errUpdate2) {
-                    console.log(`✅ Parcela do PIX Automático (charge: ${chargeCorrelationID}) marcada como PAGA via id_asaas`);
+                if (!errUpdate) {
+                    console.log(`✅ Parcela do PIX Automático (id: ${targetCobranca.id}) marcada como PAGA`);
+                    
+                    // Registro no histórico
+                    if (targetCobranca.contrato_numero && targetCobranca.company_id) {
+                        await supabase.from('eventos').insert({
+                            contrato_id: String(targetCobranca.contrato_numero),
+                            company_id: String(targetCobranca.company_id),
+                            tipo: 'pagamento',
+                            descricao: `Pagamento recebido via PIX Automático (ChargeID: ${chargeCorrelationID || 'N/A'})`,
+                            metodo: 'PIX Automático',
+                            valor: valorPago,
+                            data: new Date().toISOString()
+                        });
+                    }
                 } else {
-                    console.warn(`⚠️ Nenhum registro encontrado para SubID ${subscriptionGlobalID} ou ChargeID ${chargeCorrelationID}. Payload completo:`, JSON.stringify(payload, null, 2));
+                    console.error(`❌ Erro ao atualizar cobranca ${targetCobranca.id}:`, errUpdate.message);
                 }
+            } else {
+                console.warn(`⚠️ Nenhuma cobrança pendente encontrada para SubID ${subscriptionGlobalID} ou ChargeID ${chargeCorrelationID}.`);
             }
             return;
         }
 
         // -----------------------------------------------------------------------
         // 4. PIX AUTOMÁTICO — AUTORIZADO PELO CLIENTE NO BANCO
-        //    Evento: PIX_AUTOMATIC_APPROVED
-        //    Atualiza status para 'ativo' ou 'autorizado' (não é pagamento ainda)
         // -----------------------------------------------------------------------
         if (event === 'PIX_AUTOMATIC_APPROVED') {
             const subscriptionGlobalID = pixAutomatic?.globalID || pixAutomatic?.correlationID || null;
-            console.log(`✅ PIX_AUTOMATIC_APPROVED — SubID: ${subscriptionGlobalID}. Cliente autorizou no banco.`);
-
-            if (subscriptionGlobalID) {
-                await supabase
-                    .from('cobrancas')
-                    .update({
-                        status: 'ACTIVE',
-                        status_display: 'Autorizado pelo cliente',
-                        updated_at: new Date()
-                    })
-                    .eq('subscription_id', subscriptionGlobalID);
+            if (!subscriptionGlobalID) {
+                console.warn(`⚠️ PIX_AUTOMATIC_APPROVED sem subscription ID.`);
+                return;
             }
+            
+            await supabase
+                .from('cobrancas')
+                .update({
+                    status: 'ACTIVE',
+                    status_display: 'Autorizado pelo cliente',
+                    updated_at: new Date()
+                })
+                .eq('subscription_id', subscriptionGlobalID);
+            
+            console.log(`✅ PIX_AUTOMATIC_APPROVED — SubID: ${subscriptionGlobalID}.`);
             return;
         }
 
-        // Eventos não mapeados — apenas loga para futura análise
+        // Eventos não mapeados
         console.log(`ℹ️ Evento não mapeado recebido: ${event}. Payload:`, JSON.stringify(payload, null, 2));
 
     } catch (error) {
