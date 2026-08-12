@@ -86,18 +86,21 @@ export default function Dashboard() {
 
         <div style={{ background: 'white', borderRadius: '14px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
           <div style={{ background: '#f8fafc', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontWeight: 700, color: '#334155' }}>
-            Financeiro & Planos
+            Financeiro
           </div>
           <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div className="shortcut-btn" onClick={() => goTo('/financeiro/movimentacoes')} style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s' }}>
               <div style={{ background: '#dbeafe', color: '#2563eb', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fas fa-exchange-alt"></i></div>
               <span style={{ fontWeight: 600, color: '#475569', fontSize: '0.9rem' }}>Minhas Movimentações</span>
             </div>
-            <div className="shortcut-btn" onClick={() => goTo('/inadimplentes')} style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s' }}>
-              <div style={{ background: '#fef2f2', color: '#b91c1c', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fas fa-exclamation-triangle"></i></div>
-              <span style={{ fontWeight: 600, color: '#475569', fontSize: '0.9rem' }}>Inadimplentes</span>
-            </div>
-            <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
+          </div>
+        </div>
+
+        <div style={{ background: 'white', borderRadius: '14px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+          <div style={{ background: '#f8fafc', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontWeight: 700, color: '#334155' }}>
+            Planos
+          </div>
+          <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div className="shortcut-btn" onClick={() => goTo('/planos/novo')} style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s' }}>
               <div style={{ background: '#e0e7ff', color: '#4338ca', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fas fa-plus-circle"></i></div>
               <span style={{ fontWeight: 600, color: '#475569', fontSize: '0.9rem' }}>Novo Plano</span>

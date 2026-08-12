@@ -57,7 +57,6 @@ export default function Sidebar({ isOpen, onClose }) {
               </a>
               <ul className="submenu">
                 <li><NavLink to="/financeiro/movimentacoes">Minhas movimentações</NavLink></li>
-                <li><NavLink to="/inadimplentes">Inadimplentes</NavLink></li>
               </ul>
             </li>
 
