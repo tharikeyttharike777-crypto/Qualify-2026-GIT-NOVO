@@ -98,10 +98,10 @@ function App() {
         {/* Rotas Públicas Externas */}
         <Route path="/area-associado-login" element={<AreaAssociadoLogin />} />
         <Route path="/catalogo-planos" element={<CatalogoPlanos />} />
+        <Route path="/associado/painel" element={<AreaAssociado />} />
         
         {/* Rota Privada SEM o Layout (Menu Lateral) */}
         <Route path="/trocar-empresa" element={<PrivateRoute><TrocarEmpresa /></PrivateRoute>} />
-        <Route path="/area-associado" element={<PrivateRoute><AreaAssociado /></PrivateRoute>} />
         
         {/* Rotas Privadas COM o Layout (Menu Lateral) */}
         <Route element={<PrivateRoute><Layout /></PrivateRoute>}>
