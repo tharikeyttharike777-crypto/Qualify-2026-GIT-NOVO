@@ -24,21 +24,32 @@ export default function AreaAssociado() {
 
   const loadData = async (user) => {
     try {
-      // Busca o contrato
-      const { data: cont, error: contErr } = await supabase
+      // Busca todos os contratos (pois o family_id pode estar dentro do JSONB metadata)
+      const { data: allContracts, error: contErr } = await supabase
         .from('contratos')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+        .select('*');
       
       if (contErr) throw contErr;
+
+      // Encontra o contrato cuja family_id (raiz ou metadata) seja igual ao user.id
+      let cont = null;
+      if (allContracts && allContracts.length > 0) {
+        cont = allContracts.find(c => {
+          let meta = {};
+          if (c.metadata) try { meta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : c.metadata; } catch(e){}
+          const fId = c.family_id || meta.family_id || meta.familyId;
+          return String(fId) === String(user.id) && String(c.status || meta.status || 'ativo').toLowerCase() === 'ativo';
+        });
+      }
+
       setContrato(cont);
 
       // Busca as cobranças deste contrato
+      const numeroBusca = cont ? (cont.numero || cont.id) : '000000';
       const { data: cobs, error: cobErr } = await supabase
         .from('cobrancas')
         .select('*')
-        .eq('contrato_numero', cont.numero || cont.id)
+        .eq('contrato_numero', numeroBusca)
         .order('vencimento', { ascending: false });
       
       if (cobErr) throw cobErr;
@@ -59,8 +70,17 @@ export default function AreaAssociado() {
   const handleBaixarCarteirinha = async () => {
     setIsGeneratingCard(true);
     try {
+      const familyMock = {
+        id: associado?.id,
+        titular: {
+          nome: associado?.nome,
+          cpf: associado?.cpf
+        },
+        cpf: associado?.cpf
+      };
+      
       const { gerarPdfCarteirinhaBuffer } = await import('../utils/pdfUtils');
-      await gerarPdfCarteirinhaBuffer(contrato, null, true);
+      await gerarPdfCarteirinhaBuffer(contrato, familyMock, true);
     } catch (error) {
       alert('Erro ao gerar carteirinha: ' + error.message);
     } finally {
