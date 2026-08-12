@@ -29,22 +29,30 @@ export default function CatalogoPlanos() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', sans-serif" }}>
-      {/* Header Padrão */}
-      <header style={{ background: 'white', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '36px', height: '36px', background: '#3b82f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>
-            Q
-          </div>
-          <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.5px' }}>QUALIFY</h1>
+      {/* Header Oficial da Plataforma (Adaptado para Público) */}
+      <header className="header" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
+        <div className="header-left">
+          <button className="hamburger-menu" onClick={() => navigate(-1)} aria-label="Voltar" title="Voltar">
+            <i className="fas fa-arrow-left"></i>
+          </button>
+          <a href="/login" className="logo" style={{ textDecoration: 'none' }}>
+            <span className="logo-text">QUALIFY - Catálogo de Planos</span>
+          </a>
         </div>
-        <button 
-          onClick={() => navigate(-1)}
-          style={{ background: 'transparent', border: '1px solid #cbd5e1', color: '#475569', padding: '8px 16px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
-          onMouseOver={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#1e293b'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#475569'; }}
-        >
-          <i className="fas fa-arrow-left"></i> Voltar
-        </button>
+
+        <div className="header-center">
+          <div className="search-container" style={{ opacity: 0 }}>
+            {/* Invisível, mas mantém o alinhamento da Topbar original */}
+            <input type="text" className="search-input" disabled />
+          </div>
+        </div>
+
+        <div className="header-right">
+          <div className="company-info" style={{ cursor: 'pointer', background: '#3b82f6', color: 'white' }} onClick={() => navigate('/login')}>
+            <i className="fas fa-sign-in-alt"></i>
+            <span>Área do Cliente</span>
+          </div>
+        </div>
       </header>
 
       <div style={{ padding: '60px 20px' }}>
