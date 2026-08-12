@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function CatalogoPlanos() {
   const [planos, setPlanos] = useState([]);
@@ -35,9 +35,9 @@ export default function CatalogoPlanos() {
           <button className="hamburger-menu" onClick={() => navigate(-1)} aria-label="Voltar" title="Voltar">
             <i className="fas fa-arrow-left"></i>
           </button>
-          <a href="/login" className="logo" style={{ textDecoration: 'none' }}>
-            <span className="logo-text">QUALIFY - Catálogo de Planos</span>
-          </a>
+          <Link to="/dashboard" className="logo" style={{ textDecoration: 'none' }}>
+            <span className="logo-text">QUALIFY - Sistema de gestão</span>
+          </Link>
         </div>
 
         <div className="header-center">
