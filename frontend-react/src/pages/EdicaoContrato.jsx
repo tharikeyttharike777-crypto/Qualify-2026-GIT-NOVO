@@ -193,12 +193,51 @@ export default function EdicaoContrato() {
 
   async function loadAnotacoes(ct) {
     try {
-      const { data } = await supabase.from('lembretes').select('*')
+      const { data } = await supabase.from('eventos').select('*')
         .eq('contrato_id', ct.id || ct.numero)
+        .eq('tipo', 'anotacao')
         .order('created_at', { ascending: false });
-      if (Array.isArray(data)) setAnotacoes(data);
+      
+      if (Array.isArray(data)) {
+        const parsed = data.map(ev => {
+          let titulo = 'Anotação';
+          let descricao = ev.descricao;
+          try {
+            const obj = JSON.parse(ev.descricao);
+            titulo = obj.titulo || titulo;
+            descricao = obj.descricao || descricao;
+          } catch(e){}
+          return {
+            id: ev.id,
+            titulo,
+            descricao,
+            created_at: ev.created_at
+          };
+        });
+        setAnotacoes(parsed);
+      }
     } catch(e){}
   }
+
+  // ─── Registra Evento Helper ────────────────────────────────────
+  const registrarEvento = async (tipo, descricao, valor = null) => {
+    try {
+      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+      const payload = {
+        contrato_id: contract?.id || contract?.numero,
+        tipo,
+        descricao,
+        valor,
+        company_id: companyId
+      };
+      const { data, error } = await supabase.from('eventos').insert([payload]).select().single();
+      if (!error && data) {
+        setEventos(prev => [data, ...prev]);
+      }
+    } catch (e) {
+      console.error('Erro ao registrar evento:', e);
+    }
+  };
 
   // ─── Actions ───────────────────────────────────────────────────
   const handleCancel = () => {
@@ -213,6 +252,9 @@ export default function EdicaoContrato() {
           if (isUuid) await supabase.from('contratos').update({ status: 'cancelado' }).eq('id', contract.id);
           if (contract.numero) await supabase.from('contratos').update({ status: 'cancelado' }).eq('numero', contract.numero);
           setContract(prev => ({ ...prev, status: 'cancelado' }));
+          
+          await registrarEvento('cancelamento', 'Usuário cancelou o contrato manualmente.');
+
           setActionMsg({ type: 'success', text: 'Contrato cancelado com sucesso!' });
         } catch(err) {
           setActionMsg({ type: 'error', text: 'Erro ao cancelar: ' + err.message });
@@ -254,6 +296,9 @@ export default function EdicaoContrato() {
           };
           const { data, error } = await supabase.from('contratos').insert([dupPayload]).select().single();
           if (error) throw error;
+          
+          await registrarEvento('sistema', `Usuário duplicou o contrato para o novo número #${nextNum}.`);
+          
           setActionMsg({ type: 'success', text: `Contrato duplicado como #${nextNum}!` });
           if (data?.numero) setTimeout(() => navigate(`/contratos/editar?numero=${data.numero}`), 1200);
         } catch(err) {
@@ -269,15 +314,28 @@ export default function EdicaoContrato() {
     if (!novaAnotacao.titulo.trim()) return;
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
-      const { data, error } = await supabase.from('lembretes').insert([{
+      
+      const payload = {
         contrato_id: contract?.id || contract?.numero,
+        tipo: 'anotacao',
+        descricao: JSON.stringify({ titulo: novaAnotacao.titulo, descricao: novaAnotacao.descricao }),
+        company_id: companyId
+      };
+      
+      const { data, error } = await supabase.from('eventos').insert([payload]).select().single();
+      if (error) throw error;
+      
+      const nova = {
+        id: data.id,
         titulo: novaAnotacao.titulo,
         descricao: novaAnotacao.descricao,
-        company_id: companyId
-      }]).select().single();
-      if (error) throw error;
-      setAnotacoes(prev => [data, ...prev]);
+        created_at: data.created_at
+      };
+      
+      setAnotacoes(prev => [nova, ...prev]);
+      setEventos(prev => [data, ...prev]); // Mostra também na aba de Eventos automaticamente
       setNovaAnotacao({ titulo: '', descricao: '' });
+
     } catch(err) {
       setActionMsg({ type: 'error', text: 'Erro ao salvar anotação: ' + err.message });
     }
@@ -290,8 +348,9 @@ export default function EdicaoContrato() {
       message: 'Deseja excluir esta anotação permanentemente?',
       onConfirm: async () => {
         try {
-          await supabase.from('lembretes').delete().eq('id', id);
+          await supabase.from('eventos').delete().eq('id', id);
           setAnotacoes(prev => prev.filter(a => a.id !== id));
+          setEventos(prev => prev.filter(e => e.id !== id));
         } catch(err) {
           setActionMsg({ type: 'error', text: 'Erro ao excluir: ' + err.message });
         }
@@ -431,6 +490,9 @@ export default function EdicaoContrato() {
         cep: '', logradouro: '', numero: '', bairro: '', cidade: '', uf: '', mensagem: '',
         cobrarImediatamente: true, validadeQrCode: ''
       });
+      
+      await registrarEvento('financeiro', `Usuário gerou nova(s) cobrança(s) (${cobrancaForm.metodo})`, valorOriginal);
+      
       setActionMsg({ type: 'success', text: 'Cobrança gerada com sucesso!' });
     } catch(err) {
       console.error("ERRO AO SALVAR COBRANÇA:", err);
@@ -500,6 +562,8 @@ export default function EdicaoContrato() {
         baixada.data_pagamento = new Date().toISOString();
         setCobrancasAbertas(prev => prev.filter(c => c.id !== id));
         setCobrancasPagas(prev => [baixada, ...prev]);
+        
+        await registrarEvento('financeiro', `Usuário deu baixa manual na cobrança com vencimento ${fmtDate(baixada.vencimento)}`, baixada.valor);
       }
       setActionMsg({ type: 'success', text: 'Baixa registrada com sucesso!' });
     } catch(err) {
@@ -534,6 +598,9 @@ export default function EdicaoContrato() {
       if (error) throw error;
       
       setCobrancasAbertas(prev => prev.filter(c => !selectedCobrancas.includes(c.id)));
+      
+      await registrarEvento('financeiro', `Usuário excluiu ${selectedCobrancas.length} cobrança(s) em lote.`);
+      
       setSelectedCobrancas([]);
       setActionMsg({ type: 'success', text: 'Cobranças excluídas com sucesso!' });
       setTimeout(() => setActionMsg(null), 3000);
@@ -552,6 +619,9 @@ export default function EdicaoContrato() {
       if (error) throw error;
       setCobrancasAbertas(prev => prev.filter(c => c.id !== id));
       setSelectedCobrancas(prev => prev.filter(x => x !== id));
+      
+      await registrarEvento('financeiro', 'Usuário excluiu uma cobrança.');
+      
       setActionMsg({ type: 'success', text: 'Cobrança excluída!' });
       setTimeout(() => setActionMsg(null), 3000);
     } catch(err) {
@@ -564,18 +634,36 @@ export default function EdicaoContrato() {
     if (!family) return;
     setConfirmModalState({
       isOpen: true,
-      title: 'Remover Dependente',
-      message: 'Deseja realmente remover este dependente da família e do contrato?',
+      title: 'Desvincular Dependente',
+      message: 'Deseja realmente desvincular este dependente deste contrato?',
       onConfirm: async () => {
         try {
           const depsAtualizados = [...(family.dependentes || [])];
-          depsAtualizados.splice(index, 1);
+          const dependenteRemovido = { ...depsAtualizados[index] };
+          
+          const planoAtual = contract?.plano || '';
+          
+          let prods = dependenteRemovido.produtoVinculado || dependenteRemovido.planoVinculado || [];
+          if (!Array.isArray(prods)) {
+             prods = prods ? [prods] : [];
+          }
+          
+          // Remove o plano do contrato atual da lista de produtos vinculados
+          prods = prods.filter(p => p !== planoAtual);
+          
+          dependenteRemovido.produtoVinculado = prods.length > 0 ? prods : '';
+          dependenteRemovido.planoVinculado = dependenteRemovido.produtoVinculado;
+          
+          depsAtualizados[index] = dependenteRemovido;
 
           const { error } = await supabase.from('familias').update({ dependentes: depsAtualizados }).eq('id', family.id);
           if (error) throw error;
 
           setFamily(prev => ({ ...prev, dependentes: depsAtualizados }));
-          setActionMsg({ type: 'success', text: 'Dependente removido com sucesso!' });
+          
+          await registrarEvento('sistema', `Usuário desvinculou o dependente: ${dependenteRemovido?.nome || 'Desconhecido'} do contrato.`);
+          
+          setActionMsg({ type: 'success', text: 'Dependente desvinculado com sucesso!' });
         } catch(err) {
           setActionMsg({ type: 'error', text: 'Erro ao remover dependente: ' + err.message });
         }
@@ -663,6 +751,38 @@ export default function EdicaoContrato() {
   const displayForma = contract.forma_pagamento || contMeta.forma_pagamento || '—';
   const displayParcelas = contract.parcelas || contMeta.parcelas || '—';
   const displayData = contract.created_at || contract.data_inicio || contMeta.data_inicio || '—';
+
+  // Lógica da Carência (Contador Descrescente)
+  let isEmCarencia = contract.em_carencia === true || String(contract.em_carencia).toLowerCase() === 'sim';
+  let carenciaMsg = isEmCarencia ? 'Sim' : 'Não';
+  let carenciaColor = isEmCarencia ? '#f59e0b' : '#10b981';
+
+  const carenciaDias = parseInt(contract.carencia || contMeta.carencia || contMeta.grace_period || contMeta.gracePeriod || famMeta.carencia || 0, 10);
+  
+  if (carenciaDias > 0 && displayData !== '—') {
+    const dataInicio = new Date(displayData);
+    if (!isNaN(dataInicio.getTime())) {
+      const dataFimCarencia = new Date(dataInicio);
+      dataFimCarencia.setDate(dataFimCarencia.getDate() + carenciaDias);
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+      const fim = new Date(dataFimCarencia);
+      fim.setHours(0,0,0,0);
+      
+      const diffTime = fim - hoje;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays >= 0) {
+        isEmCarencia = true;
+        carenciaMsg = `Sim (restam ${diffDays} dias)`;
+        carenciaColor = '#f59e0b';
+      } else {
+        isEmCarencia = false;
+        carenciaMsg = 'Não (Expirou)';
+        carenciaColor = '#10b981';
+      }
+    }
+  }
 
   const cardStyle = {
     background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px',
@@ -802,7 +922,7 @@ export default function EdicaoContrato() {
             </div>
             <div style={kvStyle}>
               <span style={labelStyle}>Em Carência?</span>
-              <span style={{ ...valueStyle, color: '#f59e0b' }}>{contract.em_carencia ? 'Sim' : 'Não'}</span>
+              <span style={{ ...valueStyle, color: carenciaColor }}>{carenciaMsg}</span>
             </div>
             <div style={kvStyle}>
               <span style={labelStyle}>Desativação</span>
@@ -997,27 +1117,51 @@ export default function EdicaoContrato() {
                   <p style={{ margin: 0, color: '#4ade80', fontSize: '12px' }}>Pessoas cobertas por este plano</p>
                 </div>
               </div>
-              <span style={{ background: '#bbf7d0', color: '#166534', fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '12px' }}>
-                {1 + dependentes.length}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ background: '#bbf7d0', color: '#166534', fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '12px' }}>
+                  {1 + dependentes.length}
+                </span>
+                <button onClick={() => navigate(`/familias/nova?id=${family?.id}`)} style={{ background: '#16a34a', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <i className="fas fa-user-plus"></i> Adicionar
+                </button>
+              </div>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
+                  <th style={{ padding: '12px 16px', textAlign: 'left' }}>ID</th>
                   <th style={{ padding: '12px 16px', textAlign: 'left' }}>Nome Completo</th>
                   <th style={{ padding: '12px', textAlign: 'center' }}>Parentesco</th>
                   <th style={{ padding: '12px', textAlign: 'center' }}>Idade</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Psicólogo</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Seguradora</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Produto Vinculado</th>
                   <th style={{ padding: '12px', textAlign: 'center' }}>Status</th>
                   <th style={{ padding: '12px', textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 700 }}>
+                    {family?.titular?.idSequencial || family?.titular?.id_sequencial || famMeta?.titular?.idSequencial || '-'}
+                  </td>
                   <td style={{ padding: '12px 16px', fontWeight: 700 }}>{titularNome}</td>
                   <td style={{ padding: '12px', textAlign: 'center' }}>
                     <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 10px', borderRadius: '10px', fontSize: '12px', fontWeight: 700 }}>Titular</span>
                   </td>
                   <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{calcAge(family?.titular?.nascimento || family?.titular?.dataNascimento)}</td>
+                  <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{family?.titular?.psicologo || '-'}</td>
+                  <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{family?.titular?.seguradora || '-'}</td>
+                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                    {(() => {
+                      const prods = family?.titular?.produtoVinculado || family?.titular?.planoVinculado;
+                      if (!prods || prods.length === 0) return <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>;
+                      const arr = Array.isArray(prods) ? prods : [prods];
+                      return arr.map((p, idx) => (
+                        <span key={idx} style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 10px', borderRadius: '10px', fontSize: '12px', fontWeight: 600, display: 'inline-block', margin: '2px' }}>{p}</span>
+                      ));
+                    })()}
+                  </td>
                   <td style={{ padding: '12px', textAlign: 'center' }}><StatusBadge status="ativo" /></td>
                   <td style={{ padding: '12px', textAlign: 'center' }}>
                     <span style={{ fontSize: '12px', color: '#94a3b8' }}>N/A</span>
@@ -1025,15 +1169,28 @@ export default function EdicaoContrato() {
                 </tr>
                 {dependentes.map((d, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '12px 16px', fontWeight: 600 }}>{d.idSequencial || d.id_sequencial || d.numero_associado || '-'}</td>
                     <td style={{ padding: '12px 16px', fontWeight: 600 }}>{d.nome}</td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <span style={{ background: '#f1f5f9', color: '#475569', padding: '2px 10px', borderRadius: '10px', fontSize: '12px', fontWeight: 600 }}>{d.parentesco}</span>
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{calcAge(d.nascimento || d.dataNascimento)}</td>
+                    <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{d.psicologo || '-'}</td>
+                    <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{d.seguradora || '-'}</td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      {(() => {
+                        const prods = d.produtoVinculado || d.planoVinculado;
+                        if (!prods || prods.length === 0) return <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>;
+                        const arr = Array.isArray(prods) ? prods : [prods];
+                        return arr.map((p, idx) => (
+                          <span key={idx} style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 10px', borderRadius: '10px', fontSize: '12px', fontWeight: 600, display: 'inline-block', margin: '2px' }}>{p}</span>
+                        ));
+                      })()}
+                    </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}><StatusBadge status="ativo" /></td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button onClick={() => handleRemoverDependente(i)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '5px 10px', borderRadius: '6px', cursor: 'pointer' }} title="Remover Dependente">
-                        <i className="fas fa-trash"></i>
+                      <button onClick={() => handleRemoverDependente(i)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '5px 10px', borderRadius: '6px', cursor: 'pointer' }} title="Desvincular Dependente">
+                        <i className="fas fa-unlink"></i>
                       </button>
                     </td>
                   </tr>
@@ -1085,7 +1242,23 @@ export default function EdicaoContrato() {
                   <td style={{ padding: '12px', textAlign: 'center' }}>
                     <StatusBadge status={ev.tipo} />
                   </td>
-                  <td style={{ padding: '12px', color: '#475569' }}>{ev.descricao || '—'}</td>
+                  <td style={{ padding: '12px', color: '#475569' }}>
+                    {(() => {
+                      if (!ev.descricao) return '—';
+                      try {
+                        const obj = JSON.parse(ev.descricao);
+                        if (obj.titulo || obj.descricao) {
+                          return (
+                            <div>
+                              {obj.titulo && <strong style={{ display: 'block', marginBottom: '2px', color: '#1e293b' }}>{obj.titulo}</strong>}
+                              {obj.descricao && <span>{obj.descricao}</span>}
+                            </div>
+                          );
+                        }
+                      } catch(e) {}
+                      return ev.descricao;
+                    })()}
+                  </td>
                   <td style={{ padding: '12px', textAlign: 'center', fontWeight: 600, color: '#10b981' }}>{ev.valor ? fmtCurrency(ev.valor) : '—'}</td>
                 </tr>
               ))}

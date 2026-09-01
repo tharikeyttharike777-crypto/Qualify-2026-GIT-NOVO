@@ -5,6 +5,7 @@ export default function Produtos() {
   const [activeTab, setActiveTab] = useState('produtos'); // 'produtos' | 'servicos'
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
+  const [planosDisponiveis, setPlanosDisponiveis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState(null);
 
@@ -39,7 +40,8 @@ export default function Produtos() {
             quantidade: p.quantidade || p.quantity || meta.quantity || '1',
             valor: p.valor || p.preco || p.value || meta.value || '0,00',
             agePricingEnabled: p.age_pricing_enabled || p.agePricingEnabled || meta.agePricingEnabled || false,
-            agePrices: p.age_prices || p.agePrices || meta.agePrices || []
+            agePrices: p.age_prices || p.agePrices || meta.agePrices || [],
+            planoVinculado: p.plano_vinculado || p.planoVinculado || meta.planoVinculado || ''
           });
         });
       }
@@ -64,6 +66,17 @@ export default function Produtos() {
           });
         });
       }
+
+      // Buscar planos
+      try {
+        let { data: plans } = await supabase.from('planos').select('*');
+        if (companyId && plans) {
+          const filtered = plans.filter(p => !p.company_id || String(p.company_id) === String(companyId));
+          if (filtered.length > 0) plans = filtered;
+        }
+        if (Array.isArray(plans)) setPlanosDisponiveis(plans);
+      } catch (err) {}
+
     } catch (err) {
       console.warn("Aviso ao carregar produtos do Supabase:", err);
     }
@@ -81,7 +94,8 @@ export default function Produtos() {
               quantidade: sp.quantidade || sp.quantity || '1',
               valor: sp.valor || sp.value || '0,00',
               agePricingEnabled: sp.agePricingEnabled || false,
-              agePrices: sp.agePrices || []
+              agePrices: sp.agePrices || [],
+              planoVinculado: sp.planoVinculado || ''
             });
           }
         });
@@ -112,7 +126,7 @@ export default function Produtos() {
   const addProduct = () => {
     setProducts(prev => [
       ...prev,
-      { id: Date.now(), nome: '', quantidade: '1', valor: '', agePricingEnabled: false, agePrices: [] }
+      { id: Date.now(), nome: '', quantidade: '1', valor: '', agePricingEnabled: false, agePrices: [], planoVinculado: '' }
     ]);
   };
 
@@ -192,15 +206,20 @@ export default function Produtos() {
             valor: p.valor,
             age_pricing_enabled: p.agePricingEnabled,
             age_prices: p.agePrices,
+            plano_vinculado: p.planoVinculado,
             company_id: companyId
           };
           if (typeof p.id === 'string' && p.id.includes('-')) {
             await supabase.from('produtos').update(payload).eq('id', p.id);
+          } else if (typeof p.id === 'number' && p.id < 1000000000000) {
+            await supabase.from('produtos').update(payload).eq('id', p.id);
           } else {
-            await supabase.from('produtos').upsert([payload]);
+            await supabase.from('produtos').insert([payload]);
           }
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error("Erro ao salvar no supabase: ", err);
+      }
 
       setMsg({ type: 'success', text: 'Catálogo de Produtos e Serviços salvo com sucesso!' });
     } catch (err) {
@@ -279,6 +298,15 @@ export default function Produtos() {
                     <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <input type="checkbox" id={`age_${p.id}`} checked={p.agePricingEnabled} onChange={e => updateProduct(p.id, 'agePricingEnabled', e.target.checked)} />
                       <label htmlFor={`age_${p.id}`} style={{ fontSize: '0.8rem', color: '#475569', cursor: 'pointer' }}>Valores por Faixa de Idade</label>
+                    </div>
+                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>Plano Vinculado (Opcional - Adiciona a todos se o contrato for desse plano)</label>
+                      <select value={p.planoVinculado || ''} onChange={e => updateProduct(p.id, 'planoVinculado', e.target.value)} style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}>
+                        <option value="">Nenhum (seleção manual)</option>
+                        {planosDisponiveis.map(pl => (
+                          <option key={pl.id} value={pl.nome || pl.name || pl.title}>{pl.nome || pl.name || pl.title}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>

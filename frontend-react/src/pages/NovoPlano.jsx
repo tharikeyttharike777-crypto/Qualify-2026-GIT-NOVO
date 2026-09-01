@@ -18,7 +18,7 @@ export default function NovoPlano() {
     publicPage: 'sim',
     
     // Carência
-    gracePeriod: '30',
+    gracePeriod: '90',
     graceType: 'geral',
     graceDescription: '',
 

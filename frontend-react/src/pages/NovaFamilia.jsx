@@ -10,6 +10,7 @@ export default function NovaFamilia() {
 
   // Form State
   const [titular, setTitular] = useState({
+    idSequencial: '',
     nome: '',
     dataNascimento: '',
     email: '',
@@ -17,7 +18,9 @@ export default function NovaFamilia() {
     rg: '',
     cpf: '',
     celular: '',
-    profissao: ''
+    profissao: '',
+    psicologo: '',
+    seguradora: ''
   });
 
   const [endereco, setEndereco] = useState({
@@ -33,7 +36,9 @@ export default function NovaFamilia() {
   const [dependentes, setDependentes] = useState([]);
   const [contratos, setContratos] = useState([]);
   const [pets, setPets] = useState([]);
+  const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
   const [planosDisponiveis, setPlanosDisponiveis] = useState([]);
+  const [nextAssociadoId, setNextAssociadoId] = useState(1);
 
   // Confirm Modal state
   const [confirmModalState, setConfirmModalState] = useState({
@@ -45,9 +50,14 @@ export default function NovaFamilia() {
 
   // Modals state
   const [activeModal, setActiveModal] = useState(null); // 'dependente' | 'contrato' | 'pet'
+  const [isVincularModalOpen, setIsVincularModalOpen] = useState(false);
+  const [editDepId, setEditDepId] = useState(null);
+  const [vincularTarget, setVincularTarget] = useState(null); // { tipo: 'titular' | 'dependente', id_interno: string }
+  const [vincularProdutoSelecionado, setVincularProdutoSelecionado] = useState([]);
   
   // Modal forms
   const [depForm, setDepForm] = useState({
+    idSequencial: '',
     nome: '',
     parentesco: '',
     carencia: 'padrao',
@@ -123,8 +133,10 @@ export default function NovaFamilia() {
   };
 
   useEffect(() => {
+    fetchProdutos();
     fetchPlanos();
     fetchNextContractNumber();
+    fetchNextAssociadoId();
   }, []);
 
   async function fetchNextContractNumber() {
@@ -154,6 +166,32 @@ export default function NovaFamilia() {
     }
   }
 
+  async function fetchProdutos() {
+    let loaded = [];
+    try {
+      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+      let query = supabase.from('produtos').select('*');
+      if (companyId) query = query.eq('company_id', companyId);
+      const { data, error } = await query;
+      if (!error && Array.isArray(data) && data.length > 0) {
+        loaded = data;
+      }
+    } catch (e) {}
+
+    try {
+      const stored = JSON.parse(localStorage.getItem('catalogoProdutos') || '[]');
+      if (Array.isArray(stored)) {
+        stored.forEach(sp => {
+          if (!loaded.some(p => String(p.nome || p.name).toLowerCase() === String(sp.nome || sp.name).toLowerCase())) {
+            loaded.push(sp);
+          }
+        });
+      }
+    } catch(e) {}
+    
+    setProdutosDisponiveis(loaded);
+  }
+
   async function fetchPlanos() {
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
@@ -164,6 +202,41 @@ export default function NovaFamilia() {
         setPlanosDisponiveis(data);
       }
     } catch (e) {}
+  }
+
+  async function fetchNextAssociadoId() {
+    try {
+      const { data } = await supabase.from('familias').select('titular, dependentes');
+      let maxId = 0;
+      if (Array.isArray(data)) {
+        data.forEach(fam => {
+          const tit = fam.titular || {};
+          const titId = parseInt(String(tit.idSequencial || tit.id_sequencial || '0').replace(/\D/g, ''), 10);
+          if (!isNaN(titId) && titId > maxId) maxId = titId;
+          const deps = fam.dependentes || [];
+          if (Array.isArray(deps)) {
+            deps.forEach(d => {
+              const depId = parseInt(String(d.idSequencial || d.id_sequencial || d.numero_associado || '0').replace(/\D/g, ''), 10);
+              if (!isNaN(depId) && depId > maxId) maxId = depId;
+            });
+          }
+        });
+      }
+      const nextId = maxId + 1;
+      setNextAssociadoId(nextId);
+      // Para nova familia (sem editId), auto-atribui ID ao titular
+      if (!editId) {
+        setTitular(prev => ({
+          ...prev,
+          idSequencial: prev.idSequencial || String(nextId).padStart(8, '0')
+        }));
+      }
+    } catch(e) {
+      setNextAssociadoId(1);
+      if (!editId) {
+        setTitular(prev => ({ ...prev, idSequencial: prev.idSequencial || '00000001' }));
+      }
+    }
   }
 
   // Load if editing
@@ -214,6 +287,7 @@ export default function NovaFamilia() {
                           '';
 
           setTitular({
+            idSequencial: '', // será atribuído automaticamente abaixo
             nome: rawTitular.nome || data.nome || meta.nome || '',
             dataNascimento: formatToDateInput(rawNasc),
             email: rawTitular.email || data.email || meta.email || '',
@@ -221,7 +295,9 @@ export default function NovaFamilia() {
             rg: rawTitular.rg || data.rg || meta.rg || '',
             cpf: rawTitular.cpf || data.cpf || meta.cpf || '',
             celular: rawTitular.celular || data.celular || meta.celular || '',
-            profissao: rawTitular.profissao || data.profissao || meta.profissao || ''
+            profissao: rawTitular.profissao || data.profissao || meta.profissao || '',
+            psicologo: rawTitular.psicologo || data.psicologo || meta.psicologo || '',
+            seguradora: rawTitular.seguradora || data.seguradora || meta.seguradora || ''
           });
 
           const rawEndereco = data.endereco || meta.endereco || {};
@@ -237,19 +313,70 @@ export default function NovaFamilia() {
 
           const rawDeps = data.dependentes || meta.dependentes || [];
           if (Array.isArray(rawDeps)) {
-            setDependentes(rawDeps.map((d, i) => ({
-              id: d.id || i,
-              nome: d.nome || '',
-              parentesco: d.parentesco || 'Outro',
-              carencia: d.carencia || 'padrao',
-              dataNascimento: formatToDateInput(d.dataNascimento || d.data_nascimento || d.nascimento || d.dataNasc),
-              cpf: d.cpf || '',
-              genero: d.genero || '',
-              celular: d.celular || '',
-              psicologo: d.psicologo || '',
-              seguradora: d.seguradora || ''
-            })));
+            // Busca o maior ID global para atribuir aos que não têm
+            let globalMaxId = 0;
+            try {
+              const { data: allFams } = await supabase.from('familias').select('titular, dependentes');
+              if (Array.isArray(allFams)) {
+                allFams.forEach(fam => {
+                  const tit = fam.titular || {};
+                  const tId = parseInt(String(tit.idSequencial || tit.id_sequencial || '0').replace(/\D/g, ''), 10);
+                  if (!isNaN(tId) && tId > globalMaxId) globalMaxId = tId;
+                  (fam.dependentes || []).forEach(d => {
+                    const dId = parseInt(String(d.idSequencial || d.id_sequencial || d.numero_associado || '0').replace(/\D/g, ''), 10);
+                    if (!isNaN(dId) && dId > globalMaxId) globalMaxId = dId;
+                  });
+                });
+              }
+            } catch(e) {}
+
+            // Atribui ID sequencial ao titular se não tiver
+            let titularIdSeq = rawTitular.idSequencial || rawTitular.id_sequencial || data.id_sequencial || meta.id_sequencial || '';
+            let needsSave = false;
+            if (!titularIdSeq) {
+              globalMaxId += 1;
+              titularIdSeq = String(globalMaxId).padStart(8, '0');
+              needsSave = true;
+            }
+
+            setTitular(prev => ({ ...prev, idSequencial: titularIdSeq }));
+
+            // Atribui ID sequencial a cada dependente sem ID
+            const depsComId = rawDeps.map((d, i) => {
+              let seqId = d.idSequencial || d.id_sequencial || d.numero_associado || '';
+              if (!seqId) {
+                globalMaxId += 1;
+                seqId = String(globalMaxId).padStart(8, '0');
+                needsSave = true;
+              }
+              return {
+                id_interno: d.id_interno || `dep-loaded-${Date.now()}-${i}`,
+                idSequencial: seqId,
+                nome: d.nome || '',
+                parentesco: d.parentesco || 'Outro',
+                carencia: d.carencia || 'padrao',
+                dataNascimento: formatToDateInput(d.dataNascimento || d.data_nascimento || d.nascimento || d.dataNasc),
+                cpf: d.cpf || '',
+                genero: d.genero || '',
+                celular: d.celular || '',
+                psicologo: d.psicologo || '',
+                seguradora: d.seguradora || ''
+              };
+            });
+
+            setNextAssociadoId(globalMaxId + 1);
+            setDependentes(depsComId);
+
+            // Salva os IDs de volta no banco se algum foi gerado agora
+            if (needsSave) {
+              try {
+                const updTitular = { ...(data.titular || meta.titular || {}), idSequencial: titularIdSeq };
+                const updDeps = depsComId.map(({ id_interno, ...rest }) => rest);
+                await supabase.from('familias').update({ titular: updTitular, dependentes: updDeps }).eq('id', editId);
+              } catch(e) { console.warn('Aviso ao salvar IDs sequenciais:', e); }
+            }
           }
+
 
           if (Array.isArray(data.pets || meta.pets)) setPets(data.pets || meta.pets);
 
@@ -346,9 +473,52 @@ export default function NovaFamilia() {
   // Add items handlers
   const handleAddDependente = (e) => {
     e.preventDefault();
-    setDependentes(prev => [...prev, { id: Date.now(), ...depForm }]);
-    setDepForm({ nome: '', parentesco: '', carencia: 'padrao', dataNascimento: '', cpf: '', genero: '', celular: '', psicologo: '', seguradora: '' });
+    if (editDepId !== null) {
+      setDependentes(prev => prev.map(d => d.id_interno === editDepId ? { ...depForm, id_interno: editDepId } : d));
+    } else {
+      const newId = `dep-new-${Date.now()}`;
+      const seqId = String(nextAssociadoId).padStart(8, '0');
+      setNextAssociadoId(prev => prev + 1);
+      setDependentes(prev => [...prev, { id_interno: newId, idSequencial: seqId, ...depForm }]);
+    }
+    setDepForm({ idSequencial: '', nome: '', parentesco: '', carencia: 'padrao', dataNascimento: '', cpf: '', genero: '', celular: '', psicologo: '', seguradora: '' });
+    setEditDepId(null);
     setActiveModal(null);
+  };
+
+  const handleEditDependente = (dep) => {
+    setDepForm(dep);
+    setEditDepId(dep.id_interno);
+    setActiveModal('dependente');
+  };
+
+  const handleAbrirVincularProduto = (tipo, id_interno) => {
+    const membro = tipo === 'titular' ? titular : dependentes.find(d => d.id_interno === id_interno);
+    let produtos = membro?.produtoVinculado || [];
+    if (typeof produtos === 'string') produtos = [produtos];
+    setVincularProdutoSelecionado(produtos);
+    setVincularTarget({ tipo, id_interno });
+    setIsVincularModalOpen(true);
+  };
+
+  const handleSalvarVincularProduto = () => {
+    if (!vincularTarget) return;
+    if (vincularTarget.tipo === 'titular') {
+      setTitular(prev => {
+        let curr = Array.isArray(prev.produtoVinculado) ? prev.produtoVinculado : (prev.produtoVinculado ? [prev.produtoVinculado] : []);
+        // Replace instead of merge for manual edit? Or just set? The modal edits the entire list of products for that person
+        return { ...prev, produtoVinculado: vincularProdutoSelecionado };
+      });
+    } else {
+      setDependentes(prev => prev.map(d =>
+        d.id_interno === vincularTarget.id_interno
+          ? { ...d, produtoVinculado: vincularProdutoSelecionado }
+          : d
+      ));
+    }
+    setVincularTarget(null);
+    setVincularProdutoSelecionado([]);
+    setIsVincularModalOpen(false);
   };
 
   const handleAddContrato = async (e) => {
@@ -418,14 +588,14 @@ export default function NovaFamilia() {
   };
 
   // Styled modal deletion prompts
-  const removeDependente = (id) => {
-    const item = dependentes.find(d => d.id === id);
+  const removeDependente = (id_interno) => {
+    const item = dependentes.find(d => d.id_interno === id_interno);
     setConfirmModalState({
       isOpen: true,
       title: 'Excluir Dependente',
       message: `Tem certeza que deseja remover o dependente "${item?.nome || 'Selecionado'}"?`,
       onConfirm: () => {
-        setDependentes(prev => prev.filter(d => d.id !== id));
+        setDependentes(prev => prev.filter(d => d.id_interno !== id_interno));
         setConfirmModalState(prev => ({ ...prev, isOpen: false }));
       }
     });
@@ -559,7 +729,7 @@ export default function NovaFamilia() {
       } catch (e) {}
 
       setMsg({ type: 'success', text: 'Família salva com sucesso!' });
-      setTimeout(() => navigate('/familias/pesquisar'), 1200);
+      // Removido o redirecionamento a pedido do usuário: setTimeout(() => navigate('/familias/pesquisar'), 1200);
     } catch (err) {
       console.error("Erro ao salvar família:", err);
       setMsg({ type: 'error', text: 'Erro ao salvar: ' + (err.message || 'Falha de comunicação.') });
@@ -608,6 +778,13 @@ export default function NovaFamilia() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.2rem' }}>
             <div>
+              <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>ID (Matrícula)</label>
+              <div style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontWeight: 700, fontSize: '0.95rem', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="fas fa-id-badge" style={{ color: '#1565C0', fontSize: '0.85rem' }}></i>
+                {titular.idSequencial || '...'}
+              </div>
+            </div>
+            <div>
               <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>* Nome (obrigatório)</label>
               <input type="text" name="nome" value={titular.nome} onChange={handleTitularChange} required style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }} />
             </div>
@@ -634,6 +811,14 @@ export default function NovaFamilia() {
             <div>
               <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Profissão</label>
               <input type="text" name="profissao" value={titular.profissao} onChange={handleTitularChange} style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Psicólogo</label>
+              <input type="text" name="psicologo" placeholder="Nome do psicólogo" value={titular.psicologo} onChange={handleTitularChange} style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Seguradora</label>
+              <input type="text" name="seguradora" placeholder="Nome da seguradora" value={titular.seguradora} onChange={handleTitularChange} style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }} />
             </div>
           </div>
         </div>
@@ -694,29 +879,74 @@ export default function NovaFamilia() {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontSize: '0.85rem' }}>
+                <th style={{ padding: '12px' }}>ID</th>
                 <th style={{ padding: '12px' }}>Nome</th>
                 <th style={{ padding: '12px' }}>Parentesco</th>
                 <th style={{ padding: '12px' }}>Nascimento</th>
                 <th style={{ padding: '12px' }}>CPF</th>
+                <th style={{ padding: '12px' }}>Psicólogo</th>
+                <th style={{ padding: '12px' }}>Seguradora</th>
+                <th style={{ padding: '12px' }}>Produto Vinculado</th>
                 <th style={{ padding: '12px', textAlign: 'center' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {dependentes.length === 0 ? (
+              {titular.nome && (
+                <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#fdfdfd' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>{titular.idSequencial || titular.id_sequencial || titular.numero_associado || '-'}</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>{titular.nome}</td>
+                  <td style={{ padding: '12px', color: '#475569', fontWeight: 600 }}>Titular</td>
+                  <td style={{ padding: '12px', color: '#475569' }}>{formatDisplayDate(titular.dataNascimento)}</td>
+                  <td style={{ padding: '12px', color: '#475569' }}>{titular.cpf || '-'}</td>
+                  <td style={{ padding: '12px', color: '#475569' }}>{titular.psicologo || '-'}</td>
+                  <td style={{ padding: '12px', color: '#475569' }}>{titular.seguradora || '-'}</td>
+                  <td style={{ padding: '12px' }}>
+                    {titular.produtoVinculado && titular.produtoVinculado.length > 0
+                      ? (Array.isArray(titular.produtoVinculado) ? titular.produtoVinculado : [titular.produtoVinculado]).map((p, idx) => (
+                          <span key={idx} style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 10px', borderRadius: '10px', fontSize: '12px', fontWeight: 600, display: 'inline-block', margin: '2px' }}>{p}</span>
+                        ))
+                      : <span style={{ color: '#94a3b8', fontSize: '12px' }}>Nenhum</span>}
+                  </td>
+                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <button type="button" onClick={() => handleAbrirVincularProduto('titular', null)} style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '5px 10px', borderRadius: '6px', color: '#16a34a', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>
+                      <i className="fas fa-link"></i> {titular.produtoVinculado ? 'Trocar Produto' : 'Vincular Produto'}
+                    </button>
+                  </td>
+                </tr>
+              )}
+              {dependentes.length === 0 && !titular.nome ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Nenhum dependente adicionado.</td>
+                  <td colSpan="8" style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Nenhum membro adicionado.</td>
                 </tr>
               ) : (
                 dependentes.map(dep => (
-                  <tr key={dep.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <tr key={dep.id_interno} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>{dep.idSequencial || dep.id_sequencial || dep.numero_associado || '-'}</td>
                     <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>{dep.nome}</td>
                     <td style={{ padding: '12px', color: '#475569' }}>{dep.parentesco}</td>
                     <td style={{ padding: '12px', color: '#475569' }}>{formatDisplayDate(dep.dataNascimento)}</td>
                     <td style={{ padding: '12px', color: '#475569' }}>{dep.cpf || '-'}</td>
+                    <td style={{ padding: '12px', color: '#475569' }}>{dep.psicologo || '-'}</td>
+                    <td style={{ padding: '12px', color: '#475569' }}>{dep.seguradora || '-'}</td>
+                    <td style={{ padding: '12px' }}>
+                      {dep.produtoVinculado && dep.produtoVinculado.length > 0
+                        ? (Array.isArray(dep.produtoVinculado) ? dep.produtoVinculado : [dep.produtoVinculado]).map((p, idx) => (
+                            <span key={idx} style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 10px', borderRadius: '10px', fontSize: '12px', fontWeight: 600, display: 'inline-block', margin: '2px' }}>{p}</span>
+                          ))
+                        : <span style={{ color: '#94a3b8', fontSize: '12px' }}>Nenhum</span>}
+                    </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button type="button" onClick={() => removeDependente(dep.id)} style={{ background: '#fee2e2', border: 'none', padding: '6px 12px', borderRadius: '6px', color: '#dc2626', cursor: 'pointer', fontWeight: 600 }}>
-                        <i className="fas fa-trash"></i> Excluir
-                      </button>
+                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <button type="button" onClick={() => handleAbrirVincularProduto('dependente', dep.id_interno)} style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '5px 8px', borderRadius: '6px', color: '#16a34a', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>
+                          <i className="fas fa-link"></i>
+                        </button>
+                        <button type="button" onClick={() => handleEditDependente(dep)} style={{ background: '#f1f5f9', border: 'none', padding: '5px 10px', borderRadius: '6px', color: '#1565C0', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button type="button" onClick={() => removeDependente(dep.id_interno)} style={{ background: '#fee2e2', border: 'none', padding: '5px 10px', borderRadius: '6px', color: '#dc2626', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -834,11 +1064,17 @@ export default function NovaFamilia() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
           <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', width: '100%', maxWidth: '540px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
-              <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.3rem', fontWeight: 700 }}>Adicionar Dependente</h3>
-              <button onClick={() => setActiveModal(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '1.2rem' }}><i className="fas fa-times"></i></button>
+              <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.3rem', fontWeight: 700 }}>{editDepId ? 'Editar Dependente' : 'Adicionar Dependente'}</h3>
+              <button onClick={() => { setActiveModal(null); setEditDepId(null); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '1.2rem' }}><i className="fas fa-times"></i></button>
             </div>
             <form onSubmit={handleAddDependente}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {depForm.idSequencial && (
+                  <div style={{ gridColumn: 'span 2', background: '#f0fdf4', borderRadius: '10px', padding: '0.5rem 0.8rem', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="fas fa-id-badge" style={{ color: '#16a34a' }}></i>
+                    <span style={{ fontSize: '0.85rem', color: '#166534', fontWeight: 600 }}>ID Matrícula: <strong>{depForm.idSequencial}</strong></span>
+                  </div>
+                )}
                 <div style={{ gridColumn: 'span 2' }}>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Nome Completo *</label>
                   <input type="text" placeholder="Nome do dependente" value={depForm.nome} onChange={e => setDepForm({ ...depForm, nome: e.target.value })} required style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }} />
@@ -872,6 +1108,14 @@ export default function NovaFamilia() {
                     <option value="Outro">Outro</option>
                   </select>
                 </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Psicólogo</label>
+                  <input type="text" placeholder="Nome do psicólogo" value={depForm.psicologo} onChange={e => setDepForm({ ...depForm, psicologo: e.target.value })} style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Seguradora</label>
+                  <input type="text" placeholder="Nome da seguradora" value={depForm.seguradora} onChange={e => setDepForm({ ...depForm, seguradora: e.target.value })} style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }} />
+                </div>
               </div>
               <div style={{ marginTop: '1.8rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
                 <button type="button" onClick={() => setActiveModal(null)} style={{ padding: '0.7rem 1.4rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
@@ -900,9 +1144,41 @@ export default function NovaFamilia() {
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Plano *</label>
                   <select value={contratoForm.plano} onChange={e => {
-                    const selPlano = planosDisponiveis.find(p => (p.name || p.nome) === e.target.value);
+                    const planName = e.target.value;
+                    const oldPlanName = contratoForm.plano;
+                    const selPlano = planosDisponiveis.find(p => (p.name || p.nome) === planName);
                     const val = selPlano ? (selPlano.monthly_value || selPlano.monthlyValue || selPlano.valorMensalidade || '') : '';
-                    setContratoForm({ ...contratoForm, plano: e.target.value, valor: val });
+                    setContratoForm({ ...contratoForm, plano: planName, valor: val });
+
+                    // Lógica de Plano Vinculado
+                    let produtosParaRemover = [];
+                    if (oldPlanName) {
+                      produtosParaRemover = produtosDisponiveis
+                        .filter(p => p.plano_vinculado === oldPlanName || p.planoVinculado === oldPlanName || (p.metadata && p.metadata.planoVinculado === oldPlanName))
+                        .map(p => p.nome || p.name || p.title);
+                    }
+
+                    let produtosParaAdicionar = [];
+                    if (planName) {
+                      produtosParaAdicionar = produtosDisponiveis
+                        .filter(p => p.plano_vinculado === planName || p.planoVinculado === planName || (p.metadata && p.metadata.planoVinculado === planName))
+                        .map(p => p.nome || p.name || p.title);
+                    }
+                    
+                    if (produtosParaRemover.length > 0 || produtosParaAdicionar.length > 0) {
+                      setTitular(prev => {
+                        let curr = Array.isArray(prev.produtoVinculado) ? prev.produtoVinculado : (prev.produtoVinculado ? [prev.produtoVinculado] : []);
+                        let updated = curr.filter(p => !produtosParaRemover.includes(p));
+                        const merged = Array.from(new Set([...updated, ...produtosParaAdicionar]));
+                        return { ...prev, produtoVinculado: merged };
+                      });
+                      setDependentes(prev => prev.map(d => {
+                        let curr = Array.isArray(d.produtoVinculado) ? d.produtoVinculado : (d.produtoVinculado ? [d.produtoVinculado] : []);
+                        let updated = curr.filter(p => !produtosParaRemover.includes(p));
+                        const merged = Array.from(new Set([...updated, ...produtosParaAdicionar]));
+                        return { ...d, produtoVinculado: merged };
+                      }));
+                    }
                   }} required style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
                     <option value="">Selecione o plano...</option>
                     {planosDisponiveis.map(p => (
@@ -934,6 +1210,60 @@ export default function NovaFamilia() {
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Número de Parcelas *</label>
                   <input type="number" min="1" value={contratoForm.parcelas} onChange={e => setContratoForm({ ...contratoForm, parcelas: e.target.value })} required style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }} />
+                </div>
+              </div>
+
+              <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+                <div style={{ background: '#f8fafc', padding: '10px 15px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>
+                  Controle de Produtos por Membro
+                </div>
+                <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                    <thead>
+                      <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                        <th style={{ padding: '8px 12px' }}>Nome</th>
+                        <th style={{ padding: '8px 12px' }}>Parentesco</th>
+                        <th style={{ padding: '8px 12px' }}>Produto(s)</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center' }}>Vincular</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px 12px', fontWeight: 600 }}>{titular.nome || 'Titular'}</td>
+                        <td style={{ padding: '8px 12px' }}><span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>Titular</span></td>
+                        <td style={{ padding: '8px 12px' }}>
+                          {titular.produtoVinculado && titular.produtoVinculado.length > 0
+                            ? (Array.isArray(titular.produtoVinculado) ? titular.produtoVinculado : [titular.produtoVinculado]).map((p, idx) => (
+                                <span key={idx} style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '8px', fontSize: '11px', fontWeight: 600, display: 'inline-block', margin: '2px' }}>{p}</span>
+                              ))
+                            : <span style={{ color: '#94a3b8', fontSize: '11px' }}>Nenhum</span>}
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                          <button type="button" onClick={() => handleAbrirVincularProduto('titular', null)} style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 8px', borderRadius: '6px', color: '#16a34a', cursor: 'pointer', fontWeight: 600, fontSize: '11px' }}>
+                            <i className="fas fa-link"></i>
+                          </button>
+                        </td>
+                      </tr>
+                      {dependentes.map(d => (
+                        <tr key={d.id_interno} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '8px 12px', fontWeight: 600 }}>{d.nome}</td>
+                          <td style={{ padding: '8px 12px' }}><span style={{ background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 600 }}>{d.parentesco}</span></td>
+                          <td style={{ padding: '8px 12px' }}>
+                            {d.produtoVinculado && d.produtoVinculado.length > 0
+                              ? (Array.isArray(d.produtoVinculado) ? d.produtoVinculado : [d.produtoVinculado]).map((p, idx) => (
+                                  <span key={idx} style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '8px', fontSize: '11px', fontWeight: 600, display: 'inline-block', margin: '2px' }}>{p}</span>
+                                ))
+                              : <span style={{ color: '#94a3b8', fontSize: '11px' }}>Nenhum</span>}
+                          </td>
+                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                            <button type="button" onClick={() => handleAbrirVincularProduto('dependente', d.id_interno)} style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 8px', borderRadius: '6px', color: '#16a34a', cursor: 'pointer', fontWeight: 600, fontSize: '11px' }}>
+                              <i className="fas fa-link"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -978,6 +1308,46 @@ export default function NovaFamilia() {
                 <button type="submit" style={{ padding: '0.7rem 1.6rem', borderRadius: '10px', border: 'none', background: '#10b981', color: 'white', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(16,185,129,0.25)' }}>Salvar Pet</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Vincular Produto */}
+      {isVincularModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem' }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+              <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.2rem', fontWeight: 700 }}>
+                <i className="fas fa-link" style={{ color: '#16a34a', marginRight: '8px' }}></i>
+                Vincular Produto
+              </h3>
+              <button onClick={() => { setIsVincularModalOpen(false); setVincularTarget(null); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '1.2rem' }}><i className="fas fa-times"></i></button>
+            </div>
+            <div style={{ marginBottom: '1rem', maxHeight: '250px', overflowY: 'auto', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '1rem', background: '#f8fafc' }}>
+              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', color: '#475569', marginBottom: '12px' }}>Selecione os Produtos</label>
+              {produtosDisponiveis.map(p => {
+                const pNome = p.nome || p.name || p.title;
+                const isChecked = vincularProdutoSelecionado.includes(pNome);
+                return (
+                  <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', cursor: 'pointer', padding: '8px', borderRadius: '6px', background: isChecked ? '#e0f2fe' : '#fff', border: isChecked ? '1px solid #7dd3fc' : '1px solid #e2e8f0' }}>
+                    <input type="checkbox" checked={isChecked} onChange={(e) => {
+                      if (e.target.checked) {
+                        setVincularProdutoSelecionado([...vincularProdutoSelecionado, pNome]);
+                      } else {
+                        setVincularProdutoSelecionado(vincularProdutoSelecionado.filter(v => v !== pNome));
+                      }
+                    }} style={{ width: '16px', height: '16px' }} />
+                    <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: isChecked ? 600 : 400 }}>{pNome} - <span style={{ color: '#166534' }}>R$ {p.valor || p.preco || p.value || '0,00'}</span></span>
+                  </label>
+                );
+              })}
+              {produtosDisponiveis.length === 0 && <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Nenhum produto cadastrado.</span>}
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
+              <button type="button" onClick={() => { setIsVincularModalOpen(false); setVincularTarget(null); setVincularProdutoSelecionado([]); }} style={{ padding: '0.7rem 1.4rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
+              <button type="button" onClick={handleSalvarVincularProduto} style={{ padding: '0.7rem 1.6rem', borderRadius: '10px', border: 'none', background: '#16a34a', color: 'white', fontWeight: 600, cursor: 'pointer' }}>
+                <i className="fas fa-check" style={{ marginRight: '6px' }}></i> Confirmar ({vincularProdutoSelecionado.length})
+              </button>
+            </div>
           </div>
         </div>
       )}
