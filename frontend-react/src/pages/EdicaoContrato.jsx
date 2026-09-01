@@ -92,6 +92,9 @@ export default function EdicaoContrato() {
     isOpen: false, title: '', message: '', onConfirm: () => {}
   });
 
+  const [novoDepModal, setNovoDepModal] = useState(false);
+  const [novoDepForm, setNovoDepForm] = useState({ nome: '', parentesco: '', dataNascimento: '', cpf: '' });
+
   // ─── Load Contract ─────────────────────────────────────────────
   useEffect(() => {
     if (!searchKey) return;
@@ -224,7 +227,7 @@ export default function EdicaoContrato() {
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
       const payload = {
-        contrato_id: contract?.id || contract?.numero,
+        contrato_id: String(contract?.numero),
         tipo,
         descricao,
         valor,
@@ -352,11 +355,97 @@ export default function EdicaoContrato() {
           setAnotacoes(prev => prev.filter(a => a.id !== id));
           setEventos(prev => prev.filter(e => e.id !== id));
         } catch(err) {
+          console.error(err);
           setActionMsg({ type: 'error', text: 'Erro ao excluir: ' + err.message });
         }
         setConfirmModalState(prev => ({ ...prev, isOpen: false }));
       }
     });
+  };
+
+  const handleVincularDependente = (index) => {
+    if (!family) return;
+    setConfirmModalState({
+      isOpen: true,
+      title: 'Vincular Dependente',
+      message: 'Deseja vincular este dependente a este contrato?',
+      onConfirm: async () => {
+        try {
+          const famMetaFallback = (typeof family.metadata === 'string' ? JSON.parse(family.metadata) : family.metadata) || {};
+          const depsAtualizados = [...(family.dependentes || famMetaFallback.dependentes || [])];
+          const dependenteVinculado = { ...depsAtualizados[index] };
+          
+          const planoAtual = contract?.plano || '';
+          if (!planoAtual) throw new Error("Contrato não possui plano definido.");
+
+          let prods = dependenteVinculado.produtoVinculado || dependenteVinculado.planoVinculado || [];
+          if (!Array.isArray(prods)) {
+             prods = prods ? [prods] : [];
+          }
+          
+          if (!prods.includes(planoAtual)) {
+            prods.push(planoAtual);
+          }
+          
+          dependenteVinculado.produtoVinculado = prods;
+          dependenteVinculado.planoVinculado = prods;
+          
+          depsAtualizados[index] = dependenteVinculado;
+
+          const { error } = await supabase.from('familias').update({ dependentes: depsAtualizados }).eq('id', family.id);
+          if (error) throw error;
+
+          setFamily(prev => ({ ...prev, dependentes: depsAtualizados }));
+          
+          await registrarEvento('sistema', `Usuário vinculou o dependente: ${dependenteVinculado?.nome || 'Desconhecido'} ao contrato.`);
+          
+          setActionMsg({ type: 'success', text: 'Dependente vinculado com sucesso!' });
+        } catch(err) {
+          console.error(err);
+          setActionMsg({ type: 'error', text: 'Erro ao vincular: ' + err.message });
+        }
+        setConfirmModalState(prev => ({ ...prev, isOpen: false }));
+      }
+    });
+  };
+
+  const handleCriarNovoDependente = async (e) => {
+    e.preventDefault();
+    if (!family || !novoDepForm.nome || !novoDepForm.parentesco) return;
+    
+    try {
+      const famMetaFallback = (typeof family.metadata === 'string' ? JSON.parse(family.metadata) : family.metadata) || {};
+      const depsAtualizados = [...(family.dependentes || famMetaFallback.dependentes || [])];
+      
+      const planoAtual = contract?.plano || '';
+      if (!planoAtual) throw new Error("Contrato não possui plano definido.");
+
+      const novoDep = {
+        id_interno: Date.now().toString(),
+        nome: novoDepForm.nome,
+        parentesco: novoDepForm.parentesco,
+        dataNascimento: novoDepForm.dataNascimento,
+        cpf: novoDepForm.cpf,
+        produtoVinculado: [planoAtual],
+        planoVinculado: [planoAtual]
+      };
+      
+      depsAtualizados.push(novoDep);
+
+      const { error } = await supabase.from('familias').update({ dependentes: depsAtualizados }).eq('id', family.id);
+      if (error) throw error;
+
+      setFamily(prev => ({ ...prev, dependentes: depsAtualizados }));
+      
+      await registrarEvento('sistema', `Usuário criou e vinculou o novo dependente: ${novoDep.nome} ao contrato.`);
+      
+      setActionMsg({ type: 'success', text: 'Dependente criado e vinculado com sucesso!' });
+      setNovoDepModal(false);
+      setNovoDepForm({ nome: '', parentesco: '', dataNascimento: '', cpf: '' });
+    } catch(err) {
+      console.error(err);
+      setActionMsg({ type: 'error', text: 'Erro ao criar dependente: ' + err.message });
+    }
   };
 
   const handleAddCobranca = async (e) => {
@@ -638,7 +727,8 @@ export default function EdicaoContrato() {
       message: 'Deseja realmente desvincular este dependente deste contrato?',
       onConfirm: async () => {
         try {
-          const depsAtualizados = [...(family.dependentes || [])];
+          const famMetaFallback = (typeof family.metadata === 'string' ? JSON.parse(family.metadata) : family.metadata) || {};
+          const depsAtualizados = [...(family.dependentes || famMetaFallback.dependentes || [])];
           const dependenteRemovido = { ...depsAtualizados[index] };
           
           const planoAtual = contract?.plano || '';
@@ -743,7 +833,7 @@ export default function EdicaoContrato() {
     if (metaTit && typeof metaTit === 'object') return metaTit.cpf || metaTit.documento || '';
     return family?.cpf || family?.documento || contMeta.cpf || contract?.cpf || contract?.cpf_titular || contract?.documento || '—';
   })();
-  const dependentes = family?.dependentes || [];
+  const dependentes = family?.dependentes?.length ? family.dependentes : (famMeta?.dependentes || []);
   const totalRecebido = cobrancasPagas.reduce((s, c) => s + (parseFloat(c.valor) || 0), 0);
   
   const displayPlano = contract.plano || contMeta.plano || 'Plano QUALIFY';
@@ -1027,6 +1117,21 @@ export default function EdicaoContrato() {
                       <td style={{ padding: '12px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
                           <button 
+                            onClick={() => {
+                              const link = c.link_pagamento || c.invoice_url;
+                              if (link) {
+                                navigator.clipboard.writeText(link);
+                                setActionMsg({ type: 'success', text: 'Link copiado com sucesso!' });
+                              } else {
+                                setActionMsg({ type: 'error', text: 'Esta cobrança não possui um link.' });
+                              }
+                            }}
+                            style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                            title="Copiar Link de Pagamento"
+                          >
+                            <i className="fas fa-link"></i> Copiar Link
+                          </button>
+                          <button 
                             onClick={() => handleBaixaCobranca(c.id)}
                             disabled={baixandoId === c.id}
                             style={{ background: '#dcfce7', color: '#166534', border: 'none', padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
@@ -1121,7 +1226,7 @@ export default function EdicaoContrato() {
                 <span style={{ background: '#bbf7d0', color: '#166534', fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '12px' }}>
                   {1 + dependentes.length}
                 </span>
-                <button onClick={() => navigate(`/familias/nova?id=${family?.id}`)} style={{ background: '#16a34a', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button onClick={() => setNovoDepModal(true)} style={{ background: '#16a34a', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <i className="fas fa-user-plus"></i> Adicionar
                 </button>
               </div>
@@ -1189,9 +1294,26 @@ export default function EdicaoContrato() {
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}><StatusBadge status="ativo" /></td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button onClick={() => handleRemoverDependente(i)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '5px 10px', borderRadius: '6px', cursor: 'pointer' }} title="Desvincular Dependente">
-                        <i className="fas fa-unlink"></i>
-                      </button>
+                      {(() => {
+                        const planoAtual = contract?.plano || '';
+                        let prods = d.produtoVinculado || d.planoVinculado || [];
+                        if (!Array.isArray(prods)) prods = prods ? [prods] : [];
+                        const isVinculado = prods.includes(planoAtual);
+                        
+                        if (isVinculado) {
+                          return (
+                            <button onClick={() => handleRemoverDependente(i)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '5px 10px', borderRadius: '6px', cursor: 'pointer' }} title="Desvincular do Contrato">
+                              <i className="fas fa-unlink"></i>
+                            </button>
+                          );
+                        } else {
+                          return (
+                            <button onClick={() => handleVincularDependente(i)} style={{ background: '#dcfce7', color: '#16a34a', border: 'none', padding: '5px 10px', borderRadius: '6px', cursor: 'pointer' }} title="Vincular ao Contrato">
+                              <i className="fas fa-link"></i>
+                            </button>
+                          );
+                        }
+                      })()}
                     </td>
                   </tr>
                 ))}
@@ -1205,6 +1327,42 @@ export default function EdicaoContrato() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Novo Dependente Rápido */}
+      {novoDepModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.2rem', fontWeight: 700 }}>Criar Novo Dependente</h3>
+              <button onClick={() => setNovoDepModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
+            </div>
+            <form onSubmit={handleCriarNovoDependente}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Nome Completo *</label>
+                <input required type="text" value={novoDepForm.nome} onChange={e => setNovoDepForm({...novoDepForm, nome: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} placeholder="Ex: Maria da Silva" />
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Parentesco *</label>
+                <input required type="text" value={novoDepForm.parentesco} onChange={e => setNovoDepForm({...novoDepForm, parentesco: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} placeholder="Ex: Filha, Esposa" />
+              </div>
+              <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Nascimento</label>
+                  <input type="date" value={novoDepForm.dataNascimento} onChange={e => setNovoDepForm({...novoDepForm, dataNascimento: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>CPF</label>
+                  <input type="text" value={novoDepForm.cpf} onChange={e => setNovoDepForm({...novoDepForm, cpf: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} placeholder="Apenas números" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                <button type="button" onClick={() => setNovoDepModal(false)} style={{ flex: 1, background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '10px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                <button type="submit" style={{ flex: 1, background: '#2563eb', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Salvar e Vincular</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
