@@ -250,17 +250,17 @@ router.post('/woovi', async (req, res) => {
                 return;
             }
 
-            const updatePayload = {
-                status: 'ACTIVE',
-                status_display: 'Autorizado pelo cliente',
-                updated_at: new Date().toISOString()
-            };
-
-            await supabase.from('cobrancas').update(updatePayload).eq('subscription_id', subscriptionId);
-            await supabase.from('cobrancas').update(updatePayload).eq('id_asaas', subscriptionId);
-            await supabase.from('cobrancas').update(updatePayload).eq('id', subscriptionId);
-
-            console.log(`✅ PIX_AUTOMATIC_APPROVED — SubID: ${subscriptionId} → ACTIVE`);
+            const targetCobranca = await buscarCobrancaPendente(supabase, { subscriptionId });
+            if (targetCobranca) {
+                await marcarComoPaga(supabase, targetCobranca, {
+                    valorPago: charge?.value ? (charge.value / 100) : 0,
+                    metodo: 'PIX Automático (Aprovado)',
+                    chargeCorrelationId: charge?.correlationID || subscriptionId
+                });
+                console.log(`✅ PIX_AUTOMATIC_APPROVED — SubID: ${subscriptionId} → Marcada como PAGA`);
+            } else {
+                console.warn(`⚠️ PIX_AUTOMATIC_APPROVED: Nenhuma cobrança pendente para SubID: ${subscriptionId}`);
+            }
             return;
         }
 
