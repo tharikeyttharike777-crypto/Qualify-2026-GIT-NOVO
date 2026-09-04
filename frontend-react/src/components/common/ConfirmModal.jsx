@@ -1,6 +1,11 @@
 import React from 'react';
 
-export default function ConfirmModal({ isOpen, title = 'Confirmar Exclusão', message, onConfirm, onCancel, confirmText = 'Sim, Excluir', cancelText = 'Cancelar' }) {
+export default function ConfirmModal({ 
+  isOpen, title = 'Confirmar Exclusão', message, onConfirm, onCancel, 
+  confirmText = 'Sim, Excluir', cancelText = 'Cancelar',
+  confirmColor = '#dc2626', confirmIcon = 'fas fa-trash',
+  headerIcon = 'fas fa-exclamation-triangle', headerIconColor = '#dc2626', headerIconBg = '#fee2e2'
+}) {
   if (!isOpen) return null;
 
   return (
@@ -34,15 +39,15 @@ export default function ConfirmModal({ isOpen, title = 'Confirmar Exclusão', me
           width: '64px',
           height: '64px',
           borderRadius: '50%',
-          backgroundColor: '#fee2e2',
-          color: '#dc2626',
+          backgroundColor: headerIconBg,
+          color: headerIconColor,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '1.8rem',
           margin: '0 auto 1.2rem auto'
         }}>
-          <i className="fas fa-exclamation-triangle"></i>
+          <i className={headerIcon}></i>
         </div>
 
         <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.3rem', fontWeight: 700 }}>
@@ -77,15 +82,15 @@ export default function ConfirmModal({ isOpen, title = 'Confirmar Exclusão', me
               padding: '0.75rem 1.2rem',
               borderRadius: '10px',
               border: 'none',
-              background: '#dc2626',
+              background: confirmColor,
               color: '#ffffff',
               fontWeight: 600,
               cursor: 'pointer',
               fontSize: '0.95rem',
-              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+              boxShadow: `0 4px 12px ${confirmColor}40`
             }}
           >
-            <i className="fas fa-trash" style={{ marginRight: '6px' }}></i> {confirmText}
+            {confirmIcon && <i className={confirmIcon} style={{ marginRight: '6px' }}></i>} {confirmText}
           </button>
         </div>
       </div>

@@ -83,7 +83,7 @@ app.get('/api/health', (req, res) => {
         version: '3.0.0',
         services: {
             supabase: !!supabase,
-            asaas: true
+            woovi: true
         }
     });
 });
@@ -99,7 +99,7 @@ app.get('/api/invoices/:invoiceId/status', requireAuth, async (req, res) => {
         const { data: cobranca, error } = await supabase
             .from('cobrancas')
             .select('*')
-            .eq('id_asaas', invoiceId)
+            .eq('woovi_id', invoiceId)
             .eq('company_id', empresaId)
             .single();
 

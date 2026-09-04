@@ -1,6 +1,7 @@
 /**
  * Rotas de Configuração Bancária (SUPABASE)
  * Endpoints para gerenciar credenciais bancárias por empresa
+ * Integração: WOOVI (OpenPix)
  */
 
 const express = require('express');
@@ -9,7 +10,7 @@ const encryptionService = require('../services/encryption');
 
 /**
  * GET /api/config/:empresaId/bancaria
- * Retorna configuração bancária do Supabase
+ * Retorna configuração bancária da empresa (Woovi)
  */
 router.get('/:empresaId/bancaria', async (req, res) => {
     try {
@@ -20,7 +21,7 @@ router.get('/:empresaId/bancaria', async (req, res) => {
             .from('configuracao_bancaria')
             .select('*')
             .eq('company_id', empresaId)
-            .eq('bank_id', 'asaas')
+            .eq('bank_id', 'woovi')
             .single();
 
         if (error || !config) {
@@ -29,10 +30,10 @@ router.get('/:empresaId/bancaria', async (req, res) => {
 
         res.json({
             configurado: true,
-            banco: 'asaas',
+            banco: 'woovi',
             ativo: config.ativo || false,
             sandbox: config.sandbox || false,
-            temCredenciais: !!config.asaas_api_key,
+            temCredenciais: !!config.woovi_app_id,
             atualizadoEm: config.updated_at
         });
     } catch (error) {
@@ -42,18 +43,19 @@ router.get('/:empresaId/bancaria', async (req, res) => {
 });
 
 /**
- * POST /api/config/:empresaId/bancaria/asaas
+ * POST /api/config/:empresaId/bancaria/woovi
+ * Salva configuração da Woovi para a empresa
  */
-router.post('/:empresaId/bancaria/asaas', async (req, res) => {
+router.post('/:empresaId/bancaria/woovi', async (req, res) => {
     try {
         const { empresaId } = req.params;
-        const { asaasApiKey, sandbox } = req.body;
+        const { wooviAppId, sandbox } = req.body;
         const supabase = req.app.get('supabase');
 
         const configData = {
             company_id: empresaId,
-            bank_id: 'asaas',
-            asaas_api_key: asaasApiKey ? encryptionService.encrypt(asaasApiKey) : undefined,
+            bank_id: 'woovi',
+            woovi_app_id: wooviAppId ? encryptionService.encrypt(wooviAppId) : undefined,
             sandbox: sandbox === 'true' || sandbox === true,
             updated_at: new Date()
         };
@@ -64,14 +66,13 @@ router.post('/:empresaId/bancaria/asaas', async (req, res) => {
 
         if (error) throw error;
 
-        res.json({ success: true, message: 'Configuração salva no Supabase.' });
+        res.json({ success: true, message: 'Configuração Woovi salva com sucesso.' });
     } catch (error) {
         console.error('Erro ao salvar config:', error);
         res.status(500).json({ error: 'Erro ao salvar configuração' });
     }
 });
 
-// Outros endpoints limpos de Firebase...
-router.get('/health', (req, res) => res.json({ status: 'ok' }));
+router.get('/health', (req, res) => res.json({ status: 'ok', integracao: 'woovi' }));
 
 module.exports = router;

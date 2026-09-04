@@ -1,7 +1,6 @@
 /**
  * Rotas de Assinatura (Subscription)
- * Endpoints para criação de assinaturas recorrentes via Woovi
- * Substitui a antiga lógica do Asaas
+ * Endpoints para criação de assinaturas recorrentes via Woovi (OpenPix)
  */
 
 const express = require('express');
@@ -94,7 +93,6 @@ router.post('/criar-link', async (req, res) => {
         const supabase = req.app.get('supabase');
         if (supabase) {
             try {
-                // Como não usamos mais Asaas, o tipo é fixo como pix_automatico
                 const tipoFrontend = 'pix_automatico';
                 const statusFinal = 'PENDING_AUTHORIZATION'; 
                 const statusDisplayFinal = 'Aguardando Pagamento/Autorização';
@@ -107,8 +105,8 @@ router.post('/criar-link', async (req, res) => {
                     status: statusFinal,
                     status_display: statusDisplayFinal,
 
-                    // Reusamos as colunas legadas do asaas no Supabase para não quebrar a tabela, mas injetamos dados da Woovi
-                    id_asaas: subscriptionId, 
+                    // IDs da Woovi
+                    woovi_id: subscriptionId,
                     id: subscriptionId, 
                     subscription_id: subscriptionId,
 

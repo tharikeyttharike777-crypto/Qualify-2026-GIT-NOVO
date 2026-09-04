@@ -33,7 +33,7 @@ async function buscarCobrancaPendente(supabase, { subscriptionId, correlationId 
         }
     }
 
-    // Tentativa 2: pelo id_asaas com subscriptionId (compatibilidade legada)
+    // Tentativa 2: pela coluna woovi_id legada (salva como id_asaas no banco por compatibilidade de schema)
     if (!row && subscriptionId) {
         const { data } = await supabase
             .from('cobrancas')
@@ -43,11 +43,11 @@ async function buscarCobrancaPendente(supabase, { subscriptionId, correlationId 
             .limit(1);
         if (data && data.length > 0) {
             row = data[0];
-            console.log(`🔍 Cobrança encontrada via id_asaas (subscriptionId): ${subscriptionId}`);
+            console.log(`🔍 Cobãnça encontrada via woovi_id (campo id_asaas no schema): ${subscriptionId}`);
         }
     }
 
-    // Tentativa 3: pelo correlationID da cobrança avulsa
+    // Tentativa 3: pelo correlationID da cobrança Woovi avulsa
     if (!row && correlationId) {
         const { data } = await supabase
             .from('cobrancas')
@@ -57,7 +57,7 @@ async function buscarCobrancaPendente(supabase, { subscriptionId, correlationId 
             .limit(1);
         if (data && data.length > 0) {
             row = data[0];
-            console.log(`🔍 Cobrança encontrada via id_asaas (correlationId): ${correlationId}`);
+            console.log(`🔍 Cobrança encontrada via correlationID Woovi: ${correlationId}`);
         }
     }
 

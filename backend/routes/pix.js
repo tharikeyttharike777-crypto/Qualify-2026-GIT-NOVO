@@ -1,7 +1,7 @@
 /**
  * Rotas de PIX
  * Endpoints para geração e consulta de cobranças PIX
- * Integração Oficial: WOOVI (Substitui Asaas)
+ * Integração Oficial: WOOVI (OpenPix)
  */
 
 const express = require('express');
@@ -29,7 +29,6 @@ async function loadBankConfig(req, res, next) {
             });
         }
 
-        // Cria config para o service (a chave vem do env por padrão para todas)
         req.bankConfig = {
             id: empresaId,
             appId: process.env.WOOVI_APP_ID
@@ -54,7 +53,6 @@ router.post('/cob', loadBankConfig, async (req, res) => {
 
         console.log('📥 Requisição PIX (Woovi) recebida:', { valor, pagador: pagador?.nome });
 
-        // Validações
         if (!valor || valor <= 0) {
             return res.status(400).json({ error: 'Valor inválido' });
         }
@@ -67,7 +65,6 @@ router.post('/cob', loadBankConfig, async (req, res) => {
 
         const cpfCnpj = pagador.cpf || pagador.cnpj;
         
-        // 1. Cria cobrança PIX
         console.log('💰 Criando cobrança PIX na Woovi...');
         const cobranca = await wooviBankService.criarCobranca(req.bankConfig, {
             customer: {
@@ -81,13 +78,10 @@ router.post('/cob', loadBankConfig, async (req, res) => {
             externalReference: req.body.invoiceId || null
         });
 
-        // 2. Salva cobrança no Supabase
         const supabase = req.app.get('supabase');
         const empresaId = req.bankConfig.id;
         const hoje = new Date().toISOString().split('T')[0];
 
-        // Woovi retorna brCode e qrCodeImage.
-        // Convertendo status Woovi (ACTIVE/COMPLETED) para padrão do banco de dados (pendente/paga)
         const statusInterno = (cobranca.status === 'COMPLETED') ? 'paga' : 'pendente';
 
         const { error: insertError } = await supabase
@@ -95,7 +89,7 @@ router.post('/cob', loadBankConfig, async (req, res) => {
             .insert({
                 tipo: 'pix',
                 tipo_cobranca: 'imediata',
-                id_asaas: cobranca.correlationID, // Reusando campo para evitar quebrar o DB, salva o ID da Woovi aqui
+                woovi_id: cobranca.correlationID,        // ID da cobrança na Woovi
                 invoice_id: req.body.invoiceId || cobranca.correlationID,
                 valor: parseFloat(valor),
                 descricao,
@@ -104,7 +98,7 @@ router.post('/cob', loadBankConfig, async (req, res) => {
                 pagador_email: pagador.email,
                 pagador_telefone: pagador.telefone,
                 status: statusInterno,
-                qrcode: cobranca.qrCodeImage, // Na Woovi isso é uma URL (ex: api.woovi.com/.../qrcode.png)
+                qrcode: cobranca.qrCodeImage,
                 pix_copia_e_cola: cobranca.brCode,
                 banco: 'woovi',
                 company_id: empresaId,
@@ -144,7 +138,6 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
 
         console.log('📥 Requisição PIX com vencimento (Woovi):', { valor, vencimento, pagador: pagador?.nome });
 
-        // Validações
         if (!valor || valor <= 0) {
             return res.status(400).json({ error: 'Valor inválido' });
         }
@@ -165,7 +158,6 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
 
         const cpfCnpj = pagador.cpf || pagador.cnpj;
         
-        // 1. Cria cobrança PIX (A Woovi trata dueDate/vencimento internamente via expiresIn, abstraímos no service)
         console.log('💰 Criando cobrança PIX na Woovi...');
         const cobranca = await wooviBankService.criarCobranca(req.bankConfig, {
             customer: {
@@ -180,7 +172,6 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
             externalReference: invoiceId || null
         });
 
-        // 2. Salva cobrança no Supabase
         const supabase = req.app.get('supabase');
         const empresaId = req.bankConfig.id;
         
@@ -191,7 +182,7 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
             .insert({
                 tipo: 'pix',
                 tipo_cobranca: 'vencimento',
-                id_asaas: cobranca.correlationID, // Reusando campo para manter compatibilidade
+                woovi_id: cobranca.correlationID,        // ID da cobrança na Woovi
                 invoice_id: invoiceId || cobranca.correlationID,
                 valor: parseFloat(valor),
                 descricao,
@@ -242,7 +233,6 @@ router.get('/:paymentId', loadBankConfig, async (req, res) => {
         console.log('🔍 Consultando cobrança na Woovi:', paymentId);
         const resultado = await wooviBankService.consultarCobranca(req.bankConfig, paymentId);
 
-        // Mapeia status da Woovi para padrão interno (COMPLETED = paga, ACTIVE = pendente, EXPIRED = vencida)
         const statusMap = {
             'ACTIVE': 'pendente',
             'COMPLETED': 'paga',
@@ -257,17 +247,27 @@ router.get('/:paymentId', loadBankConfig, async (req, res) => {
             const supabase = req.app.get('supabase');
             const empresaId = req.bankConfig.id;
 
+            // Busca por woovi_id OU subscription_id (compatibilidade com registros existentes)
             await supabase
                 .from('cobrancas')
                 .update({
                     status: 'paga',
-                    data_pagamento: resultado.createdAt || new Date() // Woovi pode não retornar paymentDate, usamos createdAt do Pix ou geramos
+                    data_pagamento: resultado.createdAt || new Date()
                 })
-                .eq('id_asaas', paymentId) // id_asaas está armazenando o correlationID da Woovi
+                .eq('woovi_id', paymentId)
+                .eq('company_id', empresaId);
+
+            // Fallback para registros mais antigos que usavam id_asaas
+            await supabase
+                .from('cobrancas')
+                .update({
+                    status: 'paga',
+                    data_pagamento: resultado.createdAt || new Date()
+                })
+                .eq('id_asaas', paymentId)
                 .eq('company_id', empresaId);
         }
 
-        // Woovi armazena o valor em centavos
         const valorEmReais = (resultado.value / 100).toFixed(2);
 
         res.json({
