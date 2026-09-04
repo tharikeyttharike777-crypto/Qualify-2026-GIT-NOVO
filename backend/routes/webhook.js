@@ -35,19 +35,7 @@ async function buscarCobrancaPendente(supabase, { subscriptionId, correlationId 
         }
     }
 
-    // Tentativa 2: woovi_id = subscriptionId (registros novos gerados pelo backend atual)
-    if (!row && subscriptionId) {
-        const { data } = await supabase
-            .from('cobrancas')
-            .select('id, contrato_numero, company_id, tipo, valor')
-            .eq('woovi_id', subscriptionId)
-            .not('status', 'in', naoMarcadas)
-            .limit(1);
-        if (data && data.length > 0) {
-            row = data[0];
-            console.log(`🔍 [T2] Cobrança encontrada via woovi_id: ${subscriptionId}`);
-        }
-    }
+
 
     // Tentativa 3: id_asaas = subscriptionId (registros gerados antes da limpeza do schema)
     if (!row && subscriptionId) {
@@ -91,19 +79,7 @@ async function buscarCobrancaPendente(supabase, { subscriptionId, correlationId 
         }
     }
 
-    // Tentativa 6: woovi_id = correlationId (PIX avulso nos registros novos)
-    if (!row && correlationId) {
-        const { data } = await supabase
-            .from('cobrancas')
-            .select('id, contrato_numero, company_id, tipo, valor')
-            .eq('woovi_id', correlationId)
-            .not('status', 'in', naoMarcadas)
-            .limit(1);
-        if (data && data.length > 0) {
-            row = data[0];
-            console.log(`🔍 [T6] Cobrança encontrada via woovi_id (correlationId): ${correlationId}`);
-        }
-    }
+
 
     if (!row) {
         console.warn(`⚠️ Cobrança NÃO encontrada após 6 tentativas. subscriptionId=${subscriptionId} | correlationId=${correlationId}`);

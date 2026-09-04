@@ -99,7 +99,7 @@ app.get('/api/invoices/:invoiceId/status', requireAuth, async (req, res) => {
         const { data: cobranca, error } = await supabase
             .from('cobrancas')
             .select('*')
-            .eq('woovi_id', invoiceId)
+            .eq('id_asaas', invoiceId)
             .eq('company_id', empresaId)
             .single();
 

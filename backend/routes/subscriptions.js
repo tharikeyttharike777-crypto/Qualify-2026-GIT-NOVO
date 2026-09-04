@@ -105,8 +105,8 @@ router.post('/criar-link', async (req, res) => {
                     status: statusFinal,
                     status_display: statusDisplayFinal,
 
-                    // IDs da Woovi
-                    woovi_id: subscriptionId,
+                    // IDs da Woovi salvos na coluna física antiga
+                    id_asaas: subscriptionId,
                     id: subscriptionId, 
                     subscription_id: subscriptionId,
 

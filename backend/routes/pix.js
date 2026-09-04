@@ -89,7 +89,7 @@ router.post('/cob', loadBankConfig, async (req, res) => {
             .insert({
                 tipo: 'pix',
                 tipo_cobranca: 'imediata',
-                woovi_id: cobranca.correlationID,        // ID da cobrança na Woovi
+                id_asaas: cobranca.correlationID,        // ID da cobrança na Woovi (salvo na coluna legada)
                 invoice_id: req.body.invoiceId || cobranca.correlationID,
                 valor: parseFloat(valor),
                 descricao,
@@ -182,7 +182,7 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
             .insert({
                 tipo: 'pix',
                 tipo_cobranca: 'vencimento',
-                woovi_id: cobranca.correlationID,        // ID da cobrança na Woovi
+                id_asaas: cobranca.correlationID,        // ID da cobrança na Woovi (salvo na coluna legada)
                 invoice_id: invoiceId || cobranca.correlationID,
                 valor: parseFloat(valor),
                 descricao,
@@ -247,17 +247,7 @@ router.get('/:paymentId', loadBankConfig, async (req, res) => {
             const supabase = req.app.get('supabase');
             const empresaId = req.bankConfig.id;
 
-            // Busca por woovi_id OU subscription_id (compatibilidade com registros existentes)
-            await supabase
-                .from('cobrancas')
-                .update({
-                    status: 'paga',
-                    data_pagamento: resultado.createdAt || new Date()
-                })
-                .eq('woovi_id', paymentId)
-                .eq('company_id', empresaId);
-
-            // Fallback para registros mais antigos que usavam id_asaas
+            // Busca por id_asaas (coluna física no Supabase)
             await supabase
                 .from('cobrancas')
                 .update({
