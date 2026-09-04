@@ -1210,10 +1210,10 @@ export default function EdicaoContrato() {
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '500px' }}>
                 <thead>
                   <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #e2e8f0', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
-                    <th style={{ padding: '12px' }}>Tipo</th>
-                    <th style={{ padding: '12px' }}>Data Pgto</th>
-                    <th style={{ padding: '12px' }}>Valor</th>
-                    <th style={{ padding: '12px' }}>Método</th>
+                    <th style={{ padding: '12px', textAlign: 'left' }}>Tipo</th>
+                    <th style={{ padding: '12px', textAlign: 'left' }}>Data Pgto</th>
+                    <th style={{ padding: '12px', textAlign: 'left' }}>Valor</th>
+                    <th style={{ padding: '12px', textAlign: 'left' }}>Método</th>
                   </tr>
                 </thead>
                 <tbody>
