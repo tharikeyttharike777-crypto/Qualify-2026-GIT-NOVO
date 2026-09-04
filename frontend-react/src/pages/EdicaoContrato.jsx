@@ -534,12 +534,29 @@ export default function EdicaoContrato() {
           endereco: { cep: cobrancaForm.cep, logradouro: cobrancaForm.logradouro, numero: cobrancaForm.numero, bairro: cobrancaForm.bairro, cidade: cobrancaForm.cidade, uf: cobrancaForm.uf }
         };
 
+        // ✅ FETCH que estava faltando — causava o erro "res is not defined"
+        const res = await fetch(`${API_BASE}/pix/cob`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ 
+            empresaId: companyId,
+            valor: valorOriginal,
+            descricao: basePayload.descricao || `Cobrança Contrato ${basePayload.contrato_numero}`,
+            pagador: {
+              nome: titularNome,
+              cpf: cobrancaForm.cpfPagador
+            },
+            vencimento: cobrancaForm.vencimento
+          })
+        });
+
         const result = await res.json();
         if (!res.ok) throw new Error(result.error || 'Erro ao gerar PIX avulso na API');
         
         setNovaCobrancaModal(false);
         setSuccessLinkModal({ isOpen: true, data: result });
         setTimeout(() => loadCobrancas(contract), 1500);
+
       } else {
         // FLUXO NORMAL: Loop de parcelas para Pix avulso, dinheiro, cartão etc.
         const [anoStr, mesStr, diaStr] = cobrancaForm.vencimento.split('-');
