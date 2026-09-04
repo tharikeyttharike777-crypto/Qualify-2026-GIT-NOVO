@@ -542,6 +542,7 @@ export default function EdicaoContrato() {
             empresaId: companyId,
             valor: valorOriginal,
             descricao: basePayload.descricao || `Cobrança Contrato ${basePayload.contrato_numero}`,
+            contratoNumero: basePayload.contrato_numero,
             pagador: {
               nome: titularNome,
               cpf: cobrancaForm.cpfPagador

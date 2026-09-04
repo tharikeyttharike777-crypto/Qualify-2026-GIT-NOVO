@@ -49,7 +49,7 @@ async function loadBankConfig(req, res, next) {
  */
 router.post('/cob', loadBankConfig, async (req, res) => {
     try {
-        const { valor, descricao, pagador } = req.body;
+        const { valor, descricao, pagador, contratoNumero } = req.body;
 
         console.log('📥 Requisição PIX (Woovi) recebida:', { valor, pagador: pagador?.nome });
 
@@ -91,6 +91,7 @@ router.post('/cob', loadBankConfig, async (req, res) => {
                 tipo_cobranca: 'imediata',
                 id_asaas: cobranca.correlationID,        // ID da cobrança na Woovi (salvo na coluna legada)
                 invoice_id: req.body.invoiceId || cobranca.correlationID,
+                contrato_numero: contratoNumero,
                 valor: parseFloat(valor),
                 descricao,
                 pagador_nome: pagador.nome,
@@ -134,7 +135,7 @@ router.post('/cob', loadBankConfig, async (req, res) => {
  */
 router.post('/cobv', loadBankConfig, async (req, res) => {
     try {
-        let { valor, descricao, pagador, vencimento, invoiceId } = req.body;
+        let { valor, descricao, pagador, vencimento, invoiceId, contratoNumero } = req.body;
 
         console.log('📥 Requisição PIX com vencimento (Woovi):', { valor, vencimento, pagador: pagador?.nome });
 
@@ -184,6 +185,7 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
                 tipo_cobranca: 'vencimento',
                 id_asaas: cobranca.correlationID,        // ID da cobrança na Woovi (salvo na coluna legada)
                 invoice_id: invoiceId || cobranca.correlationID,
+                contrato_numero: contratoNumero,
                 valor: parseFloat(valor),
                 descricao,
                 pagador_nome: pagador.nome,
