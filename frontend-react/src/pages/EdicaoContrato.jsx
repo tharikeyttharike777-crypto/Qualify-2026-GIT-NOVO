@@ -129,9 +129,13 @@ export default function EdicaoContrato() {
       let fetchedContract = null;
       let fetchedFamily = null;
 
+      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+
       // 1. Busca por NUMERO na tabela central (fonte primária e única)
       try {
-        const { data } = await supabase.from('contratos').select('*').eq('numero', searchKey).maybeSingle();
+        let qNum = supabase.from('contratos').select('*').eq('numero', searchKey);
+        if (companyId) qNum = qNum.eq('company_id', companyId);
+        const { data } = await qNum.maybeSingle();
         if (data) fetchedContract = data;
       } catch(e){}
 
@@ -140,7 +144,9 @@ export default function EdicaoContrato() {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(searchKey);
         if (isUuid) {
           try {
-            const { data } = await supabase.from('contratos').select('*').eq('id', searchKey).maybeSingle();
+            let qId = supabase.from('contratos').select('*').eq('id', searchKey);
+            if (companyId) qId = qId.eq('company_id', companyId);
+            const { data } = await qId.maybeSingle();
             if (data) fetchedContract = data;
           } catch(e){}
         }
@@ -156,24 +162,36 @@ export default function EdicaoContrato() {
         const famId = fetchedContract.family_id || fetchedContract.familyId || fetchedContract.familia_id || meta.family_id || meta.familyId;
         if (famId) {
           try {
-            const { data: fam } = await supabase.from('familias').select('*').eq('id', famId).maybeSingle();
+            let qFam = supabase.from('familias').select('*').eq('id', famId);
+            if (companyId) qFam = qFam.eq('company_id', companyId);
+            const { data: fam } = await qFam.maybeSingle();
             if (fam) fetchedFamily = fam;
           } catch(e){}
         }
-        // Se não tem family_id, tenta buscar pelo nome do titular
-        const titNome = fetchedContract.titular || meta.titular;
-        if (!fetchedFamily && titNome) {
+        // Se não achou por family_id, tenta buscar pelo CPF, número do contrato ou nome do titular
+        const titNome = String(fetchedContract.titular || meta.titular || '').trim().toLowerCase();
+        const titCpf = String(fetchedContract.cpf || meta.cpf || '').replace(/\D/g, '');
+        const cNum = String(fetchedContract.numero || fetchedContract.id || '');
+        if (!fetchedFamily && (titNome || titCpf || cNum)) {
           try {
-            const { data: fams } = await supabase.from('familias').select('*');
+            let qFams = supabase.from('familias').select('*');
+            if (companyId) qFams = qFams.eq('company_id', companyId);
+            const { data: fams } = await qFams;
             if (Array.isArray(fams)) {
               fetchedFamily = fams.find(f => {
-                const tNome = typeof f.titular === 'object' ? f.titular?.nome : f.titular;
-                if (!tNome && f.metadata) {
-                  let fMeta = typeof f.metadata === 'string' ? JSON.parse(f.metadata) : f.metadata;
-                  const fmNome = fMeta.titular?.nome || fMeta.nome;
-                  return fmNome && String(fmNome).toLowerCase() === String(titNome).toLowerCase();
+                let fMeta = {};
+                if (f.metadata) {
+                  try { fMeta = typeof f.metadata === 'string' ? JSON.parse(f.metadata) : f.metadata; } catch(e){}
                 }
-                return tNome && String(tNome).toLowerCase() === String(titNome).toLowerCase();
+                const fTitObj = typeof f.titular === 'object' ? f.titular : (fMeta.titular || {});
+                const fCpf = String(fTitObj?.cpf || fTitObj?.documento || f.cpf || '').replace(/\D/g, '');
+                if (titCpf && fCpf && titCpf === fCpf) return true;
+
+                const fContratos = Array.isArray(fMeta.contratos) ? fMeta.contratos : [];
+                if (cNum && fContratos.some(c => String(c.numero || c.id || '') === cNum)) return true;
+
+                const tNome = typeof f.titular === 'object' ? f.titular?.nome : (f.titular || fMeta.titular?.nome || fMeta.nome);
+                return titNome && tNome && String(tNome).trim().toLowerCase() === titNome;
               }) || null;
             }
           } catch(e){}
@@ -297,8 +315,9 @@ export default function EdicaoContrato() {
       message: 'Deseja criar uma cópia deste contrato?',
       onConfirm: async () => {
         try {
-          const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
-          const { data: allNums } = await supabase.from('contratos').select('numero').order('numero', { ascending: false });
+          let qNums = supabase.from('contratos').select('numero').order('numero', { ascending: false });
+          if (companyId) qNums = qNums.eq('company_id', companyId);
+          const { data: allNums } = await qNums;
           let maxNum = 0;
           if (Array.isArray(allNums)) {
             allNums.forEach(r => {
@@ -393,6 +412,23 @@ export default function EdicaoContrato() {
     return contract?.plano || meta?.plano || 'Plano QUALIFY';
   };
 
+  const isDependenteVinculado = (d) => {
+    if (!d) return false;
+    const cKey = String(contract?.numero || contract?.id || '');
+    const desvinculados = Array.isArray(d.desvinculadoContratos) ? d.desvinculadoContratos : [];
+    if (cKey && desvinculados.includes(cKey)) return false;
+
+    const planoAtual = getPlanoAtual();
+    let prods = d.produtoVinculado || d.planoVinculado || [];
+    if (!Array.isArray(prods)) prods = prods ? [prods] : [];
+    prods = prods.filter(Boolean);
+
+    if (prods.includes(planoAtual)) return true;
+    // Se o dependente foi importado sem produto específico (ou com 'Plano Familiar' genérico) e não foi desvinculado manualmente, considera vinculado
+    if (prods.length === 0 || prods.includes('Plano Familiar')) return true;
+    return false;
+  };
+
   const handleVincularDependente = (index) => {
     if (!family) return;
     setConfirmModalState({
@@ -425,6 +461,10 @@ export default function EdicaoContrato() {
           
           dependenteVinculado.produtoVinculado = prods;
           dependenteVinculado.planoVinculado = prods;
+          const cKey = String(contract?.numero || contract?.id || '');
+          if (Array.isArray(dependenteVinculado.desvinculadoContratos)) {
+            dependenteVinculado.desvinculadoContratos = dependenteVinculado.desvinculadoContratos.filter(k => k !== cKey);
+          }
           
           depsAtualizados[index] = dependenteVinculado;
 
@@ -456,15 +496,81 @@ export default function EdicaoContrato() {
       
       const valorOriginal = parseFloat(String(cobrancaForm.valor).replace(',', '.'));
       const parcelas = parseInt(cobrancaForm.parcelas) || 1;
+      const enderecoObj = {
+        cep: cobrancaForm.cep || '',
+        rua: cobrancaForm.logradouro || '',
+        logradouro: cobrancaForm.logradouro || '',
+        numero: cobrancaForm.numero || '',
+        bairro: cobrancaForm.bairro || '',
+        cidade: cobrancaForm.cidade || '',
+        estado: (cobrancaForm.uf || '').toUpperCase(),
+        uf: (cobrancaForm.uf || '').toUpperCase()
+      };
+
+      // Persiste endereço preenchido de volta na família e no contrato caso estivesse incompleto
+      if (enderecoObj.cep || enderecoObj.logradouro) {
+        if (family?.id) {
+          const endAtual = (typeof family.endereco === 'object' && family.endereco) ? family.endereco : {};
+          const novoEndFam = {
+            ...endAtual,
+            cep: enderecoObj.cep || endAtual.cep || '',
+            rua: enderecoObj.logradouro || endAtual.rua || endAtual.logradouro || '',
+            logradouro: enderecoObj.logradouro || endAtual.logradouro || endAtual.rua || '',
+            numero: enderecoObj.numero || endAtual.numero || '',
+            bairro: enderecoObj.bairro || endAtual.bairro || '',
+            cidade: enderecoObj.cidade || endAtual.cidade || '',
+            estado: enderecoObj.uf || endAtual.estado || endAtual.uf || '',
+            uf: enderecoObj.uf || endAtual.uf || endAtual.estado || ''
+          };
+          supabase.from('familias').update({ endereco: novoEndFam }).eq('id', family.id).then(() => {});
+          setFamily(prev => prev ? ({ ...prev, endereco: novoEndFam }) : prev);
+        }
+        if (contract?.id) {
+          let cMeta = {};
+          try { cMeta = typeof contract.metadata === 'string' ? JSON.parse(contract.metadata) : (contract.metadata || {}); } catch(e){}
+          const novoMeta = { ...cMeta, cpf: cobrancaForm.cpfPagador || cMeta.cpf || '', endereco: enderecoObj };
+          supabase.from('contratos').update({ metadata: novoMeta }).eq('id', contract.id).then(() => {});
+          setContract(prev => prev ? ({ ...prev, metadata: novoMeta }) : prev);
+        }
+      }
+
+      const billingTypeMap = {
+        pix_automatico: 'PIX_AUTOMATICO',
+        pix: 'PIX',
+        boleto: 'BOLETO',
+        cartao: 'CREDIT_CARD',
+        money: 'CASH'
+      };
+      const metodoLabelMap = {
+        pix_automatico: 'Pix Automático',
+        pix: 'Pix',
+        boleto: 'Boleto',
+        cartao: 'Cartão de Crédito',
+        money: 'Dinheiro'
+      };
       
       const basePayload = {
-        contrato_numero: contract?.numero || contract?.id,
+        contrato_numero: String(contract?.numero || contract?.id || ''),
+        contrato_id: contract?.id || null,
+        familia_id: family?.id || null,
         valor: valorOriginal,
-        descricao: cobrancaForm.descricao,
-        tipo: cobrancaForm.tipo,
+        descricao: cobrancaForm.descricao || cobrancaForm.mensagem || `${cobrancaForm.tipo || 'Mensalidade'} (${metodoLabelMap[cobrancaForm.metodo] || cobrancaForm.metodo}) - Contrato ${contract?.numero || contract?.id}`,
+        tipo: cobrancaForm.metodo || cobrancaForm.tipo || 'Mensalidade',
+        tipo_cobranca: cobrancaForm.tipo || 'Mensalidade',
+        billing_type: billingTypeMap[cobrancaForm.metodo] || 'PIX',
         status: 'pendente',
+        status_display: 'Em Aberto',
         company_id: companyId,
-        titular: titularNome
+        pagador_nome: titularNome !== '—' ? titularNome : (contract?.titular || 'Cliente'),
+        pagador_documento: (cobrancaForm.cpfPagador || '').replace(/\D/g, ''),
+        metadata: {
+          metodo: cobrancaForm.metodo,
+          metodo_label: metodoLabelMap[cobrancaForm.metodo] || cobrancaForm.metodo,
+          tipo_lancamento: cobrancaForm.tipo || 'Mensalidade',
+          mensagem: cobrancaForm.mensagem || '',
+          parcelas_total: parcelas,
+          endereco: enderecoObj
+        }
       };
       
       if (cobrancaForm.metodo === 'pix_automatico') {
@@ -515,51 +621,174 @@ export default function EdicaoContrato() {
 
         const result = await res.json();
         if (!res.ok) throw new Error(result.error || 'Erro ao gerar Assinatura na API');
+
+        if (result.subscriptionId) {
+          await supabase.from('cobrancas').update({
+            contrato_id: contract?.id || null,
+            familia_id: family?.id || null,
+            tipo_cobranca: cobrancaForm.tipo || 'Mensalidade',
+            pagador_nome: basePayload.pagador_nome,
+            pagador_documento: basePayload.pagador_documento,
+            invoice_url: result.paymentLink || null,
+            metadata: {
+              ...basePayload.metadata,
+              paymentLink: result.paymentLink || null,
+              qrcode: result.qrcode || result.imagemQrcode || null,
+              pix_copia_e_cola: result.pixCopiaECola || null
+            }
+          }).eq('id_asaas', result.subscriptionId);
+        }
         
         setNovaCobrancaModal(false);
-        setSuccessLinkModal({ isOpen: true, data: result });
-        setTimeout(() => loadCobrancas(contract), 1500);
-      } else if (cobrancaForm.metodo === 'pix') {
+        setSuccessLinkModal({ isOpen: true, data: { ...result, metodo: 'pix_automatico' } });
+        setTimeout(() => loadCobrancas(contract), 1200);
+      } else if (cobrancaForm.metodo === 'pix' || cobrancaForm.metodo === 'boleto' || cobrancaForm.metodo === 'cartao') {
         const token = (await supabase.auth.getSession())?.data?.session?.access_token || '';
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const API_BASE = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:4570/api' : 'https://qualify-2026.onrender.com/api');
-        
-        const apiPayload = {
-          empresaId: companyId,
-          cpfCnpj: cobrancaForm.cpfPagador,
-          nomeCliente: titularNome,
-          value: valorOriginal,
-          nextDueDate: cobrancaForm.vencimento,
-          description: basePayload.descricao || `Cobrança Contrato ${basePayload.contrato_numero}`,
-          endereco: { cep: cobrancaForm.cep, logradouro: cobrancaForm.logradouro, numero: cobrancaForm.numero, bairro: cobrancaForm.bairro, cidade: cobrancaForm.cidade, uf: cobrancaForm.uf }
-        };
+        const { gerarDadosFebrabanBoleto, gerarPdfBoletoBuffer } = await import('../utils/pdfUtils');
 
-        // ✅ FETCH que estava faltando — causava o erro "res is not defined"
-        const res = await fetch(`${API_BASE}/pix/cob`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-          body: JSON.stringify({ 
-            empresaId: companyId,
+        const [anoStr, mesStr, diaStr] = cobrancaForm.vencimento.split('-');
+        const anoBase = parseInt(anoStr, 10);
+        const mesBase = parseInt(mesStr, 10);
+        const diaBase = parseInt(diaStr, 10);
+
+        let firstResult = null;
+        let firstCreatedRow = null;
+        let firstFebraban = null;
+
+        for (let i = 0; i < parcelas; i++) {
+          let mesCalc = mesBase + i;
+          let anoCalc = anoBase;
+          while (mesCalc > 12) {
+            mesCalc -= 12;
+            anoCalc++;
+          }
+          const ultimoDiaMes = new Date(anoCalc, mesCalc, 0).getDate();
+          const diaAjustado = Math.min(diaBase, ultimoDiaMes);
+          const vencimentoParcela = `${anoCalc}-${String(mesCalc).padStart(2, '0')}-${String(diaAjustado).padStart(2, '0')}`;
+          const descBase = cobrancaForm.descricao || cobrancaForm.mensagem || `${cobrancaForm.tipo || 'Mensalidade'} (${metodoLabelMap[cobrancaForm.metodo] || cobrancaForm.metodo}) - Contrato ${basePayload.contrato_numero}`;
+          const msgParcela = parcelas > 1 ? `${descBase} (${i + 1}/${parcelas})` : descBase;
+          const nostroNum = String(Date.now()).slice(-8) + String(i + 1).padStart(2, '0');
+          const febraban = gerarDadosFebrabanBoleto(valorOriginal, vencimentoParcela, nostroNum);
+
+          const endpoint = cobrancaForm.metodo === 'pix' ? `${API_BASE}/pix/cob` : `${API_BASE}/pix/cobv`;
+          let res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+            body: JSON.stringify({
+              empresaId: companyId,
+              valor: valorOriginal,
+              descricao: msgParcela,
+              contratoNumero: basePayload.contrato_numero,
+              pagador: {
+                nome: basePayload.pagador_nome,
+                cpf: basePayload.pagador_documento
+              },
+              vencimento: vencimentoParcela
+            })
+          });
+
+          if (!res.ok && endpoint.endsWith('/cobv')) {
+            res = await fetch(`${API_BASE}/pix/cob`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+              body: JSON.stringify({
+                empresaId: companyId,
+                valor: valorOriginal,
+                descricao: msgParcela,
+                contratoNumero: basePayload.contrato_numero,
+                pagador: {
+                  nome: basePayload.pagador_nome,
+                  cpf: basePayload.pagador_documento
+                },
+                vencimento: vencimentoParcela
+              })
+            });
+          }
+
+          const result = await res.json();
+          if (!res.ok) throw new Error(result.error || `Erro ao gerar cobrança (${metodoLabelMap[cobrancaForm.metodo]}) na API`);
+
+          const qrUrl = String(result.qrcode || result.imagemQrcode || '');
+          const uuidMatch = qrUrl.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+          const paymentLink = result.paymentLink || (uuidMatch ? `https://woovi.com/pay/${uuidMatch[1]}` : null);
+
+          const updatePayload = {
+            contrato_id: contract?.id || null,
+            familia_id: family?.id || null,
+            contrato_numero: basePayload.contrato_numero,
+            company_id: companyId,
             valor: valorOriginal,
-            descricao: basePayload.descricao || `Cobrança Contrato ${basePayload.contrato_numero}`,
-            contratoNumero: basePayload.contrato_numero,
-            pagador: {
-              nome: titularNome,
-              cpf: cobrancaForm.cpfPagador
-            },
-            vencimento: cobrancaForm.vencimento
-          })
-        });
+            vencimento: vencimentoParcela,
+            descricao: msgParcela,
+            tipo: cobrancaForm.metodo,
+            tipo_cobranca: cobrancaForm.tipo || 'Mensalidade',
+            billing_type: billingTypeMap[cobrancaForm.metodo],
+            status: 'pendente',
+            status_display: 'Em Aberto',
+            pagador_nome: basePayload.pagador_nome,
+            pagador_documento: basePayload.pagador_documento,
+            link_pagamento: paymentLink,
+            invoice_url: paymentLink,
+            qrcode: result.qrcode || result.imagemQrcode || null,
+            pix_copia_e_cola: result.pixCopiaECola || null,
+            metadata: {
+              ...basePayload.metadata,
+              parcela_numero: i + 1,
+              nosso_numero: febraban.nossoNumero,
+              linha_digitavel: febraban.linhaDigitavel,
+              codigo_barras: febraban.codigoBarras,
+              paymentLink,
+              qrcode: result.qrcode || result.imagemQrcode || null,
+              pix_copia_e_cola: result.pixCopiaECola || null
+            }
+          };
 
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error || 'Erro ao gerar PIX avulso na API');
-        
+          let savedRow = null;
+          if (result.paymentId) {
+            const { data: updatedRows } = await supabase
+              .from('cobrancas')
+              .update(updatePayload)
+              .eq('id_asaas', result.paymentId)
+              .select();
+            if (updatedRows && updatedRows.length > 0) {
+              savedRow = updatedRows[0];
+            }
+          }
+          if (!savedRow) {
+            const { data: insertedRows } = await supabase
+              .from('cobrancas')
+              .insert([{ ...updatePayload, id_asaas: result.paymentId || `${cobrancaForm.metodo}_${nostroNum}` }])
+              .select();
+            if (insertedRows && insertedRows.length > 0) {
+              savedRow = insertedRows[0];
+            }
+          }
+
+          if (i === 0) {
+            firstResult = { ...result, paymentLink, linhaDigitavel: febraban.linhaDigitavel, metodo: cobrancaForm.metodo };
+            firstCreatedRow = savedRow || { ...updatePayload, id: result.paymentId };
+            firstFebraban = febraban;
+          }
+        }
+
+        await loadCobrancas(contract);
+
+        if (cobrancaForm.metodo === 'boleto' && firstCreatedRow) {
+          try {
+            await gerarPdfBoletoBuffer(firstCreatedRow, contract, family);
+          } catch (pdfErr) {
+            console.warn('Aviso ao gerar PDF automático do boleto:', pdfErr);
+          }
+        }
+
         setNovaCobrancaModal(false);
-        setSuccessLinkModal({ isOpen: true, data: result });
-        setTimeout(() => loadCobrancas(contract), 1500);
-
+        if (firstResult) {
+          setSuccessLinkModal({ isOpen: true, data: firstResult });
+        }
       } else {
-        // FLUXO NORMAL: Loop de parcelas para Pix avulso, dinheiro, cartão etc.
+        // FLUXO DINHEIRO / PRESENCIAL (com suporte a 1 ou N parcelas)
         const [anoStr, mesStr, diaStr] = cobrancaForm.vencimento.split('-');
         let anoBase = parseInt(anoStr);
         let mesBase = parseInt(mesStr);
@@ -574,22 +803,32 @@ export default function EdicaoContrato() {
             mesCalc -= 12;
             anoCalc++;
           }
-          const vencimentoParcela = `${anoCalc}-${String(mesCalc).padStart(2, '0')}-${String(diaBase).padStart(2, '0')}`;
-          const msgParcela = parcelas > 1 ? `${basePayload.descricao || basePayload.tipo} (${i + 1}/${parcelas})` : (basePayload.descricao || basePayload.tipo);
+          const ultimoDiaMes = new Date(anoCalc, mesCalc, 0).getDate();
+          const diaAjustado = Math.min(diaBase, ultimoDiaMes);
+          const vencimentoParcela = `${anoCalc}-${String(mesCalc).padStart(2, '0')}-${String(diaAjustado).padStart(2, '0')}`;
+          const descBase = cobrancaForm.descricao || cobrancaForm.mensagem || `${cobrancaForm.tipo || 'Mensalidade'} (${metodoLabelMap[cobrancaForm.metodo] || cobrancaForm.metodo})`;
+          const msgParcela = parcelas > 1 ? `${descBase} (${i + 1}/${parcelas})` : descBase;
+          const nostroNum = String(Date.now()).slice(-8) + String(i + 1).padStart(2, '0');
           
           payloadsToInsert.push({
             ...basePayload,
             vencimento: vencimentoParcela,
-            descricao: msgParcela
+            descricao: msgParcela,
+            invoice_id: `${cobrancaForm.metodo}_${nostroNum}`,
+            metadata: {
+              ...basePayload.metadata,
+              parcela_numero: i + 1,
+              nosso_numero: nostroNum
+            }
           });
         }
         
         const { data, error } = await supabase.from('cobrancas').insert(payloadsToInsert).select();
         if (error) throw error;
-        setCobrancasAbertas(prev => [...data, ...prev].sort((a,b) => new Date(a.vencimento) - new Date(b.vencimento)));
+        setCobrancasAbertas(prev => [...(data || []), ...prev].sort((a,b) => new Date(a.vencimento) - new Date(b.vencimento)));
+        setNovaCobrancaModal(false);
       }
       
-      setNovaCobrancaModal(false);
       setCobrancaForm({ 
         valor: '', vencimento: '', descricao: '', tipo: 'Mensalidade',
         cpfPagador: '', metodo: 'pix_automatico', parcelas: 1, 
@@ -609,7 +848,27 @@ export default function EdicaoContrato() {
     }
   };
 
-  const handleAbrirNovaCobranca = () => {
+  const buscarCepCobranca = async (cepInput) => {
+    const cleanCep = String(cepInput || '').replace(/\D/g, '');
+    if (cleanCep.length !== 8) return;
+    try {
+      const resp = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const dados = await resp.json();
+      if (!dados.erro) {
+        setCobrancaForm(prev => ({
+          ...prev,
+          logradouro: dados.logradouro || prev.logradouro || '',
+          bairro: dados.bairro || prev.bairro || '',
+          cidade: dados.localidade || prev.cidade || '',
+          uf: (dados.uf || prev.uf || '').toUpperCase()
+        }));
+      }
+    } catch (e) {
+      console.warn('Falha ao consultar ViaCEP:', e);
+    }
+  };
+
+  const handleAbrirNovaCobranca = async () => {
     let famMeta = {};
     if (family?.metadata) {
       try { famMeta = typeof family.metadata === 'string' ? JSON.parse(family.metadata) : family.metadata; } catch(e){}
@@ -619,19 +878,59 @@ export default function EdicaoContrato() {
       try { contMeta = typeof contract.metadata === 'string' ? JSON.parse(contract.metadata) : contract.metadata; } catch(e){}
     }
 
-    const famTit = (typeof family?.titular === 'object') ? family.titular : {};
-    const metaTit = famMeta.titular || {};
-    const end = (typeof family?.endereco === 'object') ? family.endereco : (famMeta.endereco || {});
+    const famTit = (typeof family?.titular === 'object' && family?.titular) ? family.titular : {};
+    const metaTit = (typeof famMeta?.titular === 'object' && famMeta?.titular) ? famMeta.titular : {};
 
-    const cpfVal = famTit.cpf || famTit.documento || metaTit.cpf || metaTit.documento || family?.cpf || '';
-    const cepVal = end.cep || '';
-    const logradouro = end.rua || end.logradouro || '';
-    const numero = end.numero || '';
-    const bairro = end.bairro || '';
-    const cidade = end.cidade || end.localidade || '';
-    const ufVal = end.uf || end.estado || '';
+    // Consolida todas as possíveis fontes de endereço (Família -> Metadata Família -> Titular -> Contrato Metadata -> Contrato)
+    const endSources = [
+      (typeof family?.endereco === 'object' && family?.endereco) ? family.endereco : null,
+      (typeof famMeta?.endereco === 'object' && famMeta?.endereco) ? famMeta.endereco : null,
+      (typeof famTit?.endereco === 'object' && famTit?.endereco) ? famTit.endereco : null,
+      (typeof metaTit?.endereco === 'object' && metaTit?.endereco) ? metaTit.endereco : null,
+      (typeof contMeta?.endereco === 'object' && contMeta?.endereco) ? contMeta.endereco : null,
+      (typeof contract?.endereco === 'object' && contract?.endereco) ? contract.endereco : null
+    ].filter(Boolean);
+
+    const pickField = (...keys) => {
+      for (const src of endSources) {
+        for (const k of keys) {
+          const val = src[k];
+          if (val !== undefined && val !== null && String(val).trim() !== '') {
+            // Evita pegar número de data por engano no logradouro (ex: '20261005')
+            if ((k === 'rua' || k === 'logradouro') && /^\d{8}$/.test(String(val).trim())) continue;
+            return String(val).trim();
+          }
+        }
+      }
+      for (const obj of [family, famMeta, famTit, contMeta, contract].filter(Boolean)) {
+        for (const k of keys) {
+          const val = obj[k];
+          if (val !== undefined && val !== null && typeof val !== 'object' && String(val).trim() !== '') {
+            if ((k === 'rua' || k === 'logradouro') && /^\d{8}$/.test(String(val).trim())) continue;
+            return String(val).trim();
+          }
+        }
+      }
+      return '';
+    };
+
+    const cpfVal = famTit.cpf || famTit.documento || metaTit.cpf || metaTit.documento || family?.cpf || contMeta.cpf || contract?.cpf || '';
+    const cepVal = pickField('cep', 'CEP', 'codigo_postal');
+    let logradouro = pickField('rua', 'logradouro', 'endereco_rua', 'avenida');
+    const numero = pickField('numero', 'numero_end', 'num', 'numero_endereco');
+    let bairro = pickField('bairro', 'distrito');
+    let cidade = pickField('cidade', 'localidade', 'municipio');
+    let ufVal = pickField('uf', 'estado', 'sigla_uf');
 
     let valorNum = parseFloat(contract?.valor || contMeta.valor || 0) || 0;
+
+    // Pré-seleciona o método de pagamento conforme a forma de pagamento do contrato
+    const formaContrato = String(contract?.forma_pagamento || contMeta?.forma_pagamento || contMeta?.formaPagamento || '').toLowerCase();
+    let metodoDefault = 'pix_automatico';
+    if (formaContrato.includes('boleto')) metodoDefault = 'boleto';
+    else if (formaContrato.includes('cart')) metodoDefault = 'cartao';
+    else if (formaContrato.includes('dinheiro') || formaContrato.includes('espécie')) metodoDefault = 'money';
+    else if (formaContrato === 'pix') metodoDefault = 'pix';
 
     // --- Vencimento padrão: hoje + 7 dias ---
     const hoje = new Date();
@@ -640,6 +939,7 @@ export default function EdicaoContrato() {
 
     setCobrancaForm(prev => ({
       ...prev,
+      metodo: metodoDefault,
       cpfPagador: cpfVal,
       cep: cepVal,
       logradouro: logradouro,
@@ -654,6 +954,187 @@ export default function EdicaoContrato() {
       cycle: 'MONTHLY'
     }));
     setNovaCobrancaModal(true);
+
+    // Se tiver CEP válido e faltar algum campo do endereço (ex: UF, rua, bairro ou cidade), busca automaticamente no ViaCEP
+    const cleanCep = cepVal.replace(/\D/g, '');
+    if (cleanCep.length === 8 && (!logradouro || !bairro || !cidade || !ufVal)) {
+      try {
+        const resp = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const dados = await resp.json();
+        if (!dados.erro) {
+          setCobrancaForm(prev => ({
+            ...prev,
+            logradouro: prev.logradouro || dados.logradouro || '',
+            bairro: prev.bairro || dados.bairro || '',
+            cidade: prev.cidade || dados.localidade || '',
+            uf: (prev.uf || dados.uf || '').toUpperCase()
+          }));
+        }
+      } catch (e) {}
+    }
+  };
+
+  const garantirDadosWooviCobranca = async (cobranca) => {
+    const cMeta = typeof cobranca?.metadata === 'string'
+      ? (() => { try { return JSON.parse(cobranca.metadata); } catch (e) { return {}; } })()
+      : (cobranca?.metadata || {});
+    const { gerarDadosFebrabanBoleto } = await import('../utils/pdfUtils');
+    const febraban = gerarDadosFebrabanBoleto(
+      cobranca.valor,
+      cobranca.vencimento || cobranca.data_vencimento,
+      cMeta.nosso_numero || String(cobranca.id || Date.now()).replace(/\D/g, '').slice(-10)
+    );
+
+    const existingLink = cobranca.link_pagamento || cobranca.invoice_url || cMeta.paymentLink;
+    const existingPix = cobranca.pix_copia_e_cola || cMeta.pix_copia_e_cola;
+    const existingQr = cobranca.qrcode || cMeta.qrcode;
+
+    if (existingLink && existingPix) {
+      return {
+        ...cobranca,
+        link_pagamento: existingLink,
+        invoice_url: existingLink,
+        qrcode: existingQr,
+        pix_copia_e_cola: existingPix,
+        metadata: {
+          ...cMeta,
+          nosso_numero: febraban.nossoNumero,
+          linha_digitavel: febraban.linhaDigitavel,
+          codigo_barras: febraban.codigoBarras,
+          paymentLink: existingLink,
+          qrcode: existingQr,
+          pix_copia_e_cola: existingPix
+        }
+      };
+    }
+
+    const token = (await supabase.auth.getSession())?.data?.session?.access_token || '';
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_BASE = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:4570/api' : 'https://qualify-2026.onrender.com/api');
+    const companyId = getActiveCompanyId();
+    const pagadorCpf = (
+      cobranca.pagador_documento ||
+      family?.titular?.cpf ||
+      family?.cpf ||
+      contract?.cpf ||
+      ''
+    ).replace(/\D/g, '');
+    const pagadorNome = cobranca.pagador_nome || (titularNome !== '—' ? titularNome : (contract?.titular || 'Cliente'));
+    const vencStr = String(cobranca.vencimento || cobranca.data_vencimento || new Date().toISOString().split('T')[0]).split('T')[0];
+
+    const bodyPayload = {
+      empresaId: companyId,
+      valor: parseFloat(cobranca.valor || 0),
+      descricao: cobranca.descricao || `Cobrança Contrato ${contract?.numero || contract?.id}`,
+      contratoNumero: String(cobranca.contrato_numero || contract?.numero || contract?.id || ''),
+      pagador: { nome: pagadorNome, cpf: pagadorCpf },
+      vencimento: vencStr
+    };
+
+    let res = await fetch(`${API_BASE}/pix/cobv`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+      body: JSON.stringify(bodyPayload)
+    });
+    if (!res.ok) {
+      res = await fetch(`${API_BASE}/pix/cob`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+        body: JSON.stringify(bodyPayload)
+      });
+    }
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Erro ao gerar link/código de pagamento na API');
+
+    const qrUrl = String(result.qrcode || result.imagemQrcode || '');
+    const uuidMatch = qrUrl.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+    const paymentLink = result.paymentLink || (uuidMatch ? `https://woovi.com/pay/${uuidMatch[1]}` : null);
+
+    // Remove a linha duplicada criada pelo endpoint /pix/cobv antes de atualizar a linha original
+    if (result.paymentId) {
+      await supabase.from('cobrancas').delete().eq('id_asaas', result.paymentId).neq('id', cobranca.id);
+    }
+
+    const novoMeta = {
+      ...cMeta,
+      nosso_numero: febraban.nossoNumero,
+      linha_digitavel: febraban.linhaDigitavel,
+      codigo_barras: febraban.codigoBarras,
+      paymentLink,
+      qrcode: result.qrcode || result.imagemQrcode || null,
+      pix_copia_e_cola: result.pixCopiaECola || null
+    };
+
+    const updateFields = {
+      id_asaas: result.paymentId || cobranca.id_asaas,
+      link_pagamento: paymentLink,
+      invoice_url: paymentLink,
+      qrcode: result.qrcode || result.imagemQrcode || null,
+      pix_copia_e_cola: result.pixCopiaECola || null,
+      metadata: novoMeta
+    };
+
+    await supabase.from('cobrancas').update(updateFields).eq('id', cobranca.id);
+    const updatedCobranca = { ...cobranca, ...updateFields };
+    setCobrancasAbertas(prev => prev.map(item => item.id === cobranca.id ? updatedCobranca : item));
+    return updatedCobranca;
+  };
+
+  const handleGerarBoletoPdf = async (cobranca) => {
+    try {
+      setActionMsg({ type: 'success', text: 'Gerando Boleto PDF registrado...' });
+      const cobrancaCompleta = await garantirDadosWooviCobranca(cobranca);
+      const { gerarPdfBoletoBuffer } = await import('../utils/pdfUtils');
+      await gerarPdfBoletoBuffer(cobrancaCompleta, contract, family);
+      setActionMsg({ type: 'success', text: 'Boleto em PDF gerado com sucesso!' });
+    } catch (err) {
+      console.error(err);
+      setActionMsg({ type: 'error', text: 'Erro ao gerar PDF do boleto: ' + err.message });
+    }
+  };
+
+  const handleCopiarLinkCobranca = async (cobranca, isBoleto, isMoney) => {
+    try {
+      let link = cobranca.link_pagamento || cobranca.invoice_url;
+      if (!link && !isMoney) {
+        setActionMsg({ type: 'success', text: 'Gerando link de pagamento...' });
+        const cobrancaCompleta = await garantirDadosWooviCobranca(cobranca);
+        link = cobrancaCompleta.link_pagamento || cobrancaCompleta.invoice_url;
+      }
+      if (link) {
+        await navigator.clipboard.writeText(link);
+        setActionMsg({ type: 'success', text: 'Link de pagamento copiado com sucesso!' });
+      } else if (isBoleto) {
+        await handleGerarBoletoPdf(cobranca);
+      } else {
+        setActionMsg({ type: 'error', text: 'Esta cobrança é presencial/manual e não possui link externo.' });
+      }
+    } catch (err) {
+      console.error(err);
+      setActionMsg({ type: 'error', text: 'Erro ao obter link de pagamento: ' + err.message });
+    }
+  };
+
+  const handleCopiarCodigoBoletoOuPix = async (cobranca, isBoleto) => {
+    try {
+      const cobrancaCompleta = await garantirDadosWooviCobranca(cobranca);
+      const cMeta = typeof cobrancaCompleta.metadata === 'string'
+        ? (() => { try { return JSON.parse(cobrancaCompleta.metadata); } catch (e) { return {}; } })()
+        : (cobrancaCompleta.metadata || {});
+      const codigo = isBoleto
+        ? (cMeta.linha_digitavel || cobrancaCompleta.pix_copia_e_cola)
+        : (cobrancaCompleta.pix_copia_e_cola || cMeta.pix_copia_e_cola || cobrancaCompleta.link_pagamento);
+      if (codigo) {
+        await navigator.clipboard.writeText(codigo);
+        setActionMsg({
+          type: 'success',
+          text: isBoleto ? 'Linha Digitável FEBRABAN (47 dígitos) copiada com sucesso!' : 'Código Pix Copia e Cola copiado com sucesso!'
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setActionMsg({ type: 'error', text: 'Erro ao copiar código: ' + err.message });
+    }
   };
 
   const handleBaixaCobranca = async (id) => {
@@ -762,6 +1243,10 @@ export default function EdicaoContrato() {
           
           dependenteRemovido.produtoVinculado = prods.length > 0 ? prods : '';
           dependenteRemovido.planoVinculado = dependenteRemovido.produtoVinculado;
+          const cKey = String(contract?.numero || contract?.id || '');
+          const desvinculados = Array.isArray(dependenteRemovido.desvinculadoContratos) ? [...dependenteRemovido.desvinculadoContratos] : [];
+          if (cKey && !desvinculados.includes(cKey)) desvinculados.push(cKey);
+          dependenteRemovido.desvinculadoContratos = desvinculados;
           
           depsAtualizados[index] = dependenteRemovido;
 
@@ -853,11 +1338,7 @@ export default function EdicaoContrato() {
     return family?.cpf || family?.documento || contMeta.cpf || contract?.cpf || contract?.cpf_titular || contract?.documento || '—';
   })();
   const todosDependentes = family?.dependentes?.length ? family.dependentes : (famMeta?.dependentes || []);
-  const dependentesVinculados = todosDependentes.filter(d => {
-    let prods = d.produtoVinculado || d.planoVinculado || [];
-    if (!Array.isArray(prods)) prods = prods ? [prods] : [];
-    return prods.includes(getPlanoAtual());
-  });
+  const dependentesVinculados = todosDependentes.filter(d => isDependenteVinculado(d));
   const totalRecebido = cobrancasPagas.reduce((s, c) => s + (parseFloat(c.valor) || 0), 0);
   
   const displayPlano = contract.plano || contMeta.plano || 'Plano QUALIFY';
@@ -1135,32 +1616,59 @@ export default function EdicaoContrato() {
                         Nenhuma cobrança em aberto
                       </td>
                     </tr>
-                  ) : cobrancasAbertas.map(c => (
+                  ) : cobrancasAbertas.map(c => {
+                    const cMeta = typeof c.metadata === 'string' ? (() => { try { return JSON.parse(c.metadata); } catch(e){ return {}; } })() : (c.metadata || {});
+                    const rawTipo = String(c.tipo || c.billing_type || cMeta.metodo || 'Mensalidade').toLowerCase();
+                    const isBoleto = rawTipo.includes('boleto') || String(c.billing_type || '').toUpperCase() === 'BOLETO';
+                    const isCartao = rawTipo.includes('cartao') || rawTipo.includes('credit') || String(c.billing_type || '').toUpperCase() === 'CREDIT_CARD';
+                    const isPixAuto = rawTipo.includes('pix_automatico') || rawTipo.includes('assinatura');
+                    const isPix = !isPixAuto && (rawTipo.includes('pix') || String(c.billing_type || '').toUpperCase() === 'PIX');
+                    const isMoney = rawTipo.includes('money') || rawTipo.includes('dinheiro') || String(c.billing_type || '').toUpperCase() === 'CASH';
+                    const metodoBadge = isBoleto ? 'Boleto' : isCartao ? 'Cartão' : isPixAuto ? 'Pix Automático' : isPix ? 'Pix' : isMoney ? 'Dinheiro' : (cMeta.metodo_label || c.tipo || 'Mensalidade');
+
+                    return (
                     <tr key={c.id} style={{ borderBottom: '1px solid #e2e8f0', background: selectedCobrancas.includes(c.id) ? '#eff6ff' : 'transparent' }}>
                       <td style={{ padding: '12px', textAlign: 'center' }}>
                         <input type="checkbox" checked={selectedCobrancas.includes(c.id)} onChange={() => handleToggleSelectCobranca(c.id)} style={{ cursor: 'pointer' }} />
                       </td>
-                      <td style={{ padding: '12px', fontWeight: 600 }}>{c.tipo || 'Mensalidade'}</td>
+                      <td style={{ padding: '12px', fontWeight: 600 }}>
+                        <div>{c.descricao || c.tipo_cobranca || cMeta.tipo_lancamento || 'Mensalidade'}</div>
+                        <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: isBoleto ? '#fef3c7' : isCartao ? '#ede9fe' : '#e0f2fe', color: isBoleto ? '#92400e' : isCartao ? '#5b21b6' : '#0369a1', fontWeight: 700 }}>
+                          {metodoBadge}
+                        </span>
+                      </td>
                       <td style={{ padding: '12px' }}>{fmtDate(c.vencimento || c.data_vencimento)}</td>
                       <td style={{ padding: '12px', fontWeight: 700, color: '#dc2626' }}>{fmtCurrency(c.valor)}</td>
                       <td style={{ padding: '12px' }}><StatusBadge status={c.status || 'pendente'} /></td>
                       <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                          <button 
-                            onClick={() => {
-                              const link = c.link_pagamento || c.invoice_url;
-                              if (link) {
-                                navigator.clipboard.writeText(link);
-                                setActionMsg({ type: 'success', text: 'Link copiado com sucesso!' });
-                              } else {
-                                setActionMsg({ type: 'error', text: 'Esta cobrança não possui um link.' });
-                              }
-                            }}
-                            style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
-                            title="Copiar Link de Pagamento"
-                          >
-                            <i className="fas fa-link"></i> Copiar Link
-                          </button>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          {isBoleto && (
+                            <>
+                              <button
+                                onClick={() => handleGerarBoletoPdf(c)}
+                                style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}
+                                title="Baixar / Imprimir Boleto em PDF"
+                              >
+                                <i className="fas fa-barcode"></i> Boleto PDF
+                              </button>
+                              <button
+                                onClick={() => handleCopiarCodigoBoletoOuPix(c, true)}
+                                style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}
+                                title="Copiar Linha Digitável FEBRABAN (47 dígitos)"
+                              >
+                                <i className="fas fa-copy"></i> Copiar Código
+                              </button>
+                            </>
+                          )}
+                          {!isMoney && (
+                            <button 
+                              onClick={() => handleCopiarLinkCobranca(c, isBoleto, isMoney)}
+                              style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}
+                              title="Copiar Link de Pagamento"
+                            >
+                              <i className="fas fa-link"></i> Copiar Link
+                            </button>
+                          )}
                           <button 
                             onClick={() => handleBaixaCobranca(c.id)}
                             disabled={baixandoId === c.id}
@@ -1178,7 +1686,8 @@ export default function EdicaoContrato() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1224,14 +1733,17 @@ export default function EdicaoContrato() {
                         Nenhum pagamento registrado
                       </td>
                     </tr>
-                  ) : cobrancasPagas.map(c => (
+                  ) : cobrancasPagas.map(c => {
+                    const cMeta = typeof c.metadata === 'string' ? (() => { try { return JSON.parse(c.metadata); } catch(e){ return {}; } })() : (c.metadata || {});
+                    return (
                     <tr key={c.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '12px', fontWeight: 600 }}>{c.tipo || 'Mensalidade'}</td>
+                      <td style={{ padding: '12px', fontWeight: 600 }}>{c.descricao || c.tipo_cobranca || c.tipo || 'Mensalidade'}</td>
                       <td style={{ padding: '12px' }}>{fmtDate(c.data_pagamento || c.pago_em)}</td>
                       <td style={{ padding: '12px', fontWeight: 700, color: '#10b981' }}>{fmtCurrency(c.valor)}</td>
-                      <td style={{ padding: '12px' }}>{c.metodo || c.forma_pagamento || '—'}</td>
+                      <td style={{ padding: '12px' }}>{c.metodo || c.forma_pagamento || cMeta.metodo_label || c.billing_type || c.tipo || '—'}</td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1289,7 +1801,7 @@ export default function EdicaoContrato() {
                   <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{family?.titular?.seguradora || '-'}</td>
                   <td style={{ padding: '12px', textAlign: 'center' }}>
                     {(() => {
-                      const prods = family?.titular?.produtoVinculado || family?.titular?.planoVinculado;
+                      const prods = family?.titular?.produtoVinculado || family?.titular?.planoVinculado || [getPlanoAtual()];
                       if (!prods || prods.length === 0) return <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>;
                       const arr = Array.isArray(prods) ? prods : [prods];
                       return arr.map((p, idx) => (
@@ -1316,7 +1828,7 @@ export default function EdicaoContrato() {
                     <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{d.seguradora || '-'}</td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       {(() => {
-                        const prods = d.produtoVinculado || d.planoVinculado;
+                        const prods = d.produtoVinculado || d.planoVinculado || [getPlanoAtual()];
                         if (!prods || prods.length === 0) return <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>;
                         const arr = Array.isArray(prods) ? prods : [prods];
                         return arr.map((p, idx) => (
@@ -1334,7 +1846,7 @@ export default function EdicaoContrato() {
                 )})}
                 {!family && (
                   <tr>
-                    <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+                    <td colSpan={9} style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
                       <i className="fas fa-info-circle" style={{ fontSize: '20px', display: 'block', marginBottom: '8px' }}></i>
                       Nenhuma família vinculada a este contrato
                     </td>
@@ -1360,10 +1872,7 @@ export default function EdicaoContrato() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {todosDependentes.map((d, i) => {
-                  const planoAtual = getPlanoAtual();
-                  let prods = d.produtoVinculado || d.planoVinculado || [];
-                  if (!Array.isArray(prods)) prods = prods ? [prods] : [];
-                  const isVinculado = prods.includes(planoAtual);
+                  const isVinculado = isDependenteVinculado(d);
 
                   return (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', background: isVinculado ? '#f0fdf4' : '#fff' }}>
@@ -1543,7 +2052,8 @@ export default function EdicaoContrato() {
                     <select value={cobrancaForm.metodo} onChange={e => setCobrancaForm(prev => ({ ...prev, metodo: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #3b82f6', fontSize: '14px', background: '#eff6ff', color: '#1e293b', fontWeight: 600 }}>
                       <option value="pix_automatico">Pix Automático (Assinatura)</option>
                       <option value="pix">Pix (Avulso / Parcelado)</option>
-                      <option value="cartao">Cartão (Crédito/Débito)</option>
+                      <option value="boleto">Boleto Bancário</option>
+                      <option value="cartao">Cartão de Crédito / Débito</option>
                       <option value="money">Dinheiro (Manual)</option>
                     </select>
                   </div>
@@ -1635,8 +2145,18 @@ export default function EdicaoContrato() {
                 <h4 style={{ margin: '0 0 8px', color: '#64748b', fontSize: '14px', textTransform: 'uppercase' }}>
                   <i className="fas fa-map-marker-alt"></i> Endereço do Pagador
                 </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 80px', gap: '10px', marginBottom: '10px' }}>
-                  <input type="text" placeholder="CEP" value={cobrancaForm.cep} onChange={e => setCobrancaForm(prev => ({ ...prev, cep: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 80px', gap: '10px', marginBottom: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder="CEP"
+                    value={cobrancaForm.cep}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setCobrancaForm(prev => ({ ...prev, cep: val }));
+                      if (val.replace(/\D/g, '').length === 8) buscarCepCobranca(val);
+                    }}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                  />
                   <input type="text" placeholder="Logradouro" value={cobrancaForm.logradouro} onChange={e => setCobrancaForm(prev => ({ ...prev, logradouro: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
                   <input type="text" placeholder="Nº" value={cobrancaForm.numero} onChange={e => setCobrancaForm(prev => ({ ...prev, numero: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
                 </div>
@@ -1661,22 +2181,32 @@ export default function EdicaoContrato() {
       {/* ── Modal Sucesso (Link/QR Code) ── */}
       {successLinkModal.isOpen && successLinkModal.data && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '20px', width: '100%', maxWidth: '500px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', margin: 'auto' }}>
+          <div style={{ background: 'white', padding: '30px', borderRadius: '20px', width: '100%', maxWidth: '520px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', margin: 'auto' }}>
             <div style={{ width: '60px', height: '60px', background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#166534', fontSize: '24px' }}>
               <i className="fas fa-check"></i>
             </div>
             <h3 style={{ margin: '0 0 10px', color: '#1e293b', fontSize: '1.4rem' }}>Cobrança Gerada!</h3>
-            
-            {successLinkModal.data.imagemQrcode && (
-              <div style={{ margin: '20px 0' }}>
+
+            {successLinkModal.data.linhaDigitavel && successLinkModal.data.metodo === 'boleto' && (
+              <div style={{ margin: '18px 0', textAlign: 'left' }}>
+                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Linha Digitável do Boleto (FEBRABAN 47 dígitos):</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" value={successLinkModal.data.linhaDigitavel} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, background: '#fefce8', color: '#854d0e' }} />
+                  <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.linhaDigitavel); alert('Linha Digitável copiada!'); }} style={{ padding: '0 16px', background: '#ca8a04', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }} title="Copiar Linha Digitável"><i className="fas fa-copy"></i></button>
+                </div>
+              </div>
+            )}
+
+            {(successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode) && (
+              <div style={{ margin: '18px 0' }}>
                 <p style={{ margin: '0 0 10px', color: '#64748b', fontSize: '13px' }}>Escaneie o QR Code para pagar:</p>
-                <img src={successLinkModal.data.imagemQrcode.startsWith('http') ? successLinkModal.data.imagemQrcode : `data:image/png;base64,${successLinkModal.data.imagemQrcode}`} alt="QR Code PIX" style={{ maxWidth: '200px', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
+                <img src={(successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode).startsWith('http') ? (successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode) : `data:image/png;base64,${successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode}`} alt="QR Code Pagamento" style={{ maxWidth: '190px', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
               </div>
             )}
             
             {successLinkModal.data.pixCopiaECola && (
-              <div style={{ margin: '20px 0', textAlign: 'left' }}>
-                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Ou use o Pix Copia e Cola:</p>
+              <div style={{ margin: '18px 0', textAlign: 'left' }}>
+                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Código Copia e Cola (BACEN):</p>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input type="text" value={successLinkModal.data.pixCopiaECola} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#f8fafc', color: '#475569' }} />
                   <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.pixCopiaECola); alert('Copiado!'); }} style={{ padding: '0 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}><i className="fas fa-copy"></i></button>
@@ -1685,8 +2215,14 @@ export default function EdicaoContrato() {
             )}
             
             {successLinkModal.data.paymentLink && (
-              <div style={{ margin: '20px 0', textAlign: 'left' }}>
-                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Link de Pagamento da Assinatura:</p>
+              <div style={{ margin: '18px 0', textAlign: 'left' }}>
+                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>
+                  {successLinkModal.data.metodo === 'cartao'
+                    ? 'Link de Pagamento (Cartão / Fatura):'
+                    : successLinkModal.data.metodo === 'boleto'
+                      ? 'Link Externo da Fatura / Boleto:'
+                      : 'Link de Pagamento:'}
+                </p>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input type="text" value={successLinkModal.data.paymentLink} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#f8fafc', color: '#2563eb' }} />
                   <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.paymentLink); alert('Copiado!'); }} style={{ padding: '0 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}><i className="fas fa-copy"></i></button>

@@ -34,7 +34,18 @@ async function criarCobranca(config, dados) {
     }
     
     if (dados.dueDate) {
-         payload.expiresIn = 86400; // Tempo até expirar
+        const hojeUtc = new Date();
+        hojeUtc.setUTCHours(0, 0, 0, 0);
+        const vencObj = new Date(String(dados.dueDate).split('T')[0] + 'T12:00:00Z');
+        vencObj.setUTCHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((vencObj.getTime() - hojeUtc.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 1) {
+            payload.type = 'OVERDUE';
+            payload.daysForDueDate = diffDays;
+            payload.daysAfterDueDate = 30;
+        } else {
+            payload.expiresIn = 86400 * 7;
+        }
     }
 
     try {
@@ -45,7 +56,11 @@ async function criarCobranca(config, dados) {
             }
         });
 
-        return response.data.charge;
+        const charge = response.data.charge || {};
+        if (!charge.brCode && response.data.brCode) {
+            charge.brCode = response.data.brCode;
+        }
+        return charge;
     } catch (error) {
         console.error('Erro na API Woovi (criarCobranca):', error.response?.data || error.message);
         throw new Error(error.response?.data?.error || 'Erro ao criar cobrança PIX na Woovi');

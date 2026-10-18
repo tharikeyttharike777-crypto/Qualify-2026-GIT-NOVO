@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../services/supabase';
+import { supabasePublic as supabase } from '../services/supabase';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function CatalogoPlanos() {
@@ -10,7 +10,10 @@ export default function CatalogoPlanos() {
   useEffect(() => {
     const fetchPlanos = async () => {
       try {
-        const { data, error } = await supabase.from('planos').select('*').eq('status', 'ativo').order('created_at', { ascending: false });
+        const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+        let query = supabase.from('planos').select('*').eq('status', 'ativo').order('created_at', { ascending: false });
+        if (companyId) query = query.eq('company_id', companyId);
+        const { data, error } = await query;
         if (error) throw error;
         setPlanos(data || []);
       } catch (err) {

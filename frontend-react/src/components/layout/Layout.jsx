@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { getActiveCompanyId } from '../../services/supabase';
 
 export default function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -9,6 +10,11 @@ export default function Layout() {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  // Sem empresa ativa não há contexto de dados: volta para a seleção de empresa
+  if (!getActiveCompanyId()) {
+    return <Navigate to="/trocar-empresa" replace />;
+  }
 
   return (
     <div className="container">

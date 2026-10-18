@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import ConfirmModal from '../components/common/ConfirmModal';
+import {
+  parseDependentesArquivo,
+  baixarModeloDependentes,
+  lerArquivo,
+  autoMapear,
+  detectarDependentesEmColunas,
+  processarLinhas
+} from '../utils/importacaoMassa';
 
 export default function NovaFamilia() {
   const navigate = useNavigate();
@@ -85,6 +93,18 @@ export default function NovaFamilia() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
 
+  // Estados para importação de dependentes via planilha
+  const [showModalImportarDeps, setShowModalImportarDeps] = useState(false);
+  const [depsLendo, setDepsLendo] = useState(false);
+  const [depsPreview, setDepsPreview] = useState([]);
+  const [depsAvisos, setDepsAvisos] = useState([]);
+  const [depsSelecionados, setDepsSelecionados] = useState(new Set());
+
+  // Estados para preencher cadastro com planilha
+  const [showModalImportarPlanilha, setShowModalImportarPlanilha] = useState(false);
+  const [planilhaLendo, setPlanilhaLendo] = useState(false);
+  const [familiasDetectadas, setFamiliasDetectadas] = useState([]);
+
   // Helper to convert dates to YYYY-MM-DD for <input type="date">
   const formatToDateInput = (val) => {
     if (!val) return '';
@@ -132,6 +152,108 @@ export default function NovaFamilia() {
     return s;
   };
 
+  // Processa planilha de dependentes
+  const handleUploadPlanilhaDeps = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDepsLendo(true);
+    setDepsAvisos([]);
+    try {
+      const res = await parseDependentesArquivo(file, nextAssociadoId);
+      setDepsPreview(res.dependentes);
+      setDepsAvisos(res.avisos || []);
+      setDepsSelecionados(new Set(res.dependentes.map((_, i) => i)));
+    } catch (err) {
+      alert('Erro ao ler planilha de dependentes: ' + (err.message || String(err)));
+    } finally {
+      setDepsLendo(false);
+    }
+  };
+
+  const handleConfirmarImportarDeps = () => {
+    if (!depsPreview.length) return;
+    const escolhidos = depsPreview.filter((_, i) => depsSelecionados.has(i));
+    if (!escolhidos.length) {
+      alert('Selecione pelo menos um dependente.');
+      return;
+    }
+
+    setDependentes(prev => [...prev, ...escolhidos]);
+    setNextAssociadoId(prev => prev + escolhidos.length);
+    setShowModalImportarDeps(false);
+    setDepsPreview([]);
+    setDepsSelecionados(new Set());
+    setMsg({ type: 'success', text: `${escolhidos.length} dependente(s) importado(s) com sucesso para esta família!` });
+  };
+
+  const aplicarFamiliaAoFormulario = (f) => {
+    if (!f) return;
+    if (f.titular) {
+      setTitular(prev => ({
+        ...prev,
+        ...f.titular,
+        idSequencial: prev.idSequencial || f.titular.idSequencial || String(nextAssociadoId).padStart(8, '0'),
+        dataNascimento: formatToDateInput(f.titular.dataNascimento)
+      }));
+    }
+    if (f.endereco) {
+      setEndereco(prev => ({ ...prev, ...f.endereco }));
+    }
+    if (Array.isArray(f.dependentes) && f.dependentes.length) {
+      setDependentes(f.dependentes.map(d => ({
+        ...d,
+        dataNascimento: formatToDateInput(d.dataNascimento)
+      })));
+    }
+    if (Array.isArray(f.contratos) && f.contratos.length) {
+      setContratos(f.contratos.map((item, idx) => ({
+        id: `contrato-plan-${Date.now()}-${idx}`,
+        numero: item.numeroOrigem || contratoForm.numero,
+        plano: item.plano,
+        dataInicio: formatToDateInput(item.dataInicio) || contratoForm.dataInicio,
+        valor: item.valor !== null && item.valor !== undefined ? String(item.valor) : '',
+        formaPagamento: item.formaPagamento || 'Pix',
+        planoContas: 'Mensalidades',
+        parcelas: String(item.parcelas || 12),
+        participantes: []
+      })));
+    }
+    setMsg({ type: 'success', text: `Dados de "${f.titular?.nome || 'Família'}" carregados no formulário com sucesso!` });
+  };
+
+  const handleUploadPlanilhaCompleta = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPlanilhaLendo(true);
+    try {
+      const { headers: hdrs, linhas: lns } = await lerArquivo(file);
+      const mapa = autoMapear(hdrs);
+      const depCols = detectarDependentesEmColunas(hdrs);
+      const res = processarLinhas({
+        linhas: lns,
+        mapeamento: mapa,
+        depColunas: depCols,
+        opcoes: { formaPagamentoPadrao: 'Pix' },
+        contexto: { planos: planosDisponiveis }
+      });
+
+      if (!res.familias?.length) {
+        alert('Nenhuma família reconhecida na planilha.');
+        return;
+      }
+
+      setFamiliasDetectadas(res.familias);
+      if (res.familias.length === 1) {
+        aplicarFamiliaAoFormulario(res.familias[0]);
+        setShowModalImportarPlanilha(false);
+      }
+    } catch (err) {
+      alert('Erro ao ler planilha: ' + (err.message || String(err)));
+    } finally {
+      setPlanilhaLendo(false);
+    }
+  };
+
   useEffect(() => {
     fetchProdutos();
     fetchPlanos();
@@ -141,8 +263,10 @@ export default function NovaFamilia() {
 
   async function fetchNextContractNumber() {
     try {
-      // Busca todos os números de contrato existentes para pegar o maior
-      const { data } = await supabase.from('contratos').select('numero').order('numero', { ascending: false });
+      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+      let query = supabase.from('contratos').select('numero').order('numero', { ascending: false });
+      if (companyId) query = query.eq('company_id', companyId);
+      const { data } = await query;
       let maxNum = 0;
       if (Array.isArray(data)) {
         data.forEach(row => {
@@ -150,12 +274,15 @@ export default function NovaFamilia() {
           if (!isNaN(n) && n > maxNum) maxNum = n;
         });
       }
-      // Verifica também nos contratos locais
+      // Verifica também nos contratos locais apenas se coincidirem com a empresa atual
       try {
-        const localConts = JSON.parse(localStorage.getItem('contratos') || '[]');
+        const localKey = companyId ? `contratos_${companyId}` : 'contratos';
+        const localConts = JSON.parse(localStorage.getItem(localKey) || '[]');
         localConts.forEach(c => {
-          const n = parseInt(String(c.numero || '0').replace(/\D/g, ''), 10);
-          if (!isNaN(n) && n > maxNum) maxNum = n;
+          if (!companyId || !c.company_id || String(c.company_id) === String(companyId)) {
+            const n = parseInt(String(c.numero || '0').replace(/\D/g, ''), 10);
+            if (!isNaN(n) && n > maxNum) maxNum = n;
+          }
         });
       } catch(e){}
       const nextNum = String(maxNum + 1).padStart(6, '0');
@@ -168,8 +295,8 @@ export default function NovaFamilia() {
 
   async function fetchProdutos() {
     let loaded = [];
+    const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
     try {
-      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
       let query = supabase.from('produtos').select('*');
       if (companyId) query = query.eq('company_id', companyId);
       const { data, error } = await query;
@@ -179,7 +306,8 @@ export default function NovaFamilia() {
     } catch (e) {}
 
     try {
-      const stored = JSON.parse(localStorage.getItem('catalogoProdutos') || '[]');
+      const localKey = companyId ? `catalogoProdutos_${companyId}` : 'catalogoProdutos';
+      const stored = JSON.parse(localStorage.getItem(localKey) || '[]');
       if (Array.isArray(stored)) {
         stored.forEach(sp => {
           if (!loaded.some(p => String(p.nome || p.name).toLowerCase() === String(sp.nome || sp.name).toLowerCase())) {
@@ -206,7 +334,10 @@ export default function NovaFamilia() {
 
   async function fetchNextAssociadoId() {
     try {
-      const { data } = await supabase.from('familias').select('titular, dependentes');
+      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+      let query = supabase.from('familias').select('titular, dependentes');
+      if (companyId) query = query.eq('company_id', companyId);
+      const { data } = await query;
       let maxId = 0;
       if (Array.isArray(data)) {
         data.forEach(fam => {
@@ -251,15 +382,12 @@ export default function NovaFamilia() {
         if (companyId) query = query.eq('company_id', companyId);
         
         let { data, error } = await query.single();
-        if (error || !data) {
-          const res = await supabase.from('familias').select('*').eq('id', editId).single();
-          data = res.data;
-        }
 
         if (!data) {
           try {
-            const local = JSON.parse(localStorage.getItem('familias') || '[]');
-            data = local.find(f => String(f.id) === String(editId));
+            const localKey = companyId ? `familias_${companyId}` : 'familias';
+            const local = JSON.parse(localStorage.getItem(localKey) || '[]');
+            data = local.find(f => String(f.id) === String(editId) && (!companyId || !f.company_id || String(f.company_id) === String(companyId)));
           } catch(e){}
         }
 
@@ -287,6 +415,7 @@ export default function NovaFamilia() {
                           '';
 
           setTitular({
+            ...rawTitular,
             idSequencial: '', // será atribuído automaticamente abaixo
             nome: rawTitular.nome || data.nome || meta.nome || '',
             dataNascimento: formatToDateInput(rawNasc),
@@ -297,17 +426,18 @@ export default function NovaFamilia() {
             celular: rawTitular.celular || data.celular || meta.celular || '',
             profissao: rawTitular.profissao || data.profissao || meta.profissao || '',
             psicologo: rawTitular.psicologo || data.psicologo || meta.psicologo || '',
-            seguradora: rawTitular.seguradora || data.seguradora || meta.seguradora || ''
+            seguradora: rawTitular.seguradora || data.seguradora || meta.seguradora || '',
+            ...(rawTitular.produtoVinculado ? { produtoVinculado: rawTitular.produtoVinculado } : {})
           });
 
           const rawEndereco = data.endereco || meta.endereco || {};
           setEndereco({
             cep: rawEndereco.cep || data.cep || '',
-            rua: rawEndereco.rua || data.rua || '',
-            numero: rawEndereco.numero || data.numero || '',
+            rua: rawEndereco.rua || rawEndereco.logradouro || data.rua || '',
+            numero: rawEndereco.numero || rawEndereco.numero_end || data.numero || '',
             bairro: rawEndereco.bairro || data.bairro || '',
-            cidade: rawEndereco.cidade || data.cidade || '',
-            estado: rawEndereco.estado || data.estado || '',
+            cidade: rawEndereco.cidade || rawEndereco.localidade || data.cidade || '',
+            estado: rawEndereco.estado || rawEndereco.uf || data.estado || '',
             complemento: rawEndereco.complemento || data.complemento || ''
           });
 
@@ -316,7 +446,9 @@ export default function NovaFamilia() {
             // Busca o maior ID global para atribuir aos que não têm
             let globalMaxId = 0;
             try {
-              const { data: allFams } = await supabase.from('familias').select('titular, dependentes');
+              let qAll = supabase.from('familias').select('titular, dependentes');
+              if (companyId) qAll = qAll.eq('company_id', companyId);
+              const { data: allFams } = await qAll;
               if (Array.isArray(allFams)) {
                 allFams.forEach(fam => {
                   const tit = fam.titular || {};
@@ -341,7 +473,7 @@ export default function NovaFamilia() {
 
             setTitular(prev => ({ ...prev, idSequencial: titularIdSeq }));
 
-            // Atribui ID sequencial a cada dependente sem ID
+            // Atribui ID sequencial a cada dependente sem ID preservando produtoVinculado e demais campos
             const depsComId = rawDeps.map((d, i) => {
               let seqId = d.idSequencial || d.id_sequencial || d.numero_associado || '';
               if (!seqId) {
@@ -350,6 +482,7 @@ export default function NovaFamilia() {
                 needsSave = true;
               }
               return {
+                ...d,
                 id_interno: d.id_interno || `dep-loaded-${Date.now()}-${i}`,
                 idSequencial: seqId,
                 nome: d.nome || '',
@@ -380,11 +513,29 @@ export default function NovaFamilia() {
 
           if (Array.isArray(data.pets || meta.pets)) setPets(data.pets || meta.pets);
 
+          const normalizarContratoRow = (c) => {
+            let cMeta = {};
+            try { cMeta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : (c.metadata || {}); } catch(e){}
+            return {
+              ...c,
+              numero: c.numero || cMeta.numero || c.id,
+              plano: c.plano || cMeta.plano || '',
+              valor: c.valor ?? cMeta.valor ?? '',
+              formaPagamento: c.formaPagamento || c.forma_pagamento || cMeta.forma_pagamento || 'Pix',
+              planoContas: c.planoContas || c.plano_contas || cMeta.plano_contas || 'Mensalidades',
+              parcelas: c.parcelas || cMeta.parcelas || '12',
+              dataInicio: c.dataInicio || c.data_inicio || cMeta.data_inicio || ''
+            };
+          };
+
           // Carrega contratos da família ou do Supabase
           try {
-            const { data: centralConts } = await supabase.from('contratos').select('*');
+            let qCentral = supabase.from('contratos').select('*');
+            if (companyId) qCentral = qCentral.eq('company_id', companyId);
+            const { data: centralConts } = await qCentral;
             if (Array.isArray(centralConts)) {
               const matched = centralConts.filter(c => {
+                if (companyId && c.company_id && String(c.company_id) !== String(companyId)) return false;
                 let cMeta = {};
                 try { cMeta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : (c.metadata || {}); } catch(e){}
                 
@@ -395,15 +546,15 @@ export default function NovaFamilia() {
                 const rTitular = String(rawTitular.nome || data.nome || meta.nome || '').trim().toLowerCase();
                 
                 return cTitular && rTitular && cTitular === rTitular;
-              });
+              }).map(normalizarContratoRow);
               
               if (matched.length > 0) setContratos(matched);
-              else if (Array.isArray(data.contratos || meta.contratos)) setContratos(data.contratos || meta.contratos);
+              else if (Array.isArray(data.contratos || meta.contratos)) setContratos((data.contratos || meta.contratos).map(normalizarContratoRow));
             } else if (Array.isArray(data.contratos || meta.contratos)) {
-              setContratos(data.contratos || meta.contratos);
+              setContratos((data.contratos || meta.contratos).map(normalizarContratoRow));
             }
           } catch(e) {
-            if (Array.isArray(data.contratos || meta.contratos)) setContratos(data.contratos || meta.contratos);
+            if (Array.isArray(data.contratos || meta.contratos)) setContratos((data.contratos || meta.contratos).map(normalizarContratoRow));
           }
         }
       } catch (err) {
@@ -437,20 +588,8 @@ export default function NovaFamilia() {
     setTitular(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleEnderecoChange = (e) => {
-    let { name, value } = e.target;
-    
-    if (name === 'cep') {
-      value = value.replace(/\D/g, '');
-      if (value.length > 8) value = value.slice(0, 8);
-      value = value.replace(/^(\d{5})(\d)/, '$1-$2');
-    }
-    
-    setEndereco(prev => ({ ...prev, [name]: value }));
-  };
-
-  const buscarCep = async () => {
-    const cleanCep = endereco.cep.replace(/\D/g, '');
+  const buscarCepPorValor = async (cepRaw) => {
+    const cleanCep = String(cepRaw || '').replace(/\D/g, '');
     if (cleanCep.length !== 8) return;
 
     try {
@@ -459,15 +598,33 @@ export default function NovaFamilia() {
       if (!data.erro) {
         setEndereco(prev => ({
           ...prev,
-          rua: data.logradouro || '',
-          bairro: data.bairro || '',
-          cidade: data.localidade || '',
-          estado: data.uf || ''
+          rua: data.logradouro || prev.rua || '',
+          bairro: data.bairro || prev.bairro || '',
+          cidade: data.localidade || prev.cidade || '',
+          estado: data.uf || prev.estado || ''
         }));
       }
     } catch (err) {
       console.error("Erro ao buscar CEP:", err);
     }
+  };
+
+  const handleEnderecoChange = (e) => {
+    let { name, value } = e.target;
+    
+    if (name === 'cep') {
+      const digits = value.replace(/\D/g, '').slice(0, 8);
+      value = digits.replace(/^(\d{5})(\d)/, '$1-$2');
+      if (digits.length === 8) {
+        buscarCepPorValor(digits);
+      }
+    }
+    
+    setEndereco(prev => ({ ...prev, [name]: value }));
+  };
+
+  const buscarCep = async () => {
+    await buscarCepPorValor(endereco.cep);
   };
 
   // Add items handlers
@@ -479,7 +636,13 @@ export default function NovaFamilia() {
       const newId = `dep-new-${Date.now()}`;
       const seqId = String(nextAssociadoId).padStart(8, '0');
       setNextAssociadoId(prev => prev + 1);
-      setDependentes(prev => [...prev, { id_interno: newId, idSequencial: seqId, ...depForm }]);
+      const planosAtuais = Array.from(new Set(contratos.map(c => c.plano).filter(Boolean)));
+      setDependentes(prev => [...prev, {
+        id_interno: newId,
+        idSequencial: seqId,
+        ...(planosAtuais.length ? { produtoVinculado: planosAtuais } : {}),
+        ...depForm
+      }]);
     }
     setDepForm({ idSequencial: '', nome: '', parentesco: '', carencia: 'padrao', dataNascimento: '', cpf: '', genero: '', celular: '', psicologo: '', seguradora: '' });
     setEditDepId(null);
@@ -524,14 +687,58 @@ export default function NovaFamilia() {
   const handleAddContrato = async (e) => {
     e.preventDefault();
     const tempContrato = { id: `temp-${Date.now()}`, ...contratoForm };
-    setContratos(prev => [...prev, tempContrato]);
+    const novosContratos = [...contratos, tempContrato];
+    setContratos(novosContratos);
 
-    // Unifica e cria o contrato na tabela central 'contratos' do Supabase
+    // Vincula o plano do contrato ao titular e dependentes automaticamente
+    let titularAtualizado = titular;
+    let dependentesAtualizados = dependentes;
+    if (contratoForm.plano) {
+      const currTitProds = Array.isArray(titular.produtoVinculado) ? titular.produtoVinculado : (titular.produtoVinculado ? [titular.produtoVinculado] : []);
+      titularAtualizado = { ...titular, produtoVinculado: Array.from(new Set([...currTitProds, contratoForm.plano])) };
+      setTitular(titularAtualizado);
+
+      dependentesAtualizados = dependentes.map(d => {
+        const currDepProds = Array.isArray(d.produtoVinculado) ? d.produtoVinculado : (d.produtoVinculado ? [d.produtoVinculado] : []);
+        return { ...d, produtoVinculado: Array.from(new Set([...currDepProds, contratoForm.plano])) };
+      });
+      setDependentes(dependentesAtualizados);
+    }
+
+    // Unifica e cria o contrato na tabela central 'contratos' do Supabase (garantindo vínculo com a família e endereço)
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+      let familyRecordId = editId || null;
+
+      // Se a família já tem titular preenchido, sincroniza/cria o registro da família para não deixar contrato órfão
+      if (titularAtualizado.nome) {
+        const familyPayload = {
+          titular: titularAtualizado,
+          endereco,
+          dependentes: dependentesAtualizados,
+          company_id: companyId,
+          metadata: {
+            contratos: novosContratos,
+            pets
+          },
+          updated_at: new Date().toISOString()
+        };
+        if (familyRecordId) {
+          await supabase.from('familias').update(familyPayload).eq('id', familyRecordId);
+        } else {
+          const { data: famIns } = await supabase.from('familias').insert([familyPayload]).select();
+          if (famIns?.[0]?.id) {
+            familyRecordId = famIns[0].id;
+            navigate(`/familias/nova?id=${familyRecordId}`, { replace: true });
+          }
+        }
+      }
+
+      const isUuidFam = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(familyRecordId || ''));
       const payloadCentral = {
         numero: contratoForm.numero,
         company_id: companyId,
+        ...(isUuidFam ? { familia_id: familyRecordId } : {}),
         status: 'ativo',
         metadata: {
           plano: contratoForm.plano,
@@ -540,7 +747,12 @@ export default function NovaFamilia() {
           plano_contas: contratoForm.planoContas,
           parcelas: contratoForm.parcelas,
           data_inicio: contratoForm.dataInicio,
-          titular: titular.nome || 'Família em cadastro'
+          titular: titularAtualizado.nome || 'Família em cadastro',
+          cpf: titularAtualizado.cpf || '',
+          celular: titularAtualizado.celular || '',
+          email: titularAtualizado.email || '',
+          endereco: endereco || {},
+          family_id: familyRecordId || null
         }
       };
       // Tenta insert e recebe o UUID real do Supabase
@@ -694,18 +906,30 @@ export default function NovaFamilia() {
 
       if (result.error) throw result.error;
 
+      const isUuidFam = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(familyRecordId || ''));
       for (const c of contratos) {
         try {
+          let cMeta = {};
+          try { cMeta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : (c.metadata || {}); } catch(e){}
           const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
           const payload = {
-            numero: c.numero || String(c.id),
+            numero: c.numero || cMeta.numero || String(c.id),
             company_id: companyId,
-            status: 'ativo',
+            ...(isUuidFam ? { familia_id: familyRecordId } : {}),
+            status: c.status || 'ativo',
             metadata: {
-              plano: c.plano,
-              valor: c.valor,
-              forma_pagamento: c.formaPagamento || c.forma_pagamento,
+              ...cMeta,
+              plano: c.plano || cMeta.plano || '',
+              valor: c.valor ?? cMeta.valor ?? '',
+              forma_pagamento: c.formaPagamento || c.forma_pagamento || cMeta.forma_pagamento || 'Pix',
+              plano_contas: c.planoContas || c.plano_contas || cMeta.plano_contas || 'Mensalidades',
+              parcelas: c.parcelas || cMeta.parcelas || '12',
+              data_inicio: c.dataInicio || c.data_inicio || cMeta.data_inicio || '',
               titular: titular.nome,
+              cpf: titular.cpf || '',
+              celular: titular.celular || '',
+              email: titular.email || '',
+              endereco: endereco || {},
               family_id: familyRecordId || null
             }
           };
@@ -715,9 +939,10 @@ export default function NovaFamilia() {
         } catch(e){}
       }
 
-      // Sync no localStorage
+      // Sync no localStorage escopado por empresa
       try {
-        const local = JSON.parse(localStorage.getItem('familias') || '[]');
+        const localKey = companyId ? `familias_${companyId}` : 'familias';
+        const local = JSON.parse(localStorage.getItem(localKey) || '[]');
         if (editId) {
           const idx = local.findIndex(f => String(f.id) === String(editId));
           if (idx !== -1) local[idx] = { ...local[idx], ...familyPayload, contratos };
@@ -725,7 +950,7 @@ export default function NovaFamilia() {
         } else {
           local.push({ id: familyRecordId || Date.now(), ...familyPayload, contratos });
         }
-        localStorage.setItem('familias', JSON.stringify(local));
+        localStorage.setItem(localKey, JSON.stringify(local));
       } catch (e) {}
 
       setMsg({ type: 'success', text: 'Família salva com sucesso!' });
@@ -754,7 +979,10 @@ export default function NovaFamilia() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 style={{ fontSize: '1.8rem', color: '#2c3e50', margin: 0 }}>{editId ? 'Editar Família' : 'Nova Família'}</h1>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => setShowModalImportarPlanilha(true)} style={{ background: '#0284c7', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="fas fa-file-excel"></i> Preencher via Planilha
+          </button>
           <button type="button" onClick={() => navigate('/familias/pesquisar')} style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <i className="fas fa-times"></i> Cancelar
           </button>
@@ -871,9 +1099,14 @@ export default function NovaFamilia() {
             <h2 style={{ fontSize: '1.25rem', margin: 0, color: '#1565C0', fontWeight: 700 }}>
               3. Dependentes da Família ({dependentes.length})
             </h2>
-            <button type="button" onClick={() => setActiveModal('dependente')} style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>
-              <i className="fas fa-plus"></i> Adicionar Dependente
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button type="button" onClick={() => setShowModalImportarDeps(true)} style={{ background: '#0284c7', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="fas fa-file-import"></i> Importar Dependentes (Excel)
+              </button>
+              <button type="button" onClick={() => setActiveModal('dependente')} style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>
+                <i className="fas fa-plus"></i> Adicionar Dependente
+              </button>
+            </div>
           </div>
 
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -1202,6 +1435,7 @@ export default function NovaFamilia() {
                   <select value={contratoForm.formaPagamento} onChange={e => setContratoForm({ ...contratoForm, formaPagamento: e.target.value })} required style={{ width: '100%', padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
                     <option value="Pix">Pix</option>
                     <option value="Pix Automático">Pix Automático (Recorrente)</option>
+                    <option value="Boleto">Boleto Bancário</option>
                     <option value="Cartão">Cartão (Crédito/Débito)</option>
                     <option value="Dinheiro">Dinheiro (Manual)</option>
                   </select>
@@ -1346,6 +1580,245 @@ export default function NovaFamilia() {
               <button type="button" onClick={() => { setIsVincularModalOpen(false); setVincularTarget(null); setVincularProdutoSelecionado([]); }} style={{ padding: '0.7rem 1.4rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
               <button type="button" onClick={handleSalvarVincularProduto} style={{ padding: '0.7rem 1.6rem', borderRadius: '10px', border: 'none', background: '#16a34a', color: 'white', fontWeight: 600, cursor: 'pointer' }}>
                 <i className="fas fa-check" style={{ marginRight: '6px' }}></i> Confirmar ({vincularProdutoSelecionado.length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Importar Dependentes em Massa via Excel */}
+      {showModalImportarDeps && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem' }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', width: '100%', maxWidth: '780px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.25rem', fontWeight: 700 }}>
+                  <i className="fas fa-file-excel" style={{ color: '#0284c7', marginRight: '8px' }}></i>
+                  Importar Dependentes via Planilha
+                </h3>
+                <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.85rem' }}>
+                  Carregue uma planilha (.xlsx, .xls, .csv) com a lista de dependentes para esta família.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setShowModalImportarDeps(false); setDepsPreview([]); }}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '1.4rem' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '1.2rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={baixarModeloDependentes}
+                style={{ background: '#f8fafc', color: '#0284c7', border: '1px solid #bae6fd', padding: '8px 14px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <i className="fas fa-download"></i> Baixar Modelo de Dependentes (.xlsx)
+              </button>
+
+              <label style={{ background: '#0284c7', color: 'white', padding: '8px 16px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <i className="fas fa-upload"></i> {depsLendo ? 'Lendo...' : 'Selecionar Planilha'}
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleUploadPlanilhaDeps}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+
+            {depsAvisos.length > 0 && (
+              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px 14px', marginBottom: '1rem', color: '#92400e', fontSize: '0.82rem' }}>
+                <div style={{ fontWeight: 700, marginBottom: '4px' }}>Avisos encontrados:</div>
+                {depsAvisos.slice(0, 5).map((av, idx) => <div key={idx}>• {av}</div>)}
+              </div>
+            )}
+
+            {depsPreview.length > 0 ? (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
+                    {depsPreview.length} dependente(s) reconhecido(s) ({depsSelecionados.size} selecionado(s)):
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (depsSelecionados.size === depsPreview.length) {
+                        setDepsSelecionados(new Set());
+                      } else {
+                        setDepsSelecionados(new Set(depsPreview.map((_, i) => i)));
+                      }
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
+                  >
+                    {depsSelecionados.size === depsPreview.length ? 'Desmarcar todos' : 'Selecionar todos'}
+                  </button>
+                </div>
+
+                <div style={{ maxHeight: '280px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                        <th style={{ padding: '8px 10px', width: '36px' }}></th>
+                        <th style={{ padding: '8px 10px' }}>Nome</th>
+                        <th style={{ padding: '8px 10px' }}>Parentesco</th>
+                        <th style={{ padding: '8px 10px' }}>CPF</th>
+                        <th style={{ padding: '8px 10px' }}>Nascimento</th>
+                        <th style={{ padding: '8px 10px' }}>Gênero</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {depsPreview.map((d, i) => {
+                        const isChecked = depsSelecionados.has(i);
+                        return (
+                          <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: isChecked ? '#fff' : '#f8fafc' }}>
+                            <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const novo = new Set(depsSelecionados);
+                                  if (e.target.checked) novo.add(i); else novo.delete(i);
+                                  setDepsSelecionados(novo);
+                                }}
+                              />
+                            </td>
+                            <td style={{ padding: '8px 10px', fontWeight: 600, color: '#1e293b' }}>{d.nome}</td>
+                            <td style={{ padding: '8px 10px', color: '#475569' }}>{d.parentesco}</td>
+                            <td style={{ padding: '8px 10px', color: '#475569' }}>{d.cpf || '-'}</td>
+                            <td style={{ padding: '8px 10px', color: '#475569' }}>{d.dataNascimento ? formatDisplayDate(d.dataNascimento) : '-'}</td>
+                            <td style={{ padding: '8px 10px', color: '#475569' }}>{d.genero || '-'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>
+                <i className="fas fa-file-excel" style={{ fontSize: '2rem', color: '#cbd5e1', marginBottom: '8px', display: 'block' }}></i>
+                Selecione uma planilha acima para visualizar os dependentes antes de confirmar.
+              </div>
+            )}
+
+            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
+              <button
+                type="button"
+                onClick={() => { setShowModalImportarDeps(false); setDepsPreview([]); }}
+                style={{ padding: '0.7rem 1.4rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmarImportarDeps}
+                disabled={depsPreview.length === 0 || depsSelecionados.size === 0}
+                style={{
+                  padding: '0.7rem 1.6rem',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: '#10b981',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: depsPreview.length === 0 || depsSelecionados.size === 0 ? 'not-allowed' : 'pointer',
+                  opacity: depsPreview.length === 0 || depsSelecionados.size === 0 ? 0.6 : 1
+                }}
+              >
+                <i className="fas fa-check" style={{ marginRight: '6px' }}></i> Adicionar à Família ({depsSelecionados.size})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Preencher Cadastro via Planilha */}
+      {showModalImportarPlanilha && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem' }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.25rem', fontWeight: 700 }}>
+                  <i className="fas fa-file-excel" style={{ color: '#0284c7', marginRight: '8px' }}></i>
+                  Preencher Cadastro via Planilha
+                </h3>
+                <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.85rem' }}>
+                  Carregue uma planilha para preencher titular, endereço, dependentes e contratos desta tela.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setShowModalImportarPlanilha(false); setFamiliasDetectadas([]); }}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '1.4rem' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div style={{ background: '#f0f9ff', padding: '1rem', borderRadius: '10px', border: '1px solid #bae6fd', marginBottom: '1.2rem', fontSize: '0.85rem', color: '#0369a1', lineHeight: 1.5 }}>
+              <i className="fas fa-info-circle" style={{ marginRight: '6px' }}></i>
+              Deseja cadastrar <strong>dezenas ou centenas de famílias de uma vez só</strong>? Use nossa ferramenta dedicada:
+              <div style={{ marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/familias/importar')}
+                  style={{ background: '#1565C0', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <i className="fas fa-external-link-alt" style={{ marginRight: '6px' }}></i> Ir para Importação em Massa
+                </button>
+              </div>
+            </div>
+
+            <label style={{ display: 'block', border: '2px dashed #cbd5e1', borderRadius: '12px', padding: '2rem 1.5rem', textAlign: 'center', cursor: 'pointer', background: '#f8fafc', marginBottom: '1.2rem' }}>
+              <i className="fas fa-upload" style={{ fontSize: '1.8rem', color: '#0284c7', marginBottom: '8px', display: 'block' }}></i>
+              <span style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.95rem' }}>
+                {planilhaLendo ? 'Lendo planilha...' : 'Clique para selecionar a planilha (.xlsx, .xls, .csv)'}
+              </span>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleUploadPlanilhaCompleta}
+                style={{ display: 'none' }}
+              />
+            </label>
+
+            {familiasDetectadas.length > 1 && (
+              <div style={{ marginTop: '1rem' }}>
+                <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '8px', fontSize: '0.9rem' }}>
+                  Foram encontradas {familiasDetectadas.length} famílias na planilha. Escolha uma para carregar neste formulário:
+                </div>
+                <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                  {familiasDetectadas.map((fam, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        aplicarFamiliaAoFormulario(fam);
+                        setShowModalImportarPlanilha(false);
+                      }}
+                      style={{ padding: '10px 14px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.88rem' }}>{fam.titular?.nome || 'Titular'}</div>
+                        <div style={{ color: '#64748b', fontSize: '0.78rem' }}>CPF: {fam.titular?.cpf || '-'} | {fam.dependentes?.length || 0} dependente(s)</div>
+                      </div>
+                      <span style={{ color: '#1565C0', fontSize: '0.82rem', fontWeight: 600 }}>Carregar &rarr;</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginTop: '1.5rem', textAlign: 'right', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
+              <button
+                type="button"
+                onClick={() => { setShowModalImportarPlanilha(false); setFamiliasDetectadas([]); }}
+                style={{ padding: '0.7rem 1.4rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Cancelar
               </button>
             </div>
           </div>

@@ -22,10 +22,11 @@ export default function Produtos() {
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
 
-      let { data: prodData } = await supabase.from('produtos').select('*');
-      if (companyId && prodData) {
-        const filteredComp = prodData.filter(p => !p.company_id || String(p.company_id) === String(companyId));
-        if (filteredComp.length > 0) prodData = filteredComp;
+      let prodQuery = supabase.from('produtos').select('*');
+      if (companyId) prodQuery = prodQuery.eq('company_id', companyId);
+      let { data: prodData } = await prodQuery;
+      if (companyId && Array.isArray(prodData)) {
+        prodData = prodData.filter(p => String(p.company_id) === String(companyId));
       }
 
       if (Array.isArray(prodData)) {
@@ -46,10 +47,11 @@ export default function Produtos() {
         });
       }
 
-      let { data: servData } = await supabase.from('servicos').select('*');
-      if (companyId && servData) {
-        const filteredCompServ = servData.filter(s => !s.company_id || String(s.company_id) === String(companyId));
-        if (filteredCompServ.length > 0) servData = filteredCompServ;
+      let servQuery = supabase.from('servicos').select('*');
+      if (companyId) servQuery = servQuery.eq('company_id', companyId);
+      let { data: servData } = await servQuery;
+      if (companyId && Array.isArray(servData)) {
+        servData = servData.filter(s => String(s.company_id) === String(companyId));
       }
 
       if (Array.isArray(servData)) {
@@ -67,12 +69,13 @@ export default function Produtos() {
         });
       }
 
-      // Buscar planos
+      // Buscar planos da empresa
       try {
-        let { data: plans } = await supabase.from('planos').select('*');
-        if (companyId && plans) {
-          const filtered = plans.filter(p => !p.company_id || String(p.company_id) === String(companyId));
-          if (filtered.length > 0) plans = filtered;
+        let plansQuery = supabase.from('planos').select('*');
+        if (companyId) plansQuery = plansQuery.eq('company_id', companyId);
+        let { data: plans } = await plansQuery;
+        if (companyId && Array.isArray(plans)) {
+          plans = plans.filter(p => String(p.company_id) === String(companyId));
         }
         if (Array.isArray(plans)) setPlanosDisponiveis(plans);
       } catch (err) {}
@@ -81,9 +84,12 @@ export default function Produtos() {
       console.warn("Aviso ao carregar produtos do Supabase:", err);
     }
 
-    // 2. LocalStorage Fallback
+    // 2. LocalStorage Fallback (somente escopado por empresa)
     try {
-      const storedProds = JSON.parse(localStorage.getItem('catalogoProdutos') || '[]');
+      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+      const storedProds = JSON.parse(
+        (companyId ? localStorage.getItem(`catalogoProdutos_${companyId}`) : null) || '[]'
+      );
       if (Array.isArray(storedProds)) {
         storedProds.forEach(sp => {
           const nome = sp.nome || sp.name;
@@ -101,7 +107,9 @@ export default function Produtos() {
         });
       }
 
-      const storedServs = JSON.parse(localStorage.getItem('catalogoServicos') || '[]');
+      const storedServs = JSON.parse(
+        (companyId ? localStorage.getItem(`catalogoServicos_${companyId}`) : null) || '[]'
+      );
       if (Array.isArray(storedServs)) {
         storedServs.forEach(ss => {
           const nome = ss.nome || ss.name;
@@ -193,9 +201,11 @@ export default function Produtos() {
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
 
-      // Salva no LocalStorage para compatibilidade total
-      localStorage.setItem('catalogoProdutos', JSON.stringify(products));
-      localStorage.setItem('catalogoServicos', JSON.stringify(services));
+      // Salva no LocalStorage escopado por empresa
+      if (companyId) {
+        localStorage.setItem(`catalogoProdutos_${companyId}`, JSON.stringify(products));
+        localStorage.setItem(`catalogoServicos_${companyId}`, JSON.stringify(services));
+      }
 
       // Tenta persistir no Supabase se as tabelas existirem
       try {
@@ -215,6 +225,22 @@ export default function Produtos() {
             await supabase.from('produtos').update(payload).eq('id', p.id);
           } else {
             await supabase.from('produtos').insert([payload]);
+          }
+        }
+
+        for (const s of services) {
+          const sPayload = {
+            nome: s.nome,
+            valor: s.valor,
+            descricao: s.descricao,
+            company_id: companyId
+          };
+          if (typeof s.id === 'string' && s.id.includes('-')) {
+            await supabase.from('servicos').update(sPayload).eq('id', s.id);
+          } else if (typeof s.id === 'number' && s.id < 1000000000000) {
+            await supabase.from('servicos').update(sPayload).eq('id', s.id);
+          } else {
+            await supabase.from('servicos').insert([sPayload]);
           }
         }
       } catch (err) {

@@ -87,8 +87,8 @@ router.post('/cob', loadBankConfig, async (req, res) => {
         const { error: insertError } = await supabase
             .from('cobrancas')
             .insert({
-                tipo: 'pix',
-                tipo_cobranca: 'imediata',
+                tipo: req.body.tipo || 'pix',
+                tipo_cobranca: req.body.tipoCobranca || 'imediata',
                 id_asaas: cobranca.correlationID,        // ID da cobrança na Woovi (salvo na coluna legada)
                 invoice_id: req.body.invoiceId || cobranca.correlationID,
                 contrato_numero: contratoNumero,
@@ -99,11 +99,13 @@ router.post('/cob', loadBankConfig, async (req, res) => {
                 pagador_email: pagador.email,
                 pagador_telefone: pagador.telefone,
                 status: statusInterno,
+                link_pagamento: cobranca.paymentLinkUrl || null,
+                invoice_url: cobranca.paymentLinkUrl || null,
                 qrcode: cobranca.qrCodeImage,
                 pix_copia_e_cola: cobranca.brCode,
                 banco: 'woovi',
                 company_id: empresaId,
-                vencimento: hoje
+                vencimento: req.body.vencimento || hoje
             });
 
         if (insertError) throw insertError;
@@ -114,6 +116,7 @@ router.post('/cob', loadBankConfig, async (req, res) => {
             success: true,
             txid: cobranca.correlationID,
             paymentId: cobranca.correlationID,
+            paymentLink: cobranca.paymentLinkUrl || null,
             qrcode: cobranca.qrCodeImage,
             imagemQrcode: cobranca.qrCodeImage,
             pixCopiaECola: cobranca.brCode,
@@ -181,8 +184,8 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
         const { error: insertErrorV } = await supabase
             .from('cobrancas')
             .insert({
-                tipo: 'pix',
-                tipo_cobranca: 'vencimento',
+                tipo: req.body.tipo || 'pix',
+                tipo_cobranca: req.body.tipoCobranca || 'vencimento',
                 id_asaas: cobranca.correlationID,        // ID da cobrança na Woovi (salvo na coluna legada)
                 invoice_id: invoiceId || cobranca.correlationID,
                 contrato_numero: contratoNumero,
@@ -194,6 +197,8 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
                 pagador_telefone: pagador.telefone,
                 vencimento,
                 status: statusInterno,
+                link_pagamento: cobranca.paymentLinkUrl || null,
+                invoice_url: cobranca.paymentLinkUrl || null,
                 qrcode: cobranca.qrCodeImage,
                 pix_copia_e_cola: cobranca.brCode,
                 banco: 'woovi',
@@ -208,6 +213,7 @@ router.post('/cobv', loadBankConfig, async (req, res) => {
             success: true,
             txid: cobranca.correlationID,
             paymentId: cobranca.correlationID,
+            paymentLink: cobranca.paymentLinkUrl || null,
             qrcode: cobranca.qrCodeImage,
             imagemQrcode: cobranca.qrCodeImage,
             pixCopiaECola: cobranca.brCode,

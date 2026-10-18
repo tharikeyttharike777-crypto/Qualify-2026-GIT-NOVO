@@ -28,10 +28,13 @@ export default function PesquisaPlanos() {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
       
       // 1. Tenta buscar no Supabase
-      let { data, error } = await supabase.from('planos').select('*');
-      if (companyId && data) {
-        const filteredComp = data.filter(p => !p.company_id || String(p.company_id) === String(companyId));
-        if (filteredComp.length > 0) data = filteredComp;
+      let query = supabase.from('planos').select('*');
+      if (companyId) {
+        query = query.eq('company_id', companyId);
+      }
+      let { data, error } = await query;
+      if (companyId && Array.isArray(data)) {
+        data = data.filter(p => String(p.company_id) === String(companyId));
       }
 
       if (!error && Array.isArray(data)) {
@@ -54,13 +57,17 @@ export default function PesquisaPlanos() {
       console.warn("Aviso ao buscar planos Supabase:", err);
     }
 
-    // 2. Resgate local storage se necessário
+    // 2. Resgate local storage apenas para a empresa atual
     try {
+      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
       const localPlanosStr = localStorage.getItem('planos');
       if (localPlanosStr) {
         const parsed = JSON.parse(localPlanosStr);
         if (Array.isArray(parsed)) {
           parsed.forEach(p => {
+            if (companyId && (!p.company_id || String(p.company_id) !== String(companyId))) {
+              return;
+            }
             const nome = p.name || p.nome || p.title || p.plano;
             if (nome && !plansList.some(item => item.nome.toLowerCase() === String(nome).toLowerCase())) {
               plansList.push({

@@ -54,10 +54,13 @@ export default function Contratos() {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
       
       // 1. Tenta buscar no Supabase
-      let { data, error } = await supabase.from('contratos').select('*');
-      if (companyId && data) {
-        const filteredComp = data.filter(c => !c.company_id || String(c.company_id) === String(companyId));
-        if (filteredComp.length > 0) data = filteredComp;
+      let query = supabase.from('contratos').select('*');
+      if (companyId) {
+        query = query.eq('company_id', companyId);
+      }
+      let { data, error } = await query;
+      if (companyId && Array.isArray(data)) {
+        data = data.filter(c => String(c.company_id) === String(companyId));
       }
 
       if (!error && Array.isArray(data)) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabase';
+import { supabasePublic as supabase } from '../services/supabase';
 
 export default function AreaAssociadoLogin() {
   const navigate = useNavigate();

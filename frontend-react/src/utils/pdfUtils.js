@@ -313,3 +313,430 @@ export async function gerarPdfContratoBuffer(contract, family, supabaseInstance)
     
     doc.save(`Contrato_${numeroContrato}.pdf`);
 }
+
+
+function calcMod10Febraban(numStr) {
+  let sum = 0;
+  let weight = 2;
+  for (let i = numStr.length - 1; i >= 0; i--) {
+    let prod = parseInt(numStr[i], 10) * weight;
+    if (prod > 9) prod = Math.floor(prod / 10) + (prod % 10);
+    sum += prod;
+    weight = weight === 2 ? 1 : 2;
+  }
+  const rem = sum % 10;
+  return rem === 0 ? 0 : 10 - rem;
+}
+
+function calcMod11Febraban(num43) {
+  let sum = 0;
+  let weight = 2;
+  for (let i = num43.length - 1; i >= 0; i--) {
+    sum += parseInt(num43[i], 10) * weight;
+    weight = weight === 9 ? 2 : weight + 1;
+  }
+  const rem = sum % 11;
+  const dv = 11 - rem;
+  if (dv === 0 || dv === 10 || dv === 11) return 1;
+  return dv;
+}
+
+export function gerarDadosFebrabanBoleto(valor, vencimentoStr, nossoNumeroRaw) {
+  const banco = '237';
+  const moeda = '9';
+
+  const cleanDate = String(vencimentoStr || new Date().toISOString().split('T')[0]).slice(0, 10);
+  const dtVenc = new Date(`${cleanDate}T12:00:00Z`);
+  const dtBase = new Date('1997-10-07T12:00:00Z');
+  let diffDays = Math.round((dtVenc.getTime() - dtBase.getTime()) / 86400000);
+  if (isNaN(diffDays) || diffDays < 1000) diffDays = 1000;
+  if (diffDays >= 10000) diffDays = ((diffDays - 10000) % 9000) + 1000;
+  const fatorVencimento = String(diffDays).padStart(4, '0');
+
+  const valorNum = Math.max(0, parseFloat(valor) || 0);
+  const valorCentavos = String(Math.round(valorNum * 100)).padStart(10, '0').slice(-10);
+
+  const agencia = '2379';
+  const carteira = '09';
+  const nossoNumero = String(nossoNumeroRaw || '1').replace(/\D/g, '').padStart(11, '0').slice(-11);
+  const conta = '0053199';
+  const campoLivre = `${agencia}${carteira}${nossoNumero}${conta}0`; // 25 dígitos exatos
+
+  const codigoSemDv = `${banco}${moeda}${fatorVencimento}${valorCentavos}${campoLivre}`; // 43 dígitos
+  const dvGeral = String(calcMod11Febraban(codigoSemDv));
+  const codigoBarras = `${banco}${moeda}${dvGeral}${fatorVencimento}${valorCentavos}${campoLivre}`; // 44 dígitos
+
+  const campo1Raw = `${banco}${moeda}${campoLivre.slice(0, 5)}`;
+  const dv1 = calcMod10Febraban(campo1Raw);
+  const campo1 = `${campo1Raw.slice(0, 5)}.${campo1Raw.slice(5)}${dv1}`;
+
+  const campo2Raw = campoLivre.slice(5, 15);
+  const dv2 = calcMod10Febraban(campo2Raw);
+  const campo2 = `${campo2Raw.slice(0, 5)}.${campo2Raw.slice(5)}${dv2}`;
+
+  const campo3Raw = campoLivre.slice(15, 25);
+  const dv3 = calcMod10Febraban(campo3Raw);
+  const campo3 = `${campo3Raw.slice(0, 5)}.${campo3Raw.slice(5)}${dv3}`;
+
+  const campo5 = `${fatorVencimento}${valorCentavos}`;
+  const linhaDigitavel = `${campo1} ${campo2} ${campo3} ${dvGeral} ${campo5}`;
+
+  return {
+    banco: '237-2',
+    agenciaConta: `${agencia}-0 / ${conta}-8`,
+    nossoNumero,
+    codigoBarras,
+    linhaDigitavel
+  };
+}
+
+function drawItf25Barcode(doc, code44, startX, startY, height = 13) {
+  const patterns = [
+    '00110', // 0
+    '10001', // 1
+    '01001', // 2
+    '11000', // 3
+    '00101', // 4
+    '10100', // 5
+    '01100', // 6
+    '00011', // 7
+    '10010', // 8
+    '01010'  // 9
+  ];
+  const digits = String(code44 || '').replace(/\D/g, '').padStart(44, '0').slice(0, 44);
+  const narrow = 0.31;
+  const wide = 0.78;
+  let x = startX;
+
+  doc.setFillColor(0, 0, 0);
+  // Start pattern (nnnn: narrow bar, narrow space, narrow bar, narrow space)
+  doc.rect(x, startY, narrow, height, 'F');
+  x += narrow + narrow;
+  doc.rect(x, startY, narrow, height, 'F');
+  x += narrow + narrow;
+
+  for (let i = 0; i < digits.length; i += 2) {
+    const pBar = patterns[parseInt(digits[i], 10)] || patterns[0];
+    const pSpace = patterns[parseInt(digits[i + 1], 10)] || patterns[0];
+    for (let j = 0; j < 5; j++) {
+      const wBar = pBar[j] === '1' ? wide : narrow;
+      const wSpace = pSpace[j] === '1' ? wide : narrow;
+      doc.rect(x, startY, wBar, height, 'F');
+      x += wBar + wSpace;
+    }
+  }
+
+  // Stop pattern (wnn: wide bar, narrow space, narrow bar)
+  doc.rect(x, startY, wide, height, 'F');
+  x += wide + narrow;
+  doc.rect(x, startY, narrow, height, 'F');
+}
+
+async function fetchQrImageBase64(url) {
+  if (!url) return null;
+  if (url.startsWith('data:image/')) return url;
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
+  let jsPDF;
+  try {
+    const jspdfModule = await import('jspdf');
+    jsPDF = jspdfModule.jsPDF || jspdfModule.default;
+  } catch (err) {
+    throw new Error('Falha ao carregar biblioteca de PDF: ' + err.message);
+  }
+
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  let cMeta = {};
+  if (contract?.metadata) {
+    try { cMeta = typeof contract.metadata === 'string' ? JSON.parse(contract.metadata) : contract.metadata; } catch (e) {}
+  }
+  let famMeta = {};
+  if (family?.metadata) {
+    try { famMeta = typeof family.metadata === 'string' ? JSON.parse(family.metadata) : family.metadata; } catch (e) {}
+  }
+  let cobMeta = {};
+  if (cobranca?.metadata) {
+    try { cobMeta = typeof cobranca.metadata === 'string' ? JSON.parse(cobranca.metadata) : cobranca.metadata; } catch (e) {}
+  }
+
+  const companyName = localStorage.getItem('empresaSelecionadaNome') || 'QUALIFY SERVICOS E BENEFICIOS';
+  const numeroContrato = contract?.numero || contract?.id || cobranca?.contrato_numero || '0000';
+
+  const famTit = (typeof family?.titular === 'object' && family?.titular) ? family.titular : (famMeta.titular || {});
+  const pagadorNome = cobranca?.pagador_nome || famTit.nome || contract?.titular || cMeta.titular || 'Cliente Associado';
+  const pagadorDoc = cobranca?.pagador_documento || famTit.cpf || famTit.documento || family?.cpf || cMeta.cpf || '';
+
+  const endObj = cobMeta?.endereco || family?.endereco || famMeta?.endereco || cMeta?.endereco || {};
+  const logradouro = endObj.logradouro || endObj.rua || '';
+  const numeroEnd = endObj.numero || endObj.numero_end || '';
+  const bairro = endObj.bairro || '';
+  const cidade = endObj.cidade || endObj.localidade || '';
+  const uf = endObj.uf || endObj.estado || '';
+  const cep = endObj.cep || '';
+  const enderecoLinha = [
+    logradouro ? `${logradouro}${numeroEnd ? `, ${numeroEnd}` : ''}` : '',
+    bairro,
+    cidade ? `${cidade}${uf ? `/${uf}` : ''}` : '',
+    cep ? `CEP: ${cep}` : ''
+  ].filter(Boolean).join(' - ') || 'Endereco conforme cadastro';
+
+  const valorNum = parseFloat(cobranca?.valor || contract?.valor || cMeta.valor || 0) || 0;
+  const valorFormatado = valorNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const vencStr = cobranca?.vencimento || new Date().toISOString().split('T')[0];
+  const [vy, vm, vd] = String(vencStr).slice(0, 10).split('-');
+  const vencFormatado = (vy && vm && vd) ? `${vd}/${vm}/${vy}` : vencStr;
+  const emissaoFormatada = new Date().toLocaleDateString('pt-BR');
+
+  const seedId = cobMeta?.nosso_numero || String(cobranca?.id || numeroContrato).replace(/\D/g, '') || String(numeroContrato);
+  const febraban = gerarDadosFebrabanBoleto(valorNum, vencStr, seedId);
+  const nossoNumero = febraban.nossoNumero;
+  const linhaDigitavel = febraban.linhaDigitavel;
+  const codigoBarras = febraban.codigoBarras;
+
+  const pixCopiaECola = cobranca?.pix_copia_e_cola || cobMeta?.pix_copia_e_cola || '';
+  const qrUrl = cobranca?.qrcode || cobMeta?.qrcode || '';
+  const linkPagamento = cobranca?.link_pagamento || cobranca?.invoice_url || cobMeta?.paymentLink || '';
+  const qrBase64 = await fetchQrImageBase64(qrUrl);
+
+  // Cabecalho Recibo do Pagador
+  doc.setDrawColor(180);
+  doc.setLineWidth(0.3);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(21, 101, 192);
+  doc.text(companyName.toUpperCase(), 15, 18);
+  doc.setFontSize(9);
+  doc.setTextColor(80);
+  doc.text('RECIBO DO PAGADOR', 195, 18, { align: 'right' });
+
+  doc.line(15, 21, 195, 21);
+
+  // Quadro Recibo
+  doc.rect(15, 24, 180, 42);
+  doc.line(15, 38, 195, 38);
+  doc.line(15, 52, 195, 52);
+  doc.line(130, 24, 130, 66);
+  doc.line(162, 24, 162, 52);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100);
+  doc.text('Beneficiario / Cedente', 17, 28);
+  doc.text('No Contrato', 132, 28);
+  doc.text('Vencimento', 164, 28);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(20);
+  doc.text(companyName.slice(0, 45), 17, 35);
+  doc.text(String(numeroContrato), 132, 35);
+  doc.text(vencFormatado, 164, 35);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100);
+  doc.text('Pagador / Sacado', 17, 42);
+  doc.text('Nosso Numero', 132, 42);
+  doc.text('(=) Valor do Documento', 164, 42);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(20);
+  doc.text(`${pagadorNome}${pagadorDoc ? ` - CPF/CNPJ: ${pagadorDoc}` : ''}`.slice(0, 65), 17, 49);
+  doc.text(nossoNumero, 132, 49);
+  doc.text(valorFormatado, 164, 49);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100);
+  doc.text('Descricao / Referencia', 17, 56);
+  doc.text('Data de Emissao', 132, 56);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(20);
+  doc.text(String(cobranca?.descricao || `Mensalidade Contrato #${numeroContrato}`).slice(0, 65), 17, 63);
+  doc.text(emissaoFormatada, 132, 63);
+
+  // Linha pontilhada de corte
+  doc.setLineDashPattern([2, 2], 0);
+  doc.line(15, 73, 195, 73);
+  doc.setLineDashPattern([], 0);
+  doc.setFontSize(6.5);
+  doc.setTextColor(130);
+  doc.text('Corte na linha pontilhada', 195, 71, { align: 'right' });
+
+  // Ficha de Compensacao / Boleto Hibrido
+  let y = 82;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(20);
+  doc.text('237-2', 15, y);
+  doc.line(30, y - 5, 30, y + 1);
+  doc.setFontSize(9.5);
+  doc.text(linhaDigitavel, 195, y, { align: 'right' });
+
+  y += 3;
+  doc.setLineWidth(0.4);
+  doc.line(15, y, 195, y);
+
+  y += 2;
+  doc.setLineWidth(0.25);
+  doc.rect(15, y, 180, 108);
+
+  // Linhas horizontais da Ficha
+  doc.line(15, y + 14, 195, y + 14);
+  doc.line(15, y + 28, 195, y + 28);
+  doc.line(15, y + 42, 195, y + 42);
+  doc.line(15, y + 82, 195, y + 82);
+
+  // Colunas direita (Vencimento / Valores)
+  doc.line(145, y, 145, y + 82);
+
+  // Campos Topo: Local de pagamento + Vencimento
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100);
+  doc.text('Local de Pagamento', 17, y + 4);
+  doc.text('Vencimento', 147, y + 4);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(20);
+  doc.text('PAGAVEL EM QUALQUER BANCO OU INSTANTANEAMENTE VIA QR CODE PIX', 17, y + 11);
+  doc.setFontSize(10);
+  doc.text(vencFormatado, 147, y + 11);
+
+  // Linha 2: Beneficiario + Agencia/Codigo
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100);
+  doc.text('Beneficiario', 17, y + 18);
+  doc.text('Agencia / Codigo Beneficiario', 147, y + 18);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(20);
+  doc.text(companyName.slice(0, 65), 17, y + 25);
+  doc.text(febraban.agenciaConta, 147, y + 25);
+
+  // Linha 3: Data doc, No doc, Especie, Aceite, Nosso Numero, Valor
+  doc.line(45, y + 28, 45, y + 42);
+  doc.line(82, y + 28, 82, y + 42);
+  doc.line(102, y + 28, 102, y + 42);
+  doc.line(115, y + 28, 115, y + 42);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100);
+  doc.text('Data do Doc.', 17, y + 32);
+  doc.text('No do Documento', 47, y + 32);
+  doc.text('Especie', 84, y + 32);
+  doc.text('Aceite', 104, y + 32);
+  doc.text('Nosso Numero', 117, y + 32);
+  doc.text('(=) Valor do Documento', 147, y + 32);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(20);
+  doc.text(emissaoFormatada, 17, y + 39);
+  doc.text(`CONT-${numeroContrato}`, 47, y + 39);
+  doc.text('DM', 84, y + 39);
+  doc.text('N', 104, y + 39);
+  doc.text(nossoNumero, 117, y + 39);
+  doc.setFontSize(10);
+  doc.text(valorFormatado, 147, y + 39);
+
+  // Linha 4: Instrucoes + QR Code PIX Hibrido
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100);
+  doc.text('Instrucoes (Texto de responsabilidade do beneficiario)', 17, y + 46);
+  doc.text('(-) Desconto / Abatimento', 147, y + 46);
+  doc.line(145, y + 55, 195, y + 55);
+  doc.text('(+) Juros / Multa', 147, y + 59);
+  doc.line(145, y + 68, 195, y + 68);
+  doc.text('(=) Valor Cobrado', 147, y + 72);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(20);
+  doc.text(String(cobranca?.descricao || `Referente ao Contrato #${numeroContrato}`).slice(0, 52), 17, y + 52);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  if (cobMeta?.mensagem) {
+    doc.text(String(cobMeta.mensagem).slice(0, 55), 17, y + 57);
+  } else {
+    doc.text('Pague via QR Code PIX ao lado ou pelo codigo Copia e Cola abaixo.', 17, y + 57);
+  }
+
+  if (qrBase64) {
+    try {
+      doc.addImage(qrBase64, 'PNG', 108, y + 44, 34, 34);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6);
+      doc.setTextColor(21, 101, 192);
+      doc.text('PAGUE COM PIX', 125, y + 80, { align: 'center' });
+    } catch (e) {}
+  }
+
+  if (pixCopiaECola) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(21, 101, 192);
+    doc.text('PIX Copia e Cola (Codigo Valido BACEN):', 17, y + 63);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.8);
+    doc.setTextColor(40);
+    const wrappedPix = doc.splitTextToSize(String(pixCopiaECola), 88);
+    doc.text(wrappedPix.slice(0, 3), 17, y + 67);
+  } else if (linkPagamento) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(21, 101, 192);
+    doc.text(`Fatura Online: ${linkPagamento}`, 17, y + 66);
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(20);
+  doc.text(valorFormatado, 147, y + 79);
+
+  // Linha 5: Pagador + Endereco Completo
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100);
+  doc.text('Pagador', 17, y + 86);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(20);
+  doc.text(`${pagadorNome}${pagadorDoc ? `   -   CPF/CNPJ: ${pagadorDoc}` : ''}`, 17, y + 92);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(50);
+  doc.text(enderecoLinha.slice(0, 95), 17, y + 98);
+  doc.setFontSize(6.5);
+  doc.setTextColor(120);
+  doc.text('Autenticacao Mecanica - Ficha de Compensacao', 193, y + 106, { align: 'right' });
+
+  // Codigo de Barras padrao FEBRABAN ITF-25 (44 digitos)
+  drawItf25Barcode(doc, codigoBarras, 15, y + 112, 14);
+
+  doc.save(`Boleto_Contrato_${numeroContrato}_${vencStr}.pdf`);
+}

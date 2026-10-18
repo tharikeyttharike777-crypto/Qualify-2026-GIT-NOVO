@@ -9,6 +9,7 @@ import PesquisarFamilias from './pages/PesquisarFamilias';
 import PesquisarAssociados from './pages/PesquisarAssociados';
 import PesquisarPets from './pages/PesquisarPets';
 import Aniversariantes from './pages/Aniversariantes';
+import ImportacaoMassa from './pages/ImportacaoMassa';
 import Contratos from './pages/Contratos';
 import EdicaoContrato from './pages/EdicaoContrato';
 import PesquisaPlanos from './pages/PesquisaPlanos';
@@ -110,6 +111,7 @@ function App() {
           {/* Famílias */}
           <Route path="/familias/nova" element={<NovaFamilia />} />
           <Route path="/familias/pesquisar" element={<PesquisarFamilias />} />
+          <Route path="/familias/importar" element={<ImportacaoMassa />} />
           <Route path="/familias/associados" element={<PesquisarAssociados />} />
           <Route path="/familias/pets" element={<PesquisarPets />} />
           <Route path="/familias/aniversariantes" element={<Aniversariantes />} />

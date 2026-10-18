@@ -27,11 +27,14 @@ export default function PesquisarAssociados() {
 
     try {
       const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
-      let { data, error } = await supabase.from('familias').select('*');
+      let query = supabase.from('familias').select('*');
+      if (companyId) {
+        query = query.eq('company_id', companyId);
+      }
+      let { data, error } = await query;
 
-      if (companyId && data) {
-        const filteredComp = data.filter(f => !f.company_id || String(f.company_id) === String(companyId));
-        if (filteredComp.length > 0) data = filteredComp;
+      if (companyId && Array.isArray(data)) {
+        data = data.filter(f => String(f.company_id) === String(companyId));
       }
 
       if (!error && Array.isArray(data)) {
@@ -126,8 +129,11 @@ export default function PesquisarAssociados() {
         <span>Famílias</span> <i className="fas fa-chevron-right" style={{ fontSize: '0.75rem', margin: '0 0.5rem' }}></i> <span className="active" style={{ color: '#1565C0', fontWeight: 600 }}>Pesquisar Associados</span>
       </div>
 
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 style={{ fontSize: '1.8rem', color: '#2c3e50', margin: 0 }}>Pesquisar Associados</h1>
+        <button onClick={() => navigate('/familias/importar')} style={{ background: '#1565C0', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <i className="fas fa-file-import"></i> Importação em Massa
+        </button>
       </div>
 
       <div style={{ background: 'white', padding: '12px 18px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>

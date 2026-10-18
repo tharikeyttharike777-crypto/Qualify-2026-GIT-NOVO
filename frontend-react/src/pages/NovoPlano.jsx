@@ -67,7 +67,10 @@ export default function NovoPlano() {
   async function loadPlanToEdit() {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('planos').select('*').eq('id', editId).single();
+      const companyId = localStorage.getItem('activeCompanyId') || localStorage.getItem('empresaSelecionadaId');
+      let query = supabase.from('planos').select('*').eq('id', editId);
+      if (companyId) query = query.eq('company_id', companyId);
+      const { data, error } = await query.single();
       if (!error && data) {
         let meta = {};
         if (data.metadata) {
@@ -170,11 +173,12 @@ export default function NovoPlano() {
 
       if (result.error) throw result.error;
 
-      // Salva no local storage para fallback
+      // Salva no local storage para fallback com escopo de empresa
       try {
-        const localPlans = JSON.parse(localStorage.getItem('planos') || '[]');
+        const localKey = companyId ? `planos_${companyId}` : 'planos';
+        const localPlans = JSON.parse(localStorage.getItem(localKey) || '[]');
         localPlans.push(payload);
-        localStorage.setItem('planos', JSON.stringify(localPlans));
+        localStorage.setItem(localKey, JSON.stringify(localPlans));
       } catch (e) {}
 
       setMsg({ type: 'success', text: 'Plano salvo com sucesso!' });

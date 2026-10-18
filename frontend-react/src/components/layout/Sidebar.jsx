@@ -34,6 +34,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="sidebar-user-info">
             <p className="user-email-display">Usuário: <span id="userDisplaySidebar">{userEmail || 'Carregando...'}</span></p>
             <p className="company-display">Empresa: <span id="empresaDisplaySidebar">{localStorage.getItem('empresaSelecionadaNome') || 'Nenhuma empresa ativa'}</span></p>
+            <p style={{ fontSize: '0.7rem', opacity: 0.6, margin: '4px 0 0' }}>Versão: {typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : '-'}</p>
           </div>
           <ul className="sidebar-menu">
             {/* Contratos */}
@@ -70,6 +71,7 @@ export default function Sidebar({ isOpen, onClose }) {
               <ul className="submenu">
                 <li><NavLink to="/familias/nova">Nova família</NavLink></li>
                 <li><NavLink to="/familias/pesquisar">Pesquisar famílias</NavLink></li>
+                <li><NavLink to="/familias/importar">Importação em massa</NavLink></li>
                 <li><NavLink to="/familias/associados">Pesquisar associados</NavLink></li>
                 <li><NavLink to="/familias/pets">Pesquisar pet's</NavLink></li>
                 <li><NavLink to="/familias/aniversariantes">Aniversariantes</NavLink></li>

@@ -65,6 +65,10 @@ export default function Dashboard() {
               <div style={{ background: '#f3e8ff', color: '#9333ea', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fas fa-users"></i></div>
               <span style={{ fontWeight: 600, color: '#475569', fontSize: '0.9rem' }}>Pesquisar Famílias</span>
             </div>
+            <div className="shortcut-btn" onClick={() => goTo('/familias/importar')} style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s' }}>
+              <div style={{ background: '#e0f2fe', color: '#0284c7', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fas fa-file-import"></i></div>
+              <span style={{ fontWeight: 600, color: '#475569', fontSize: '0.9rem' }}>Importação em Massa</span>
+            </div>
             <div className="shortcut-btn" onClick={() => goTo('/familias/associados')} style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s' }}>
               <div style={{ background: '#e0e7ff', color: '#4f46e5', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fas fa-user-friends"></i></div>
               <span style={{ fontWeight: 600, color: '#475569', fontSize: '0.9rem' }}>Pesquisar Associados</span>
