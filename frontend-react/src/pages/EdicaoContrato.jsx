@@ -642,85 +642,11 @@ export default function EdicaoContrato() {
         setNovaCobrancaModal(false);
         setSuccessLinkModal({ isOpen: true, data: { ...result, metodo: 'pix_automatico' } });
         setTimeout(() => loadCobrancas(contract), 1200);
-      } else if (cobrancaForm.metodo === 'boleto') {
-        // FLUXO BOLETO BANCÁRIO TRADICIONAL (1 ou N parcelas com Linha Digitável FEBRABAN e PDF Bradesco)
-        const { gerarDadosFebrabanBoleto, gerarPdfBoletoBuffer } = await import('../utils/pdfUtils');
-
-        const [anoStr, mesStr, diaStr] = cobrancaForm.vencimento.split('-');
-        const anoBase = parseInt(anoStr, 10);
-        const mesBase = parseInt(mesStr, 10);
-        const diaBase = parseInt(diaStr, 10);
-
-        const payloadsToInsert = [];
-        let firstFebraban = null;
-
-        for (let i = 0; i < parcelas; i++) {
-          let mesCalc = mesBase + i;
-          let anoCalc = anoBase;
-          while (mesCalc > 12) {
-            mesCalc -= 12;
-            anoCalc++;
-          }
-          const ultimoDiaMes = new Date(anoCalc, mesCalc, 0).getDate();
-          const diaAjustado = Math.min(diaBase, ultimoDiaMes);
-          const vencimentoParcela = `${anoCalc}-${String(mesCalc).padStart(2, '0')}-${String(diaAjustado).padStart(2, '0')}`;
-          const descBase = cobrancaForm.descricao || cobrancaForm.mensagem || `${cobrancaForm.tipo || 'Mensalidade'} (Boleto Bancário) - Contrato ${basePayload.contrato_numero}`;
-          const msgParcela = parcelas > 1 ? `${descBase} (${i + 1}/${parcelas})` : descBase;
-          const nostroNum = String(Date.now()).slice(-8) + String(i + 1).padStart(2, '0');
-          const febraban = gerarDadosFebrabanBoleto(valorOriginal, vencimentoParcela, nostroNum);
-
-          if (i === 0) firstFebraban = febraban;
-
-          payloadsToInsert.push({
-            ...basePayload,
-            vencimento: vencimentoParcela,
-            descricao: msgParcela,
-            tipo: 'boleto',
-            tipo_cobranca: cobrancaForm.tipo || 'Mensalidade',
-            billing_type: 'BOLETO',
-            status: 'pendente',
-            status_display: 'Em Aberto',
-            banco: 'bradesco',
-            invoice_id: `boleto_${nostroNum}`,
-            link_pagamento: null,
-            invoice_url: null,
-            qrcode: null,
-            pix_copia_e_cola: null,
-            metadata: {
-              ...basePayload.metadata,
-              parcela_numero: i + 1,
-              nosso_numero: febraban.nossoNumero,
-              linha_digitavel: febraban.linhaDigitavel,
-              codigo_barras: febraban.codigoBarras
-            }
-          });
-        }
-
-        const { data, error } = await supabase.from('cobrancas').insert(payloadsToInsert).select();
-        if (error) throw error;
-
-        await loadCobrancas(contract);
-
-        const firstRow = (data && data[0]) ? data[0] : payloadsToInsert[0];
-        try {
-          await gerarPdfBoletoBuffer(firstRow, contract, family);
-        } catch (pdfErr) {
-          console.warn('Aviso ao gerar PDF do boleto:', pdfErr);
-        }
-
-        setNovaCobrancaModal(false);
-        setSuccessLinkModal({
-          isOpen: true,
-          data: {
-            metodo: 'boleto',
-            linhaDigitavel: firstFebraban?.linhaDigitavel,
-            row: firstRow
-          }
-        });
-      } else if (cobrancaForm.metodo === 'pix' || cobrancaForm.metodo === 'cartao') {
+      } else if (cobrancaForm.metodo === 'pix' || cobrancaForm.metodo === 'boleto' || cobrancaForm.metodo === 'cartao') {
         const token = (await supabase.auth.getSession())?.data?.session?.access_token || '';
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const API_BASE = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:4570/api' : 'https://qualify-2026.onrender.com/api');
+        const { gerarDadosFebrabanBoleto, gerarPdfBoletoBuffer } = await import('../utils/pdfUtils');
 
         const [anoStr, mesStr, diaStr] = cobrancaForm.vencimento.split('-');
         const anoBase = parseInt(anoStr, 10);
@@ -729,6 +655,7 @@ export default function EdicaoContrato() {
 
         let firstResult = null;
         let firstCreatedRow = null;
+        let firstFebraban = null;
 
         for (let i = 0; i < parcelas; i++) {
           let mesCalc = mesBase + i;
@@ -743,6 +670,7 @@ export default function EdicaoContrato() {
           const descBase = cobrancaForm.descricao || cobrancaForm.mensagem || `${cobrancaForm.tipo || 'Mensalidade'} (${metodoLabelMap[cobrancaForm.metodo] || cobrancaForm.metodo}) - Contrato ${basePayload.contrato_numero}`;
           const msgParcela = parcelas > 1 ? `${descBase} (${i + 1}/${parcelas})` : descBase;
           const nostroNum = String(Date.now()).slice(-8) + String(i + 1).padStart(2, '0');
+          const febraban = gerarDadosFebrabanBoleto(valorOriginal, vencimentoParcela, nostroNum);
 
           const endpoint = cobrancaForm.metodo === 'pix' ? `${API_BASE}/pix/cob` : `${API_BASE}/pix/cobv`;
           let res = await fetch(endpoint, {
@@ -808,7 +736,9 @@ export default function EdicaoContrato() {
             metadata: {
               ...basePayload.metadata,
               parcela_numero: i + 1,
-              nosso_numero: nostroNum,
+              nosso_numero: febraban.nossoNumero,
+              linha_digitavel: febraban.linhaDigitavel,
+              codigo_barras: febraban.codigoBarras,
               paymentLink,
               qrcode: result.qrcode || result.imagemQrcode || null,
               pix_copia_e_cola: result.pixCopiaECola || null
@@ -837,12 +767,21 @@ export default function EdicaoContrato() {
           }
 
           if (i === 0) {
-            firstResult = { ...result, paymentLink, metodo: cobrancaForm.metodo };
+            firstResult = { ...result, paymentLink, linhaDigitavel: febraban.linhaDigitavel, metodo: cobrancaForm.metodo };
             firstCreatedRow = savedRow || { ...updatePayload, id: result.paymentId };
+            firstFebraban = febraban;
           }
         }
 
         await loadCobrancas(contract);
+
+        if (cobrancaForm.metodo === 'boleto' && firstCreatedRow) {
+          try {
+            await gerarPdfBoletoBuffer(firstCreatedRow, contract, family);
+          } catch (pdfErr) {
+            console.warn('Aviso ao gerar PDF automático do boleto:', pdfErr);
+          }
+        }
 
         setNovaCobrancaModal(false);
         if (firstResult) {
@@ -1039,42 +978,12 @@ export default function EdicaoContrato() {
     const cMeta = typeof cobranca?.metadata === 'string'
       ? (() => { try { return JSON.parse(cobranca.metadata); } catch (e) { return {}; } })()
       : (cobranca?.metadata || {});
-    const rawTipo = String(cobranca.tipo || cobranca.billing_type || cMeta.metodo || '').toLowerCase();
-    const isBoleto = rawTipo.includes('boleto') || String(cobranca.billing_type || '').toUpperCase() === 'BOLETO';
     const { gerarDadosFebrabanBoleto } = await import('../utils/pdfUtils');
     const febraban = gerarDadosFebrabanBoleto(
       cobranca.valor,
       cobranca.vencimento || cobranca.data_vencimento,
       cMeta.nosso_numero || String(cobranca.id || Date.now()).replace(/\D/g, '').slice(-10)
     );
-
-    if (isBoleto) {
-      // Boleto Bancário tradicional NUNCA chama Woovi nem possui chaves PIX
-      const novoMeta = {
-        ...cMeta,
-        nosso_numero: febraban.nossoNumero,
-        linha_digitavel: febraban.linhaDigitavel,
-        codigo_barras: febraban.codigoBarras
-      };
-      if (cobranca.id && (!cMeta.linha_digitavel || cMeta.linha_digitavel !== febraban.linhaDigitavel || cobranca.qrcode || cobranca.pix_copia_e_cola)) {
-        await supabase.from('cobrancas').update({
-          banco: 'bradesco',
-          link_pagamento: null,
-          invoice_url: null,
-          qrcode: null,
-          pix_copia_e_cola: null,
-          metadata: novoMeta
-        }).eq('id', cobranca.id);
-      }
-      return {
-        ...cobranca,
-        link_pagamento: null,
-        invoice_url: null,
-        qrcode: null,
-        pix_copia_e_cola: null,
-        metadata: novoMeta
-      };
-    }
 
     const existingLink = cobranca.link_pagamento || cobranca.invoice_url || cMeta.paymentLink;
     const existingPix = cobranca.pix_copia_e_cola || cMeta.pix_copia_e_cola;
@@ -1089,6 +998,9 @@ export default function EdicaoContrato() {
         pix_copia_e_cola: existingPix,
         metadata: {
           ...cMeta,
+          nosso_numero: febraban.nossoNumero,
+          linha_digitavel: febraban.linhaDigitavel,
+          codigo_barras: febraban.codigoBarras,
           paymentLink: existingLink,
           qrcode: existingQr,
           pix_copia_e_cola: existingPix
@@ -1145,6 +1057,9 @@ export default function EdicaoContrato() {
 
     const novoMeta = {
       ...cMeta,
+      nosso_numero: febraban.nossoNumero,
+      linha_digitavel: febraban.linhaDigitavel,
+      codigo_barras: febraban.codigoBarras,
       paymentLink,
       qrcode: result.qrcode || result.imagemQrcode || null,
       pix_copia_e_cola: result.pixCopiaECola || null
@@ -1167,11 +1082,11 @@ export default function EdicaoContrato() {
 
   const handleGerarBoletoPdf = async (cobranca) => {
     try {
-      setActionMsg({ type: 'success', text: 'Gerando Boleto Bancário em PDF...' });
+      setActionMsg({ type: 'success', text: 'Gerando Boleto PDF registrado...' });
       const cobrancaCompleta = await garantirDadosWooviCobranca(cobranca);
       const { gerarPdfBoletoBuffer } = await import('../utils/pdfUtils');
       await gerarPdfBoletoBuffer(cobrancaCompleta, contract, family);
-      setActionMsg({ type: 'success', text: 'Boleto Bancário em PDF gerado com sucesso!' });
+      setActionMsg({ type: 'success', text: 'Boleto em PDF gerado com sucesso!' });
     } catch (err) {
       console.error(err);
       setActionMsg({ type: 'error', text: 'Erro ao gerar PDF do boleto: ' + err.message });
@@ -1180,10 +1095,6 @@ export default function EdicaoContrato() {
 
   const handleCopiarLinkCobranca = async (cobranca, isBoleto, isMoney) => {
     try {
-      if (isBoleto) {
-        await handleGerarBoletoPdf(cobranca);
-        return;
-      }
       let link = cobranca.link_pagamento || cobranca.invoice_url;
       if (!link && !isMoney) {
         setActionMsg({ type: 'success', text: 'Gerando link de pagamento...' });
@@ -1193,6 +1104,8 @@ export default function EdicaoContrato() {
       if (link) {
         await navigator.clipboard.writeText(link);
         setActionMsg({ type: 'success', text: 'Link de pagamento copiado com sucesso!' });
+      } else if (isBoleto) {
+        await handleGerarBoletoPdf(cobranca);
       } else {
         setActionMsg({ type: 'error', text: 'Esta cobrança é presencial/manual e não possui link externo.' });
       }
@@ -1209,13 +1122,13 @@ export default function EdicaoContrato() {
         ? (() => { try { return JSON.parse(cobrancaCompleta.metadata); } catch (e) { return {}; } })()
         : (cobrancaCompleta.metadata || {});
       const codigo = isBoleto
-        ? (cMeta.linha_digitavel || cobrancaCompleta.linha_digitavel)
+        ? (cMeta.linha_digitavel || cobrancaCompleta.pix_copia_e_cola)
         : (cobrancaCompleta.pix_copia_e_cola || cMeta.pix_copia_e_cola || cobrancaCompleta.link_pagamento);
       if (codigo) {
         await navigator.clipboard.writeText(codigo);
         setActionMsg({
           type: 'success',
-          text: isBoleto ? 'Linha Digitável do Boleto (47 dígitos) copiada com sucesso!' : 'Código Pix Copia e Cola copiado com sucesso!'
+          text: isBoleto ? 'Linha Digitável FEBRABAN (47 dígitos) copiada com sucesso!' : 'Código Pix Copia e Cola copiado com sucesso!'
         });
       }
     } catch (err) {
@@ -1747,7 +1660,7 @@ export default function EdicaoContrato() {
                               </button>
                             </>
                           )}
-                          {(!isMoney && !isBoleto) && (
+                          {!isMoney && (
                             <button 
                               onClick={() => handleCopiarLinkCobranca(c, isBoleto, isMoney)}
                               style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}
@@ -2265,78 +2178,57 @@ export default function EdicaoContrato() {
         </div>
       )}
 
-      {/* ── Modal Sucesso (Link/QR Code/Boleto) ── */}
+      {/* ── Modal Sucesso (Link/QR Code) ── */}
       {successLinkModal.isOpen && successLinkModal.data && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
           <div style={{ background: 'white', padding: '30px', borderRadius: '20px', width: '100%', maxWidth: '520px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', margin: 'auto' }}>
-            {successLinkModal.data.metodo === 'boleto' ? (
-              <>
-                <div style={{ width: '60px', height: '60px', background: '#fef3c7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#92400e', fontSize: '26px' }}>
-                  <i className="fas fa-barcode"></i>
+            <div style={{ width: '60px', height: '60px', background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#166534', fontSize: '24px' }}>
+              <i className="fas fa-check"></i>
+            </div>
+            <h3 style={{ margin: '0 0 10px', color: '#1e293b', fontSize: '1.4rem' }}>Cobrança Gerada!</h3>
+
+            {successLinkModal.data.linhaDigitavel && successLinkModal.data.metodo === 'boleto' && (
+              <div style={{ margin: '18px 0', textAlign: 'left' }}>
+                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Linha Digitável do Boleto (FEBRABAN 47 dígitos):</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" value={successLinkModal.data.linhaDigitavel} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, background: '#fefce8', color: '#854d0e' }} />
+                  <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.linhaDigitavel); alert('Linha Digitável copiada!'); }} style={{ padding: '0 16px', background: '#ca8a04', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }} title="Copiar Linha Digitável"><i className="fas fa-copy"></i></button>
                 </div>
-                <h3 style={{ margin: '0 0 8px', color: '#1e293b', fontSize: '1.4rem', fontWeight: 700 }}>Boleto Bancário Gerado!</h3>
-                <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: '13px' }}>
-                  O download do PDF foi iniciado automaticamente. Você também pode copiar a linha digitável abaixo:
+              </div>
+            )}
+
+            {(successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode) && (
+              <div style={{ margin: '18px 0' }}>
+                <p style={{ margin: '0 0 10px', color: '#64748b', fontSize: '13px' }}>Escaneie o QR Code para pagar:</p>
+                <img src={(successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode).startsWith('http') ? (successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode) : `data:image/png;base64,${successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode}`} alt="QR Code Pagamento" style={{ maxWidth: '190px', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
+              </div>
+            )}
+            
+            {successLinkModal.data.pixCopiaECola && (
+              <div style={{ margin: '18px 0', textAlign: 'left' }}>
+                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Código Copia e Cola (BACEN):</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" value={successLinkModal.data.pixCopiaECola} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#f8fafc', color: '#475569' }} />
+                  <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.pixCopiaECola); alert('Copiado!'); }} style={{ padding: '0 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}><i className="fas fa-copy"></i></button>
+                </div>
+              </div>
+            )}
+            
+            {successLinkModal.data.paymentLink && (
+              <div style={{ margin: '18px 0', textAlign: 'left' }}>
+                <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>
+                  {successLinkModal.data.metodo === 'cartao'
+                    ? 'Link de Pagamento (Cartão / Fatura):'
+                    : successLinkModal.data.metodo === 'boleto'
+                      ? 'Link Externo da Fatura / Boleto:'
+                      : 'Link de Pagamento:'}
                 </p>
-
-                {successLinkModal.data.linhaDigitavel && (
-                  <div style={{ margin: '16px 0', textAlign: 'left' }}>
-                    <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Linha Digitável (47 dígitos FEBRABAN):</p>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" value={successLinkModal.data.linhaDigitavel} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, background: '#fefce8', color: '#854d0e' }} />
-                      <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.linhaDigitavel); alert('Linha Digitável copiada!'); }} style={{ padding: '0 16px', background: '#ca8a04', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }} title="Copiar Linha Digitável"><i className="fas fa-copy"></i> Copiar</button>
-                    </div>
-                  </div>
-                )}
-
-                {successLinkModal.data.row && (
-                  <button 
-                    onClick={() => handleGerarBoletoPdf(successLinkModal.data.row)}
-                    style={{ marginTop: '10px', marginBottom: '8px', padding: '11px 16px', background: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px' }}
-                  >
-                    <i className="fas fa-file-pdf"></i> Baixar Boleto em PDF Novamente
-                  </button>
-                )}
-              </>
-            ) : (
-              <>
-                <div style={{ width: '60px', height: '60px', background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#166534', fontSize: '24px' }}>
-                  <i className="fas fa-check"></i>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" value={successLinkModal.data.paymentLink} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#f8fafc', color: '#2563eb' }} />
+                  <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.paymentLink); alert('Copiado!'); }} style={{ padding: '0 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}><i className="fas fa-copy"></i></button>
                 </div>
-                <h3 style={{ margin: '0 0 10px', color: '#1e293b', fontSize: '1.4rem' }}>Cobrança Gerada!</h3>
-
-                {(successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode) && (
-                  <div style={{ margin: '18px 0' }}>
-                    <p style={{ margin: '0 0 10px', color: '#64748b', fontSize: '13px' }}>Escaneie o QR Code para pagar:</p>
-                    <img src={(successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode).startsWith('http') ? (successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode) : `data:image/png;base64,${successLinkModal.data.imagemQrcode || successLinkModal.data.qrcode}`} alt="QR Code Pagamento" style={{ maxWidth: '190px', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
-                  </div>
-                )}
-                
-                {successLinkModal.data.pixCopiaECola && (
-                  <div style={{ margin: '18px 0', textAlign: 'left' }}>
-                    <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>Código Copia e Cola (BACEN):</p>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" value={successLinkModal.data.pixCopiaECola} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#f8fafc', color: '#475569' }} />
-                      <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.pixCopiaECola); alert('Copiado!'); }} style={{ padding: '0 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}><i className="fas fa-copy"></i></button>
-                    </div>
-                  </div>
-                )}
-                
-                {successLinkModal.data.paymentLink && (
-                  <div style={{ margin: '18px 0', textAlign: 'left' }}>
-                    <p style={{ margin: '0 0 8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>
-                      {successLinkModal.data.metodo === 'cartao'
-                        ? 'Link de Pagamento (Cartão / Fatura):'
-                        : 'Link de Pagamento:'}
-                    </p>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" value={successLinkModal.data.paymentLink} readOnly style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#f8fafc', color: '#2563eb' }} />
-                      <button onClick={() => { navigator.clipboard.writeText(successLinkModal.data.paymentLink); alert('Copiado!'); }} style={{ padding: '0 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}><i className="fas fa-copy"></i></button>
-                    </div>
-                    <a href={successLinkModal.data.paymentLink} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: '10px', fontSize: '13px', color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>Acessar link externamente <i className="fas fa-external-link-alt" style={{ fontSize: '11px', marginLeft: '4px' }}></i></a>
-                  </div>
-                )}
-              </>
+                <a href={successLinkModal.data.paymentLink} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: '10px', fontSize: '13px', color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>Acessar link externamente <i className="fas fa-external-link-alt" style={{ fontSize: '11px', marginLeft: '4px' }}></i></a>
+              </div>
             )}
             
             <button onClick={() => setSuccessLinkModal({ isOpen: false, data: null })} style={{ marginTop: '10px', padding: '12px 30px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, width: '100%' }}>

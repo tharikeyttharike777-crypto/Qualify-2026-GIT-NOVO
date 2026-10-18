@@ -518,10 +518,8 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setLineWidth(0.3);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(200, 16, 46); // Vermelho Bradesco tradicional
-  doc.text('Banco Bradesco S.A.', 15, 18);
-  doc.setTextColor(20);
-  doc.text('|  237-2  |', 65, 18);
+  doc.setTextColor(21, 101, 192);
+  doc.text(companyName.toUpperCase(), 15, 18);
   doc.setFontSize(9);
   doc.setTextColor(80);
   doc.text('RECIBO DO PAGADOR', 195, 18, { align: 'right' });
@@ -539,7 +537,7 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setFontSize(7);
   doc.setTextColor(100);
   doc.text('Beneficiario / Cedente', 17, 28);
-  doc.text('No Contrato / Doc', 132, 28);
+  doc.text('No Contrato', 132, 28);
   doc.text('Vencimento', 164, 28);
 
   doc.setFont('helvetica', 'bold');
@@ -566,13 +564,13 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(100);
-  doc.text('Descricao / Demonstrativo', 17, 56);
+  doc.text('Descricao / Referencia', 17, 56);
   doc.text('Data de Emissao', 132, 56);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(20);
-  doc.text(String(cobranca?.descricao || `Mensalidade do Contrato #${numeroContrato}`).slice(0, 65), 17, 63);
+  doc.text(String(cobranca?.descricao || `Mensalidade Contrato #${numeroContrato}`).slice(0, 65), 17, 63);
   doc.text(emissaoFormatada, 132, 63);
 
   // Linha pontilhada de corte
@@ -583,15 +581,13 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setTextColor(130);
   doc.text('Corte na linha pontilhada', 195, 71, { align: 'right' });
 
-  // Ficha de Compensacao Tradicional
+  // Ficha de Compensacao / Boleto Hibrido
   let y = 82;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.setTextColor(200, 16, 46);
-  doc.text('Bradesco', 15, y);
   doc.setTextColor(20);
-  doc.text('| 237-2 |', 38, y);
-  doc.line(55, y - 5, 55, y + 1);
+  doc.text('237-2', 15, y);
+  doc.line(30, y - 5, 30, y + 1);
   doc.setFontSize(9.5);
   doc.text(linhaDigitavel, 195, y, { align: 'right' });
 
@@ -607,10 +603,10 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.line(15, y + 14, 195, y + 14);
   doc.line(15, y + 28, 195, y + 28);
   doc.line(15, y + 42, 195, y + 42);
-  doc.line(15, y + 84, 195, y + 84);
+  doc.line(15, y + 82, 195, y + 82);
 
   // Colunas direita (Vencimento / Valores)
-  doc.line(145, y, 145, y + 84);
+  doc.line(145, y, 145, y + 82);
 
   // Campos Topo: Local de pagamento + Vencimento
   doc.setFont('helvetica', 'normal');
@@ -622,7 +618,7 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(20);
-  doc.text('PAGAVEL PREFERENCIALMENTE NA REDE BRADESCO OU EM QUALQUER BANCO ATE O VENCIMENTO', 17, y + 11);
+  doc.text('PAGAVEL EM QUALQUER BANCO OU INSTANTANEAMENTE VIA QR CODE PIX', 17, y + 11);
   doc.setFontSize(10);
   doc.text(vencFormatado, 147, y + 11);
 
@@ -650,7 +646,7 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setTextColor(100);
   doc.text('Data do Doc.', 17, y + 32);
   doc.text('No do Documento', 47, y + 32);
-  doc.text('Especie Doc.', 84, y + 32);
+  doc.text('Especie', 84, y + 32);
   doc.text('Aceite', 104, y + 32);
   doc.text('Nosso Numero', 117, y + 32);
   doc.text('(=) Valor do Documento', 147, y + 32);
@@ -666,7 +662,7 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setFontSize(10);
   doc.text(valorFormatado, 147, y + 39);
 
-  // Linha 4: Instrucoes Oficiais de Boleto Bancario
+  // Linha 4: Instrucoes + QR Code PIX Hibrido
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(100);
@@ -680,17 +676,40 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(20);
-  doc.text(String(cobranca?.descricao || `Referente ao Contrato #${numeroContrato}`).slice(0, 75), 17, y + 52);
-
+  doc.text(String(cobranca?.descricao || `Referente ao Contrato #${numeroContrato}`).slice(0, 52), 17, y + 52);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  doc.setTextColor(40);
-  doc.text('Sr. Caixa, nao receber apos o vencimento.', 17, y + 58);
-  doc.text('Apos o vencimento cobrar juros de 1% ao mes e multa de 2%.', 17, y + 63);
-  doc.text('Nao receber pagamento parcial ou com cheque.', 17, y + 68);
-  doc.text('Em caso de duvidas sobre este documento, entre em contato com o beneficiario.', 17, y + 73);
   if (cobMeta?.mensagem) {
-    doc.text(String(cobMeta.mensagem).slice(0, 75), 17, y + 78);
+    doc.text(String(cobMeta.mensagem).slice(0, 55), 17, y + 57);
+  } else {
+    doc.text('Pague via QR Code PIX ao lado ou pelo codigo Copia e Cola abaixo.', 17, y + 57);
+  }
+
+  if (qrBase64) {
+    try {
+      doc.addImage(qrBase64, 'PNG', 108, y + 44, 34, 34);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6);
+      doc.setTextColor(21, 101, 192);
+      doc.text('PAGUE COM PIX', 125, y + 80, { align: 'center' });
+    } catch (e) {}
+  }
+
+  if (pixCopiaECola) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(21, 101, 192);
+    doc.text('PIX Copia e Cola (Codigo Valido BACEN):', 17, y + 63);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.8);
+    doc.setTextColor(40);
+    const wrappedPix = doc.splitTextToSize(String(pixCopiaECola), 88);
+    doc.text(wrappedPix.slice(0, 3), 17, y + 67);
+  } else if (linkPagamento) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(21, 101, 192);
+    doc.text(`Fatura Online: ${linkPagamento}`, 17, y + 66);
   }
 
   doc.setFont('helvetica', 'bold');
@@ -698,20 +717,20 @@ export async function gerarPdfBoletoBuffer(cobranca, contract, family) {
   doc.setTextColor(20);
   doc.text(valorFormatado, 147, y + 79);
 
-  // Linha 5: Pagador / Sacado + Endereco Completo
+  // Linha 5: Pagador + Endereco Completo
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(100);
-  doc.text('Pagador / Sacado', 17, y + 88);
+  doc.text('Pagador', 17, y + 86);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(20);
-  doc.text(`${pagadorNome}${pagadorDoc ? `   -   CPF/CNPJ: ${pagadorDoc}` : ''}`, 17, y + 94);
+  doc.text(`${pagadorNome}${pagadorDoc ? `   -   CPF/CNPJ: ${pagadorDoc}` : ''}`, 17, y + 92);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(50);
-  doc.text(enderecoLinha.slice(0, 95), 17, y + 100);
+  doc.text(enderecoLinha.slice(0, 95), 17, y + 98);
   doc.setFontSize(6.5);
   doc.setTextColor(120);
   doc.text('Autenticacao Mecanica - Ficha de Compensacao', 193, y + 106, { align: 'right' });
